@@ -4,10 +4,10 @@
  * @website:     http://blog.kaven.xyz
  * @file:        [github-action-ftp-upload-file] /index.js
  * @create:      2022-03-08 10:35:33.077
- * @modify:      2022-03-08 13:15:44.149
+ * @modify:      2022-03-08 13:23:10.643
  * @version:     1.0.1
- * @times:       5
- * @lines:       204
+ * @times:       6
+ * @lines:       211
  * @copyright:   Copyright © 2022 Kaven. All Rights Reserved.
  * @description: [description]
  * @license:     [license]
@@ -21,7 +21,6 @@ const github = require("@actions/github");
 
 const { FileSize, TrimStart } = require("kaven-basic");
 const FTPClient = require("ftp");
-const { promisify } = require("util");
 
 
 function logJson(data) {
@@ -62,14 +61,22 @@ async function upload(
                                 core.warning(`file not exists: ${fileName}`);
                                 continue;
                             }
-        
+
                             const fileSize = statSync(fileName).size;
                             console.log(`upload file: ${fileName}, size: ${FileSize(fileSize)}`);
 
                             const destName = basename(fileName);
-                            await promisify(ftpClient.put)(fileName, destName);
+                            await new Promise((r, j) => {
+                                ftpClient.put(fileName, destName, err => {
+                                    if (err) {
+                                        j(err);
+                                    } else {
+                                        r(fileName);
+                                    }
+                                });
+                            });
                         }
-                        
+
                         resolve(files);
                     } catch (ex) {
                         console.error(ex);
@@ -190,7 +197,7 @@ async function main() {
             console.warn(json_stringify_data, e);
         }
 
-        await upload([...fileSet], server, port, username, password, secure, cwd);        
+        await upload([...fileSet], server, port, username, password, secure, cwd);
 
         // Get the JSON webhook payload for the event that triggered the workflow
         // const payload = JSON.stringify(github.context.payload, undefined, 2);

@@ -22,7 +22,7 @@ inputs:
     # '["file1","file2","..."]'
     default: '[]'
 
-  username:
+  user:
     required: true
   password:
     required: true

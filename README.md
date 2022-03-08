@@ -9,9 +9,9 @@ This action uploads the file to the ftp(s) server.
   id: upload
   uses: Kaven-Universe/github-action-ftp-upload-file@v1.0.1
   with:
-    server: ftp.server.com
+    host: localhost
     port: 21
-    username: xxx
+    user: anonymous
     password: ******
     secure: false
     file: "name.txt"

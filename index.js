@@ -4,10 +4,10 @@
  * @website:     http://blog.kaven.xyz
  * @file:        [github-action-ftp-upload-file] /index.js
  * @create:      2022-03-08 10:35:33.077
- * @modify:      2022-03-08 13:23:10.643
+ * @modify:      2022-03-08 15:07:47.733
  * @version:     1.0.1
- * @times:       6
- * @lines:       211
+ * @times:       7
+ * @lines:       214
  * @copyright:   Copyright © 2022 Kaven. All Rights Reserved.
  * @description: [description]
  * @license:     [license]
@@ -30,21 +30,13 @@ function logJson(data) {
 /**
  * 
  * @param {String[]} files 
- * @param {String} serverHost 
- * @param {Number} serverPort 
- * @param {String} serverUserName 
- * @param {String} serverUserPassword 
- * @param {Boolean} secure
+ * @param {FTPClient.Options} config
  * @param {String} cwd 
  * @returns 
  */
 async function upload(
     files,
-    serverHost,
-    serverPort,
-    serverUserName,
-    serverUserPassword,
-    secure,
+    config,
     cwd,
 ) {
     return new Promise((resolve, reject) => {
@@ -108,20 +100,6 @@ async function upload(
                 console.log("ftp end");
             });
 
-        // server address can't include "ftp://" prefix
-        serverHost = TrimStart(serverHost, "ftp://");
-        serverHost = TrimStart(serverHost, "ftps://");
-
-        const config = {
-            host: serverHost,
-            password: serverUserPassword,
-            port: serverPort,
-            user: serverUserName,
-            secure: secure,
-            secureOptions: {
-                rejectUnauthorized: false,
-            },
-        };
 
         ftpClient.connect(config);
     });
@@ -132,20 +110,24 @@ async function main() {
         // inputs defined in action metadata file
         const debug = core.getBooleanInput("debug");
 
-        const server = core.getInput("server");
+        let host = core.getInput("host");
         const port = Number(core.getInput("port"));
 
-        const username = core.getInput("username");
+        const user = core.getInput("user");
         const password = core.getInput("password");
 
         const secure = core.getBooleanInput("secure");
         const cwd = core.getInput("cwd");
 
-        const json_stringify_data = core.getInput("json_stringify_data");
+        const files = core.getInput("files");
 
         let file = core.getInput("file");
         let fileExists = true;
         let newFile = core.getInput("rename-file-to");
+
+        const connTimeout = Number(core.getInput("connTimeout"));
+        const pasvTimeout = Number(core.getInput("pasvTimeout"));
+        const keepalive = Number(core.getInput("keepalive"));
 
         const fileSet = new Set();
 
@@ -180,13 +162,13 @@ async function main() {
         }
 
         try {
-            const json_form_data = JSON.parse(json_stringify_data);
+            const json = JSON.parse(files);
 
             if (debug) {
-                console.log(json_form_data);
+                console.log(json);
             }
 
-            for (const item of json_form_data) {
+            for (const item of json) {
                 if (existsSync(item)) {
                     fileSet.add(item);
                 } else {
@@ -194,10 +176,31 @@ async function main() {
                 }
             }
         } catch (e) {
-            console.warn(json_stringify_data, e);
+            console.warn(files, e);
         }
 
-        await upload([...fileSet], server, port, username, password, secure, cwd);
+        // server address can't include "ftp://" prefix
+        host = TrimStart(host, "ftp://");
+        host = TrimStart(host, "ftps://");
+
+        /**
+         * @type {FTPClient.Options}
+         */
+        const config = {
+            host,
+            password,
+            port,
+            user,
+            secure,
+            connTimeout,
+            pasvTimeout,
+            keepalive,
+            secureOptions: {
+                rejectUnauthorized: false,
+            },
+        };
+
+        await upload([...fileSet], config, cwd);
 
         // Get the JSON webhook payload for the event that triggered the workflow
         // const payload = JSON.stringify(github.context.payload, undefined, 2);

@@ -5,15 +5,23 @@ branding:
   icon: "arrow-up-circle"
   color: "blue"
 inputs:
-  server:
-    description: "server address"
+  host:
+    description: "The hostname or IP address of the FTP server."
     required: true
   port:
-    description: "server port"
+    description: "The port of the FTP server."
     required: true
     default: 21
+
   file:
     required: true
+  rename-file-to:
+    default: ""
+
+  files:
+    # '["file1","file2","..."]'
+    default: '[]'
+
   username:
     required: true
   password:
@@ -22,14 +30,20 @@ inputs:
     default: true
   cwd:
     default: ''
-  rename-file-to:
-    default: ""
+
+  connTimeout:
+    description: "How long (in milliseconds) to wait for the control connection to be established."
+    default: 60000
+  pasvTimeout:
+    description: "How long (in milliseconds) to wait for a PASV data connection to be established."
+    default: 30000
+  keepalive:
+    description: "How often (in milliseconds) to send a 'dummy' (NOOP) command to keep the connection alive."
+    default: 10000
+  
   debug:
     default: false
-  json_stringify_data:
-    # '["file1","file2","..."]'
-    default: '[]'
-
+  
 runs:
   using: "node12"
   main: "dist/index.js"

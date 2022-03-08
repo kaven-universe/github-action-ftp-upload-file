@@ -4,10 +4,10 @@
  * @website:     http://blog.kaven.xyz
  * @file:        [github-action-ftp-upload-file] /index.js
  * @create:      2022-03-08 10:35:33.077
- * @modify:      2022-03-08 15:07:47.733
+ * @modify:      2022-03-08 15:49:21.201
  * @version:     1.0.1
- * @times:       7
- * @lines:       214
+ * @times:       10
+ * @lines:       223
  * @copyright:   Copyright © 2022 Kaven. All Rights Reserved.
  * @description: [description]
  * @license:     [license]
@@ -40,6 +40,7 @@ async function upload(
     cwd,
 ) {
     return new Promise((resolve, reject) => {
+        const start = performance.now();
 
         // https://github.com/mscdex/node-ftp
         const ftpClient = new FTPClient();
@@ -47,6 +48,9 @@ async function upload(
             .on("ready", () => {
                 const put = async () => {
                     try {
+                        let count = 0;
+                        let totalSize = 0;
+
                         for (const fileName of files) {
                             const exist = existsSync(fileName);
                             if (!exist) {
@@ -55,6 +59,7 @@ async function upload(
                             }
 
                             const fileSize = statSync(fileName).size;
+                            totalSize += fileSize;
                             console.log(`upload file: ${fileName}, size: ${FileSize(fileSize)}`);
 
                             const destName = basename(fileName);
@@ -67,7 +72,12 @@ async function upload(
                                     }
                                 });
                             });
+
+                            count++;
                         }
+
+                        const ms = performance.now() - start;
+                        console.log(`${count} files, ${(ms / 1000).toFixed(2)}s, total size: ${FileSize(totalSize)}, speed: ${FileSize(totalSize * 1000 / ms)}/s`);
 
                         resolve(files);
                     } catch (ex) {
@@ -133,7 +143,6 @@ async function main() {
 
         if (debug) {
             logJson(process.env);
-
             console.log(__dirname, __filename);
         }
 

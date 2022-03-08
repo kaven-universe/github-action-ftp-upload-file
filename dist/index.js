@@ -23051,10 +23051,10 @@ var __webpack_exports__ = {};
  * @website:     http://blog.kaven.xyz
  * @file:        [github-action-ftp-upload-file] /index.js
  * @create:      2022-03-08 10:35:33.077
- * @modify:      2022-03-08 10:54:54.385
+ * @modify:      2022-03-08 11:24:37.067
  * @version:     1.0.1
- * @times:       3
- * @lines:       194
+ * @times:       4
+ * @lines:       197
  * @copyright:   Copyright © 2022 Kaven. All Rights Reserved.
  * @description: [description]
  * @license:     [license]
@@ -23081,6 +23081,7 @@ function logJson(data) {
  * @param {Number} serverPort 
  * @param {String} serverUserName 
  * @param {String} serverUserPassword 
+ * @param {Boolean} secure
  * @param {String} cwd 
  * @returns 
  */
@@ -23090,6 +23091,7 @@ async function upload(
     serverPort,
     serverUserName,
     serverUserPassword,
+    secure,
     cwd,
 ) {
     return new Promise((resolve, reject) => {
@@ -23150,7 +23152,7 @@ async function upload(
             password: serverUserPassword,
             port: serverPort,
             user: serverUserName,
-            secure: true,
+            secure: secure,
             secureOptions: {
                 rejectUnauthorized: false,
             },
@@ -23171,6 +23173,7 @@ async function main() {
         const username = core.getInput("username");
         const password = core.getInput("password");
 
+        const secure = core.getBooleanInput("secure");
         const cwd = core.getInput("cwd");
 
         const json_stringify_data = core.getInput("json_stringify_data");
@@ -23226,7 +23229,7 @@ async function main() {
         }
 
         for (const f of fileSet) {
-            await upload(f, server, port, username, password, cwd);
+            await upload(f, server, port, username, password, secure, cwd);
         }
 
         // Get the JSON webhook payload for the event that triggered the workflow

@@ -18,6 +18,8 @@ inputs:
     required: true
   password:
     required: true
+  secure:
+    default: true
   cwd:
     default: ''
   rename-file-to:

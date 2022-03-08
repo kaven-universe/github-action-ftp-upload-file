@@ -22948,6 +22948,14 @@ module.exports = require("path");
 
 /***/ }),
 
+/***/ 4074:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("perf_hooks");
+
+/***/ }),
+
 /***/ 5477:
 /***/ ((module) => {
 
@@ -23051,10 +23059,10 @@ var __webpack_exports__ = {};
  * @website:     http://blog.kaven.xyz
  * @file:        [github-action-ftp-upload-file] /index.js
  * @create:      2022-03-08 10:35:33.077
- * @modify:      2022-03-08 15:49:21.201
+ * @modify:      2022-03-08 16:07:15.923
  * @version:     1.0.1
- * @times:       10
- * @lines:       223
+ * @times:       11
+ * @lines:       224
  * @copyright:   Copyright © 2022 Kaven. All Rights Reserved.
  * @description: [description]
  * @license:     [license]
@@ -23062,6 +23070,7 @@ var __webpack_exports__ = {};
 
 const { existsSync, renameSync, statSync } = __nccwpck_require__(7147);
 const { join, dirname, basename } = __nccwpck_require__(1017);
+const { performance } = __nccwpck_require__(4074);
 
 const core = __nccwpck_require__(6744);
 const github = __nccwpck_require__(6515);

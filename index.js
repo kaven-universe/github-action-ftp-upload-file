@@ -4,10 +4,10 @@
  * @website:     http://blog.kaven.xyz
  * @file:        [github-action-ftp-upload-file] /index.js
  * @create:      2022-03-08 10:35:33.077
- * @modify:      2022-03-08 15:49:21.201
+ * @modify:      2022-03-08 16:07:15.923
  * @version:     1.0.1
- * @times:       10
- * @lines:       223
+ * @times:       11
+ * @lines:       224
  * @copyright:   Copyright © 2022 Kaven. All Rights Reserved.
  * @description: [description]
  * @license:     [license]
@@ -15,6 +15,7 @@
 
 const { existsSync, renameSync, statSync } = require("fs");
 const { join, dirname, basename } = require("path");
+const { performance } = require("perf_hooks");
 
 const core = require("@actions/core");
 const github = require("@actions/github");

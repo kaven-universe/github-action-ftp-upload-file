@@ -4,10 +4,10 @@
  * @website:     http://blog.kaven.xyz
  * @file:        [github-action-ftp-upload-file] /index.js
  * @create:      2022-03-08 10:35:33.077
- * @modify:      2022-03-08 11:24:37.067
+ * @modify:      2022-03-08 13:15:44.149
  * @version:     1.0.1
- * @times:       4
- * @lines:       197
+ * @times:       5
+ * @lines:       204
  * @copyright:   Copyright © 2022 Kaven. All Rights Reserved.
  * @description: [description]
  * @license:     [license]
@@ -21,6 +21,7 @@ const github = require("@actions/github");
 
 const { FileSize, TrimStart } = require("kaven-basic");
 const FTPClient = require("ftp");
+const { promisify } = require("util");
 
 
 function logJson(data) {
@@ -29,7 +30,7 @@ function logJson(data) {
 
 /**
  * 
- * @param {String} fileName 
+ * @param {String[]} files 
  * @param {String} serverHost 
  * @param {Number} serverPort 
  * @param {String} serverUserName 
@@ -39,7 +40,7 @@ function logJson(data) {
  * @returns 
  */
 async function upload(
-    fileName,
+    files,
     serverHost,
     serverPort,
     serverUserName,
@@ -48,30 +49,34 @@ async function upload(
     cwd,
 ) {
     return new Promise((resolve, reject) => {
-        const exist = existsSync(fileName);
-        if (!exist) {
-            reject(new Error(`File not exist: ${fileName}`));
-            return;
-        }
-
-        const fileSize = statSync(fileName).size;
-        console.log(`upload file: ${fileName}, size: ${FileSize(fileSize)}`);
-
-        const destName = basename(fileName);
 
         // https://github.com/mscdex/node-ftp
         const ftpClient = new FTPClient();
         ftpClient
             .on("ready", () => {
-                const put = () => {
-                    ftpClient.put(fileName, destName, (err) => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            resolve(fileName);
+                const put = async () => {
+                    try {
+                        for (const fileName of files) {
+                            const exist = existsSync(fileName);
+                            if (!exist) {
+                                core.warning(`file not exists: ${fileName}`);
+                                continue;
+                            }
+        
+                            const fileSize = statSync(fileName).size;
+                            console.log(`upload file: ${fileName}, size: ${FileSize(fileSize)}`);
+
+                            const destName = basename(fileName);
+                            await promisify(ftpClient.put)(fileName, destName);
                         }
+                        
+                        resolve(files);
+                    } catch (ex) {
+                        console.error(ex);
+                        reject(ex);
+                    } finally {
                         ftpClient.end();
-                    });
+                    }
                 };
 
                 if (cwd) {
@@ -132,7 +137,10 @@ async function main() {
         const json_stringify_data = core.getInput("json_stringify_data");
 
         let file = core.getInput("file");
+        let fileExists = true;
         let newFile = core.getInput("rename-file-to");
+
+        const fileSet = new Set();
 
         if (debug) {
             logJson(process.env);
@@ -144,24 +152,25 @@ async function main() {
             if (debug) {
                 file = __filename;
             } else {
-                core.setFailed(`file not exists: ${file}`);
-                return;
+                core.warning(`file not exists: ${file}`);
+                fileExists = false;
             }
         }
 
-        if (newFile) {
+        if (fileExists) {
+            if (newFile) {
 
-            const dir = dirname(file);
-            newFile = join(dir, newFile);
+                const dir = dirname(file);
+                newFile = join(dir, newFile);
 
-            renameSync(file, newFile);
-            console.log(`rename ${file} to ${newFile}`);
+                renameSync(file, newFile);
+                console.log(`rename ${file} to ${newFile}`);
 
-            file = newFile;
+                file = newFile;
+            }
+
+            fileSet.add(file);
         }
-
-        const fileSet = new Set();
-        fileSet.add(file);
 
         try {
             const json_form_data = JSON.parse(json_stringify_data);
@@ -181,9 +190,7 @@ async function main() {
             console.warn(json_stringify_data, e);
         }
 
-        for (const f of fileSet) {
-            await upload(f, server, port, username, password, secure, cwd);
-        }
+        await upload([...fileSet], server, port, username, password, secure, cwd);        
 
         // Get the JSON webhook payload for the event that triggered the workflow
         // const payload = JSON.stringify(github.context.payload, undefined, 2);

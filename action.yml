@@ -38,13 +38,11 @@ inputs:
     default: '{"connTimeout":60000,"pasvTimeout":30000,"keepalive":5000,"secureOptions":{"rejectUnauthorized":false}}'
   
   basicFtpOptions: #https://github.com/patrickjuchli/basic-ftp#client-api
-    default: '{"timeout":60000,"secureOptions":}'
+    default: '{"timeout":60000,"verbose":true,"secureOptions":{"rejectUnauthorized":false}'
 
   debug:
     default: false
-
-
-  
+ 
 runs:
   using: "node12"
   main: "dist/index.js"

@@ -25385,9 +25385,9 @@ var __webpack_exports__ = {};
  * @website:     http://blog.kaven.xyz
  * @file:        [github-action-ftp-upload-file] /index.js
  * @create:      2022-03-08 10:35:33.077
- * @modify:      2022-03-11 10:54:31.223
+ * @modify:      2022-03-11 11:11:17.487
  * @version:     1.0.1
- * @times:       12
+ * @times:       13
  * @lines:       289
  * @copyright:   Copyright © 2022 Kaven. All Rights Reserved.
  * @description: [description]
@@ -25503,13 +25503,13 @@ async function ftpUpload(files, config, cwd) {
  * @returns 
  */
 async function basicFtpUpload(files, options, cwd) {
-    let timeout = Number(options?.timeout);
+    let timeout = Number(options.timeout);
     if (isNaN(timeout)) {
         timeout = 60000; // 60s
     }
 
     const client = new basicFtp.Client(timeout);
-    client.ftp.verbose = options?.verbose === true;
+    client.ftp.verbose = options.verbose;
 
     try {
         const start = performance.now();

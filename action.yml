@@ -31,18 +31,19 @@ inputs:
   cwd:
     default: ''
 
-  connTimeout:
-    description: "How long (in milliseconds) to wait for the control connection to be established."
-    default: 60000
-  pasvTimeout:
-    description: "How long (in milliseconds) to wait for a PASV data connection to be established."
-    default: 30000
-  keepalive:
-    description: "How often (in milliseconds) to send a 'dummy' (NOOP) command to keep the connection alive."
-    default: 10000
+  ftpLib: #'ftp' or 'basic-ftp'
+    default: 'basic-ftp'
+
+  ftpConnectConfig: #https://github.com/mscdex/node-ftp#methods
+    default: '{"connTimeout":60000,"pasvTimeout":30000,"keepalive":5000,"secureOptions":{"rejectUnauthorized":false}}'
   
+  basicFtpOptions: #https://github.com/patrickjuchli/basic-ftp#client-api
+    default: '{"timeout":60000,"secureOptions":}'
+
   debug:
     default: false
+
+
   
 runs:
   using: "node12"

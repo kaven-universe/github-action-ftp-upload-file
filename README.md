@@ -18,7 +18,4 @@ This action uploads the file to the ftp(s) server.
     rename-file-to: "newName.txt"
     files: '["file1","file2","..."]'
     cwd: 'remote/dir'
-    connTimeout: 60000
-    pasvTimeout: 30000
-    keepalive: 10000
 ```

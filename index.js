@@ -4,10 +4,10 @@
  * @website:     http://blog.kaven.xyz
  * @file:        [github-action-ftp-upload-file] /index.js
  * @create:      2022-03-08 10:35:33.077
- * @modify:      2022-03-08 16:07:15.923
+ * @modify:      2022-03-11 10:54:31.223
  * @version:     1.0.1
- * @times:       11
- * @lines:       224
+ * @times:       12
+ * @lines:       289
  * @copyright:   Copyright © 2022 Kaven. All Rights Reserved.
  * @description: [description]
  * @license:     [license]
@@ -21,7 +21,9 @@ const core = require("@actions/core");
 const github = require("@actions/github");
 
 const { FileSize, TrimStart } = require("kaven-basic");
+
 const FTPClient = require("ftp");
+const basicFtp = require("basic-ftp");
 
 
 function logJson(data) {
@@ -35,11 +37,7 @@ function logJson(data) {
  * @param {String} cwd 
  * @returns 
  */
-async function upload(
-    files,
-    config,
-    cwd,
-) {
+async function ftpUpload(files, config, cwd) {
     return new Promise((resolve, reject) => {
         const start = performance.now();
 
@@ -116,6 +114,67 @@ async function upload(
     });
 }
 
+/**
+ * 
+ * @param {String[]} files 
+ * @param {basicFtp.AccessOptions | {timeout?: Number, verbose?:Boolean}} options
+ * @param {String} cwd 
+ * @returns 
+ */
+async function basicFtpUpload(files, options, cwd) {
+    let timeout = Number(options?.timeout);
+    if (isNaN(timeout)) {
+        timeout = 60000; // 60s
+    }
+
+    const client = new basicFtp.Client(timeout);
+    client.ftp.verbose = options?.verbose === true;
+
+    try {
+        const start = performance.now();
+
+        await client.access(options);
+
+        if (cwd) {
+            await client.cd(cwd);
+        }
+
+        // Log progress for any transfer from now on.
+        client.trackProgress(info => {
+            console.log("File", info.name);
+            console.log("Type", info.type);
+            console.log("Transferred", info.bytes);
+            console.log("Transferred Overall", info.bytesOverall);
+        });
+
+        let count = 0;
+        let totalSize = 0;
+
+        for (const fileName of files) {
+            const exist = existsSync(fileName);
+            if (!exist) {
+                core.warning(`file not exists: ${fileName}`);
+                continue;
+            }
+
+            const fileSize = statSync(fileName).size;
+            totalSize += fileSize;
+            console.log(`upload file: ${fileName}, size: ${FileSize(fileSize)}`);
+
+            const destName = basename(fileName);
+            await client.uploadFrom(fileName, destName);
+
+            count++;
+        }
+
+        const ms = performance.now() - start;
+        console.log(`${count} files, ${(ms / 1000).toFixed(2)}s, total size: ${FileSize(totalSize)}, speed: ${FileSize(totalSize * 1000 / ms)}/s`);
+
+    } finally {
+        client.close();
+    }
+}
+
 async function main() {
     try {
         // inputs defined in action metadata file
@@ -136,9 +195,7 @@ async function main() {
         let fileExists = true;
         let newFile = core.getInput("rename-file-to");
 
-        const connTimeout = Number(core.getInput("connTimeout"));
-        const pasvTimeout = Number(core.getInput("pasvTimeout"));
-        const keepalive = Number(core.getInput("keepalive"));
+        const ftpLib = core.getInput("ftpLib");
 
         const fileSet = new Set();
 
@@ -193,24 +250,32 @@ async function main() {
         host = TrimStart(host, "ftp://");
         host = TrimStart(host, "ftps://");
 
-        /**
-         * @type {FTPClient.Options}
-         */
-        const config = {
-            host,
-            password,
-            port,
-            user,
-            secure,
-            connTimeout,
-            pasvTimeout,
-            keepalive,
-            secureOptions: {
-                rejectUnauthorized: false,
-            },
-        };
+        if (ftpLib === "ftp") {
+            /**
+             * @type {FTPClient.Options}
+             */
+            const ftpConnectConfig = JSON.parse(core.getInput("ftpConnectConfig"));
 
-        await upload([...fileSet], config, cwd);
+            ftpConnectConfig.host = host;
+            ftpConnectConfig.port = port;
+            ftpConnectConfig.user = user;
+            ftpConnectConfig.password = password;
+            ftpConnectConfig.secure = secure;
+
+            await ftpUpload([...fileSet], ftpConnectConfig, cwd);
+        } else {
+            /**
+             * @type {basicFtp.AccessOptions | {timeout?: Number, verbose?:Boolean}}
+             */
+            const basicFtpOptions = JSON.parse(core.getInput("basicFtpOptions"));
+            basicFtpOptions.host = host;
+            basicFtpOptions.port = port;
+            basicFtpOptions.user = user;
+            basicFtpOptions.password = password;
+            basicFtpOptions.secure = secure;
+
+            await basicFtpUpload([...fileSet], basicFtpOptions, cwd);
+        }
 
         // Get the JSON webhook payload for the event that triggered the workflow
         // const payload = JSON.stringify(github.context.payload, undefined, 2);

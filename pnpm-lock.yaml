@@ -5,6 +5,7 @@ specifiers:
   '@actions/github': ^5.0.0
   '@vercel/ncc': ^0.32.0
   '@wenkai.wu/eslint-config': ^1.0.5
+  basic-ftp: ^4.6.6
   eslint: ^8.2.0
   ftp: ^0.3.10
   kaven-basic: ^3.0.1
@@ -12,6 +13,7 @@ specifiers:
 dependencies:
   '@actions/core': 1.6.0
   '@actions/github': 5.0.0
+  basic-ftp: 4.6.6
   ftp: 0.3.10
   kaven-basic: 3.0.1
 
@@ -217,6 +219,11 @@ packages:
   /balanced-match/1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
     dev: true
+
+  /basic-ftp/4.6.6:
+    resolution: {integrity: sha512-5nTclY5mVxjeFoq9cBTzgQvcM1UfeGTd4hCCvb8AgC88wHMDQCD4UX5hZo2jaiSh96Nf+gFy1joNI9iH639bvQ==}
+    engines: {node: '>=8.0.0'}
+    dev: false
 
   /before-after-hook/2.2.2:
     resolution: {integrity: sha512-3pZEU3NT5BFUo/AD5ERPWOgQOCZITni6iavr5AUw5AUwQjMlI0kzu5btnyD39AF0gUEsDPwJT+oY1ORBJijPjQ==}

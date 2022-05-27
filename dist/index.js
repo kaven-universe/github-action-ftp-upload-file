@@ -1,7 +1,7 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 3856:
+/***/ 4317:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -28,7 +28,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.issue = exports.issueCommand = void 0;
 const os = __importStar(__nccwpck_require__(2037));
-const utils_1 = __nccwpck_require__(9637);
+const utils_1 = __nccwpck_require__(489);
 /**
  * Commands
  *
@@ -100,7 +100,7 @@ function escapeProperty(s) {
 
 /***/ }),
 
-/***/ 6744:
+/***/ 9602:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -135,12 +135,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getIDToken = exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.notice = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
-const command_1 = __nccwpck_require__(3856);
-const file_command_1 = __nccwpck_require__(4270);
-const utils_1 = __nccwpck_require__(9637);
+const command_1 = __nccwpck_require__(4317);
+const file_command_1 = __nccwpck_require__(5288);
+const utils_1 = __nccwpck_require__(489);
 const os = __importStar(__nccwpck_require__(2037));
 const path = __importStar(__nccwpck_require__(1017));
-const oidc_utils_1 = __nccwpck_require__(9015);
+const oidc_utils_1 = __nccwpck_require__(907);
 /**
  * The code to exit an action
  */
@@ -415,11 +415,21 @@ function getIDToken(aud) {
     });
 }
 exports.getIDToken = getIDToken;
+/**
+ * Summary exports
+ */
+var summary_1 = __nccwpck_require__(1663);
+Object.defineProperty(exports, "summary", ({ enumerable: true, get: function () { return summary_1.summary; } }));
+/**
+ * @deprecated use core.summary
+ */
+var summary_2 = __nccwpck_require__(1663);
+Object.defineProperty(exports, "markdownSummary", ({ enumerable: true, get: function () { return summary_2.markdownSummary; } }));
 //# sourceMappingURL=core.js.map
 
 /***/ }),
 
-/***/ 4270:
+/***/ 5288:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -450,7 +460,7 @@ exports.issueCommand = void 0;
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const fs = __importStar(__nccwpck_require__(7147));
 const os = __importStar(__nccwpck_require__(2037));
-const utils_1 = __nccwpck_require__(9637);
+const utils_1 = __nccwpck_require__(489);
 function issueCommand(command, message) {
     const filePath = process.env[`GITHUB_${command}`];
     if (!filePath) {
@@ -468,7 +478,7 @@ exports.issueCommand = issueCommand;
 
 /***/ }),
 
-/***/ 9015:
+/***/ 907:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -484,9 +494,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.OidcClient = void 0;
-const http_client_1 = __nccwpck_require__(7820);
-const auth_1 = __nccwpck_require__(5557);
-const core_1 = __nccwpck_require__(6744);
+const http_client_1 = __nccwpck_require__(9706);
+const auth_1 = __nccwpck_require__(8336);
+const core_1 = __nccwpck_require__(9602);
 class OidcClient {
     static createHttpClient(allowRetry = true, maxRetry = 10) {
         const requestOptions = {
@@ -552,7 +562,297 @@ exports.OidcClient = OidcClient;
 
 /***/ }),
 
-/***/ 9637:
+/***/ 1663:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.summary = exports.markdownSummary = exports.SUMMARY_DOCS_URL = exports.SUMMARY_ENV_VAR = void 0;
+const os_1 = __nccwpck_require__(2037);
+const fs_1 = __nccwpck_require__(7147);
+const { access, appendFile, writeFile } = fs_1.promises;
+exports.SUMMARY_ENV_VAR = 'GITHUB_STEP_SUMMARY';
+exports.SUMMARY_DOCS_URL = 'https://docs.github.com/actions/using-workflows/workflow-commands-for-github-actions#adding-a-job-summary';
+class Summary {
+    constructor() {
+        this._buffer = '';
+    }
+    /**
+     * Finds the summary file path from the environment, rejects if env var is not found or file does not exist
+     * Also checks r/w permissions.
+     *
+     * @returns step summary file path
+     */
+    filePath() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this._filePath) {
+                return this._filePath;
+            }
+            const pathFromEnv = process.env[exports.SUMMARY_ENV_VAR];
+            if (!pathFromEnv) {
+                throw new Error(`Unable to find environment variable for $${exports.SUMMARY_ENV_VAR}. Check if your runtime environment supports job summaries.`);
+            }
+            try {
+                yield access(pathFromEnv, fs_1.constants.R_OK | fs_1.constants.W_OK);
+            }
+            catch (_a) {
+                throw new Error(`Unable to access summary file: '${pathFromEnv}'. Check if the file has correct read/write permissions.`);
+            }
+            this._filePath = pathFromEnv;
+            return this._filePath;
+        });
+    }
+    /**
+     * Wraps content in an HTML tag, adding any HTML attributes
+     *
+     * @param {string} tag HTML tag to wrap
+     * @param {string | null} content content within the tag
+     * @param {[attribute: string]: string} attrs key-value list of HTML attributes to add
+     *
+     * @returns {string} content wrapped in HTML element
+     */
+    wrap(tag, content, attrs = {}) {
+        const htmlAttrs = Object.entries(attrs)
+            .map(([key, value]) => ` ${key}="${value}"`)
+            .join('');
+        if (!content) {
+            return `<${tag}${htmlAttrs}>`;
+        }
+        return `<${tag}${htmlAttrs}>${content}</${tag}>`;
+    }
+    /**
+     * Writes text in the buffer to the summary buffer file and empties buffer. Will append by default.
+     *
+     * @param {SummaryWriteOptions} [options] (optional) options for write operation
+     *
+     * @returns {Promise<Summary>} summary instance
+     */
+    write(options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const overwrite = !!(options === null || options === void 0 ? void 0 : options.overwrite);
+            const filePath = yield this.filePath();
+            const writeFunc = overwrite ? writeFile : appendFile;
+            yield writeFunc(filePath, this._buffer, { encoding: 'utf8' });
+            return this.emptyBuffer();
+        });
+    }
+    /**
+     * Clears the summary buffer and wipes the summary file
+     *
+     * @returns {Summary} summary instance
+     */
+    clear() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.emptyBuffer().write({ overwrite: true });
+        });
+    }
+    /**
+     * Returns the current summary buffer as a string
+     *
+     * @returns {string} string of summary buffer
+     */
+    stringify() {
+        return this._buffer;
+    }
+    /**
+     * If the summary buffer is empty
+     *
+     * @returns {boolen} true if the buffer is empty
+     */
+    isEmptyBuffer() {
+        return this._buffer.length === 0;
+    }
+    /**
+     * Resets the summary buffer without writing to summary file
+     *
+     * @returns {Summary} summary instance
+     */
+    emptyBuffer() {
+        this._buffer = '';
+        return this;
+    }
+    /**
+     * Adds raw text to the summary buffer
+     *
+     * @param {string} text content to add
+     * @param {boolean} [addEOL=false] (optional) append an EOL to the raw text (default: false)
+     *
+     * @returns {Summary} summary instance
+     */
+    addRaw(text, addEOL = false) {
+        this._buffer += text;
+        return addEOL ? this.addEOL() : this;
+    }
+    /**
+     * Adds the operating system-specific end-of-line marker to the buffer
+     *
+     * @returns {Summary} summary instance
+     */
+    addEOL() {
+        return this.addRaw(os_1.EOL);
+    }
+    /**
+     * Adds an HTML codeblock to the summary buffer
+     *
+     * @param {string} code content to render within fenced code block
+     * @param {string} lang (optional) language to syntax highlight code
+     *
+     * @returns {Summary} summary instance
+     */
+    addCodeBlock(code, lang) {
+        const attrs = Object.assign({}, (lang && { lang }));
+        const element = this.wrap('pre', this.wrap('code', code), attrs);
+        return this.addRaw(element).addEOL();
+    }
+    /**
+     * Adds an HTML list to the summary buffer
+     *
+     * @param {string[]} items list of items to render
+     * @param {boolean} [ordered=false] (optional) if the rendered list should be ordered or not (default: false)
+     *
+     * @returns {Summary} summary instance
+     */
+    addList(items, ordered = false) {
+        const tag = ordered ? 'ol' : 'ul';
+        const listItems = items.map(item => this.wrap('li', item)).join('');
+        const element = this.wrap(tag, listItems);
+        return this.addRaw(element).addEOL();
+    }
+    /**
+     * Adds an HTML table to the summary buffer
+     *
+     * @param {SummaryTableCell[]} rows table rows
+     *
+     * @returns {Summary} summary instance
+     */
+    addTable(rows) {
+        const tableBody = rows
+            .map(row => {
+            const cells = row
+                .map(cell => {
+                if (typeof cell === 'string') {
+                    return this.wrap('td', cell);
+                }
+                const { header, data, colspan, rowspan } = cell;
+                const tag = header ? 'th' : 'td';
+                const attrs = Object.assign(Object.assign({}, (colspan && { colspan })), (rowspan && { rowspan }));
+                return this.wrap(tag, data, attrs);
+            })
+                .join('');
+            return this.wrap('tr', cells);
+        })
+            .join('');
+        const element = this.wrap('table', tableBody);
+        return this.addRaw(element).addEOL();
+    }
+    /**
+     * Adds a collapsable HTML details element to the summary buffer
+     *
+     * @param {string} label text for the closed state
+     * @param {string} content collapsable content
+     *
+     * @returns {Summary} summary instance
+     */
+    addDetails(label, content) {
+        const element = this.wrap('details', this.wrap('summary', label) + content);
+        return this.addRaw(element).addEOL();
+    }
+    /**
+     * Adds an HTML image tag to the summary buffer
+     *
+     * @param {string} src path to the image you to embed
+     * @param {string} alt text description of the image
+     * @param {SummaryImageOptions} options (optional) addition image attributes
+     *
+     * @returns {Summary} summary instance
+     */
+    addImage(src, alt, options) {
+        const { width, height } = options || {};
+        const attrs = Object.assign(Object.assign({}, (width && { width })), (height && { height }));
+        const element = this.wrap('img', null, Object.assign({ src, alt }, attrs));
+        return this.addRaw(element).addEOL();
+    }
+    /**
+     * Adds an HTML section heading element
+     *
+     * @param {string} text heading text
+     * @param {number | string} [level=1] (optional) the heading level, default: 1
+     *
+     * @returns {Summary} summary instance
+     */
+    addHeading(text, level) {
+        const tag = `h${level}`;
+        const allowedTag = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)
+            ? tag
+            : 'h1';
+        const element = this.wrap(allowedTag, text);
+        return this.addRaw(element).addEOL();
+    }
+    /**
+     * Adds an HTML thematic break (<hr>) to the summary buffer
+     *
+     * @returns {Summary} summary instance
+     */
+    addSeparator() {
+        const element = this.wrap('hr', null);
+        return this.addRaw(element).addEOL();
+    }
+    /**
+     * Adds an HTML line break (<br>) to the summary buffer
+     *
+     * @returns {Summary} summary instance
+     */
+    addBreak() {
+        const element = this.wrap('br', null);
+        return this.addRaw(element).addEOL();
+    }
+    /**
+     * Adds an HTML blockquote to the summary buffer
+     *
+     * @param {string} text quote text
+     * @param {string} cite (optional) citation url
+     *
+     * @returns {Summary} summary instance
+     */
+    addQuote(text, cite) {
+        const attrs = Object.assign({}, (cite && { cite }));
+        const element = this.wrap('blockquote', text, attrs);
+        return this.addRaw(element).addEOL();
+    }
+    /**
+     * Adds an HTML anchor tag to the summary buffer
+     *
+     * @param {string} text link text/content
+     * @param {string} href hyperlink
+     *
+     * @returns {Summary} summary instance
+     */
+    addLink(text, href) {
+        const element = this.wrap('a', text, { href });
+        return this.addRaw(element).addEOL();
+    }
+}
+const _summary = new Summary();
+/**
+ * @deprecated use `core.summary`
+ */
+exports.markdownSummary = _summary;
+exports.summary = _summary;
+//# sourceMappingURL=summary.js.map
+
+/***/ }),
+
+/***/ 489:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -599,7 +899,7 @@ exports.toCommandProperties = toCommandProperties;
 
 /***/ }),
 
-/***/ 823:
+/***/ 5908:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -660,7 +960,7 @@ exports.Context = Context;
 
 /***/ }),
 
-/***/ 6515:
+/***/ 1340:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -686,8 +986,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getOctokit = exports.context = void 0;
-const Context = __importStar(__nccwpck_require__(823));
-const utils_1 = __nccwpck_require__(3508);
+const Context = __importStar(__nccwpck_require__(5908));
+const utils_1 = __nccwpck_require__(4778);
 exports.context = new Context.Context();
 /**
  * Returns a hydrated octokit ready to use for GitHub Actions
@@ -703,7 +1003,7 @@ exports.getOctokit = getOctokit;
 
 /***/ }),
 
-/***/ 9206:
+/***/ 4716:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -729,7 +1029,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getApiBaseUrl = exports.getProxyAgent = exports.getAuthString = void 0;
-const httpClient = __importStar(__nccwpck_require__(7820));
+const httpClient = __importStar(__nccwpck_require__(9706));
 function getAuthString(token, options) {
     if (!token && !options.auth) {
         throw new Error('Parameter token or opts.auth is required');
@@ -753,7 +1053,7 @@ exports.getApiBaseUrl = getApiBaseUrl;
 
 /***/ }),
 
-/***/ 3508:
+/***/ 4778:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -779,12 +1079,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getOctokitOptions = exports.GitHub = exports.context = void 0;
-const Context = __importStar(__nccwpck_require__(823));
-const Utils = __importStar(__nccwpck_require__(9206));
+const Context = __importStar(__nccwpck_require__(5908));
+const Utils = __importStar(__nccwpck_require__(4716));
 // octokit + plugins
-const core_1 = __nccwpck_require__(8338);
-const plugin_rest_endpoint_methods_1 = __nccwpck_require__(2616);
-const plugin_paginate_rest_1 = __nccwpck_require__(3672);
+const core_1 = __nccwpck_require__(3520);
+const plugin_rest_endpoint_methods_1 = __nccwpck_require__(8818);
+const plugin_paginate_rest_1 = __nccwpck_require__(2947);
 exports.context = new Context.Context();
 const baseUrl = Utils.getApiBaseUrl();
 const defaults = {
@@ -814,28 +1114,41 @@ exports.getOctokitOptions = getOctokitOptions;
 
 /***/ }),
 
-/***/ 5557:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ 8336:
+/***/ (function(__unused_webpack_module, exports) {
 
 "use strict";
 
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PersonalAccessTokenCredentialHandler = exports.BearerCredentialHandler = exports.BasicCredentialHandler = void 0;
 class BasicCredentialHandler {
     constructor(username, password) {
         this.username = username;
         this.password = password;
     }
     prepareRequest(options) {
-        options.headers['Authorization'] =
-            'Basic ' +
-                Buffer.from(this.username + ':' + this.password).toString('base64');
+        if (!options.headers) {
+            throw Error('The request has no headers');
+        }
+        options.headers['Authorization'] = `Basic ${Buffer.from(`${this.username}:${this.password}`).toString('base64')}`;
     }
     // This handler cannot handle 401
-    canHandleAuthentication(response) {
+    canHandleAuthentication() {
         return false;
     }
-    handleAuthentication(httpClient, requestInfo, objs) {
-        return null;
+    handleAuthentication() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new Error('not implemented');
+        });
     }
 }
 exports.BasicCredentialHandler = BasicCredentialHandler;
@@ -846,14 +1159,19 @@ class BearerCredentialHandler {
     // currently implements pre-authorization
     // TODO: support preAuth = false where it hooks on 401
     prepareRequest(options) {
-        options.headers['Authorization'] = 'Bearer ' + this.token;
+        if (!options.headers) {
+            throw Error('The request has no headers');
+        }
+        options.headers['Authorization'] = `Bearer ${this.token}`;
     }
     // This handler cannot handle 401
-    canHandleAuthentication(response) {
+    canHandleAuthentication() {
         return false;
     }
-    handleAuthentication(httpClient, requestInfo, objs) {
-        return null;
+    handleAuthentication() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new Error('not implemented');
+        });
     }
 }
 exports.BearerCredentialHandler = BearerCredentialHandler;
@@ -864,32 +1182,66 @@ class PersonalAccessTokenCredentialHandler {
     // currently implements pre-authorization
     // TODO: support preAuth = false where it hooks on 401
     prepareRequest(options) {
-        options.headers['Authorization'] =
-            'Basic ' + Buffer.from('PAT:' + this.token).toString('base64');
+        if (!options.headers) {
+            throw Error('The request has no headers');
+        }
+        options.headers['Authorization'] = `Basic ${Buffer.from(`PAT:${this.token}`).toString('base64')}`;
     }
     // This handler cannot handle 401
-    canHandleAuthentication(response) {
+    canHandleAuthentication() {
         return false;
     }
-    handleAuthentication(httpClient, requestInfo, objs) {
-        return null;
+    handleAuthentication() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new Error('not implemented');
+        });
     }
 }
 exports.PersonalAccessTokenCredentialHandler = PersonalAccessTokenCredentialHandler;
-
+//# sourceMappingURL=auth.js.map
 
 /***/ }),
 
-/***/ 7820:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ 9706:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const http = __nccwpck_require__(3685);
-const https = __nccwpck_require__(5687);
-const pm = __nccwpck_require__(9236);
-let tunnel;
+exports.HttpClient = exports.isHttps = exports.HttpClientResponse = exports.HttpClientError = exports.getProxyUrl = exports.MediaTypes = exports.Headers = exports.HttpCodes = void 0;
+const http = __importStar(__nccwpck_require__(3685));
+const https = __importStar(__nccwpck_require__(5687));
+const pm = __importStar(__nccwpck_require__(531));
+const tunnel = __importStar(__nccwpck_require__(8125));
 var HttpCodes;
 (function (HttpCodes) {
     HttpCodes[HttpCodes["OK"] = 200] = "OK";
@@ -934,7 +1286,7 @@ var MediaTypes;
  * @param serverUrl  The server URL where the request will be sent. For example, https://api.github.com
  */
 function getProxyUrl(serverUrl) {
-    let proxyUrl = pm.getProxyUrl(new URL(serverUrl));
+    const proxyUrl = pm.getProxyUrl(new URL(serverUrl));
     return proxyUrl ? proxyUrl.href : '';
 }
 exports.getProxyUrl = getProxyUrl;
@@ -967,20 +1319,22 @@ class HttpClientResponse {
         this.message = message;
     }
     readBody() {
-        return new Promise(async (resolve, reject) => {
-            let output = Buffer.alloc(0);
-            this.message.on('data', (chunk) => {
-                output = Buffer.concat([output, chunk]);
-            });
-            this.message.on('end', () => {
-                resolve(output.toString());
-            });
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                let output = Buffer.alloc(0);
+                this.message.on('data', (chunk) => {
+                    output = Buffer.concat([output, chunk]);
+                });
+                this.message.on('end', () => {
+                    resolve(output.toString());
+                });
+            }));
         });
     }
 }
 exports.HttpClientResponse = HttpClientResponse;
 function isHttps(requestUrl) {
-    let parsedUrl = new URL(requestUrl);
+    const parsedUrl = new URL(requestUrl);
     return parsedUrl.protocol === 'https:';
 }
 exports.isHttps = isHttps;
@@ -1023,141 +1377,169 @@ class HttpClient {
         }
     }
     options(requestUrl, additionalHeaders) {
-        return this.request('OPTIONS', requestUrl, null, additionalHeaders || {});
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.request('OPTIONS', requestUrl, null, additionalHeaders || {});
+        });
     }
     get(requestUrl, additionalHeaders) {
-        return this.request('GET', requestUrl, null, additionalHeaders || {});
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.request('GET', requestUrl, null, additionalHeaders || {});
+        });
     }
     del(requestUrl, additionalHeaders) {
-        return this.request('DELETE', requestUrl, null, additionalHeaders || {});
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.request('DELETE', requestUrl, null, additionalHeaders || {});
+        });
     }
     post(requestUrl, data, additionalHeaders) {
-        return this.request('POST', requestUrl, data, additionalHeaders || {});
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.request('POST', requestUrl, data, additionalHeaders || {});
+        });
     }
     patch(requestUrl, data, additionalHeaders) {
-        return this.request('PATCH', requestUrl, data, additionalHeaders || {});
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.request('PATCH', requestUrl, data, additionalHeaders || {});
+        });
     }
     put(requestUrl, data, additionalHeaders) {
-        return this.request('PUT', requestUrl, data, additionalHeaders || {});
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.request('PUT', requestUrl, data, additionalHeaders || {});
+        });
     }
     head(requestUrl, additionalHeaders) {
-        return this.request('HEAD', requestUrl, null, additionalHeaders || {});
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.request('HEAD', requestUrl, null, additionalHeaders || {});
+        });
     }
     sendStream(verb, requestUrl, stream, additionalHeaders) {
-        return this.request(verb, requestUrl, stream, additionalHeaders);
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.request(verb, requestUrl, stream, additionalHeaders);
+        });
     }
     /**
      * Gets a typed object from an endpoint
      * Be aware that not found returns a null.  Other errors (4xx, 5xx) reject the promise
      */
-    async getJson(requestUrl, additionalHeaders = {}) {
-        additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
-        let res = await this.get(requestUrl, additionalHeaders);
-        return this._processResponse(res, this.requestOptions);
+    getJson(requestUrl, additionalHeaders = {}) {
+        return __awaiter(this, void 0, void 0, function* () {
+            additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
+            const res = yield this.get(requestUrl, additionalHeaders);
+            return this._processResponse(res, this.requestOptions);
+        });
     }
-    async postJson(requestUrl, obj, additionalHeaders = {}) {
-        let data = JSON.stringify(obj, null, 2);
-        additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
-        additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
-        let res = await this.post(requestUrl, data, additionalHeaders);
-        return this._processResponse(res, this.requestOptions);
+    postJson(requestUrl, obj, additionalHeaders = {}) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = JSON.stringify(obj, null, 2);
+            additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
+            additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
+            const res = yield this.post(requestUrl, data, additionalHeaders);
+            return this._processResponse(res, this.requestOptions);
+        });
     }
-    async putJson(requestUrl, obj, additionalHeaders = {}) {
-        let data = JSON.stringify(obj, null, 2);
-        additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
-        additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
-        let res = await this.put(requestUrl, data, additionalHeaders);
-        return this._processResponse(res, this.requestOptions);
+    putJson(requestUrl, obj, additionalHeaders = {}) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = JSON.stringify(obj, null, 2);
+            additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
+            additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
+            const res = yield this.put(requestUrl, data, additionalHeaders);
+            return this._processResponse(res, this.requestOptions);
+        });
     }
-    async patchJson(requestUrl, obj, additionalHeaders = {}) {
-        let data = JSON.stringify(obj, null, 2);
-        additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
-        additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
-        let res = await this.patch(requestUrl, data, additionalHeaders);
-        return this._processResponse(res, this.requestOptions);
+    patchJson(requestUrl, obj, additionalHeaders = {}) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = JSON.stringify(obj, null, 2);
+            additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
+            additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
+            const res = yield this.patch(requestUrl, data, additionalHeaders);
+            return this._processResponse(res, this.requestOptions);
+        });
     }
     /**
      * Makes a raw http request.
      * All other methods such as get, post, patch, and request ultimately call this.
      * Prefer get, del, post and patch
      */
-    async request(verb, requestUrl, data, headers) {
-        if (this._disposed) {
-            throw new Error('Client has already been disposed.');
-        }
-        let parsedUrl = new URL(requestUrl);
-        let info = this._prepareRequest(verb, parsedUrl, headers);
-        // Only perform retries on reads since writes may not be idempotent.
-        let maxTries = this._allowRetries && RetryableHttpVerbs.indexOf(verb) != -1
-            ? this._maxRetries + 1
-            : 1;
-        let numTries = 0;
-        let response;
-        while (numTries < maxTries) {
-            response = await this.requestRaw(info, data);
-            // Check if it's an authentication challenge
-            if (response &&
-                response.message &&
-                response.message.statusCode === HttpCodes.Unauthorized) {
-                let authenticationHandler;
-                for (let i = 0; i < this.handlers.length; i++) {
-                    if (this.handlers[i].canHandleAuthentication(response)) {
-                        authenticationHandler = this.handlers[i];
-                        break;
-                    }
-                }
-                if (authenticationHandler) {
-                    return authenticationHandler.handleAuthentication(this, info, data);
-                }
-                else {
-                    // We have received an unauthorized response but have no handlers to handle it.
-                    // Let the response return to the caller.
-                    return response;
-                }
+    request(verb, requestUrl, data, headers) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this._disposed) {
+                throw new Error('Client has already been disposed.');
             }
-            let redirectsRemaining = this._maxRedirects;
-            while (HttpRedirectCodes.indexOf(response.message.statusCode) != -1 &&
-                this._allowRedirects &&
-                redirectsRemaining > 0) {
-                const redirectUrl = response.message.headers['location'];
-                if (!redirectUrl) {
-                    // if there's no location to redirect to, we won't
-                    break;
-                }
-                let parsedRedirectUrl = new URL(redirectUrl);
-                if (parsedUrl.protocol == 'https:' &&
-                    parsedUrl.protocol != parsedRedirectUrl.protocol &&
-                    !this._allowRedirectDowngrade) {
-                    throw new Error('Redirect from HTTPS to HTTP protocol. This downgrade is not allowed for security reasons. If you want to allow this behavior, set the allowRedirectDowngrade option to true.');
-                }
-                // we need to finish reading the response before reassigning response
-                // which will leak the open socket.
-                await response.readBody();
-                // strip authorization header if redirected to a different hostname
-                if (parsedRedirectUrl.hostname !== parsedUrl.hostname) {
-                    for (let header in headers) {
-                        // header names are case insensitive
-                        if (header.toLowerCase() === 'authorization') {
-                            delete headers[header];
+            const parsedUrl = new URL(requestUrl);
+            let info = this._prepareRequest(verb, parsedUrl, headers);
+            // Only perform retries on reads since writes may not be idempotent.
+            const maxTries = this._allowRetries && RetryableHttpVerbs.includes(verb)
+                ? this._maxRetries + 1
+                : 1;
+            let numTries = 0;
+            let response;
+            do {
+                response = yield this.requestRaw(info, data);
+                // Check if it's an authentication challenge
+                if (response &&
+                    response.message &&
+                    response.message.statusCode === HttpCodes.Unauthorized) {
+                    let authenticationHandler;
+                    for (const handler of this.handlers) {
+                        if (handler.canHandleAuthentication(response)) {
+                            authenticationHandler = handler;
+                            break;
                         }
                     }
+                    if (authenticationHandler) {
+                        return authenticationHandler.handleAuthentication(this, info, data);
+                    }
+                    else {
+                        // We have received an unauthorized response but have no handlers to handle it.
+                        // Let the response return to the caller.
+                        return response;
+                    }
                 }
-                // let's make the request with the new redirectUrl
-                info = this._prepareRequest(verb, parsedRedirectUrl, headers);
-                response = await this.requestRaw(info, data);
-                redirectsRemaining--;
-            }
-            if (HttpResponseRetryCodes.indexOf(response.message.statusCode) == -1) {
-                // If not a retry code, return immediately instead of retrying
-                return response;
-            }
-            numTries += 1;
-            if (numTries < maxTries) {
-                await response.readBody();
-                await this._performExponentialBackoff(numTries);
-            }
-        }
-        return response;
+                let redirectsRemaining = this._maxRedirects;
+                while (response.message.statusCode &&
+                    HttpRedirectCodes.includes(response.message.statusCode) &&
+                    this._allowRedirects &&
+                    redirectsRemaining > 0) {
+                    const redirectUrl = response.message.headers['location'];
+                    if (!redirectUrl) {
+                        // if there's no location to redirect to, we won't
+                        break;
+                    }
+                    const parsedRedirectUrl = new URL(redirectUrl);
+                    if (parsedUrl.protocol === 'https:' &&
+                        parsedUrl.protocol !== parsedRedirectUrl.protocol &&
+                        !this._allowRedirectDowngrade) {
+                        throw new Error('Redirect from HTTPS to HTTP protocol. This downgrade is not allowed for security reasons. If you want to allow this behavior, set the allowRedirectDowngrade option to true.');
+                    }
+                    // we need to finish reading the response before reassigning response
+                    // which will leak the open socket.
+                    yield response.readBody();
+                    // strip authorization header if redirected to a different hostname
+                    if (parsedRedirectUrl.hostname !== parsedUrl.hostname) {
+                        for (const header in headers) {
+                            // header names are case insensitive
+                            if (header.toLowerCase() === 'authorization') {
+                                delete headers[header];
+                            }
+                        }
+                    }
+                    // let's make the request with the new redirectUrl
+                    info = this._prepareRequest(verb, parsedRedirectUrl, headers);
+                    response = yield this.requestRaw(info, data);
+                    redirectsRemaining--;
+                }
+                if (!response.message.statusCode ||
+                    !HttpResponseRetryCodes.includes(response.message.statusCode)) {
+                    // If not a retry code, return immediately instead of retrying
+                    return response;
+                }
+                numTries += 1;
+                if (numTries < maxTries) {
+                    yield response.readBody();
+                    yield this._performExponentialBackoff(numTries);
+                }
+            } while (numTries < maxTries);
+            return response;
+        });
     }
     /**
      * Needs to be called if keepAlive is set to true in request options.
@@ -1174,14 +1556,22 @@ class HttpClient {
      * @param data
      */
     requestRaw(info, data) {
-        return new Promise((resolve, reject) => {
-            let callbackForResult = function (err, res) {
-                if (err) {
-                    reject(err);
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => {
+                function callbackForResult(err, res) {
+                    if (err) {
+                        reject(err);
+                    }
+                    else if (!res) {
+                        // If `err` is not passed, then `res` must be passed.
+                        reject(new Error('Unknown error'));
+                    }
+                    else {
+                        resolve(res);
+                    }
                 }
-                resolve(res);
-            };
-            this.requestRawWithCallback(info, data, callbackForResult);
+                this.requestRawWithCallback(info, data, callbackForResult);
+            });
         });
     }
     /**
@@ -1191,21 +1581,24 @@ class HttpClient {
      * @param onResult
      */
     requestRawWithCallback(info, data, onResult) {
-        let socket;
         if (typeof data === 'string') {
+            if (!info.options.headers) {
+                info.options.headers = {};
+            }
             info.options.headers['Content-Length'] = Buffer.byteLength(data, 'utf8');
         }
         let callbackCalled = false;
-        let handleResult = (err, res) => {
+        function handleResult(err, res) {
             if (!callbackCalled) {
                 callbackCalled = true;
                 onResult(err, res);
             }
-        };
-        let req = info.httpModule.request(info.options, (msg) => {
-            let res = new HttpClientResponse(msg);
-            handleResult(null, res);
+        }
+        const req = info.httpModule.request(info.options, (msg) => {
+            const res = new HttpClientResponse(msg);
+            handleResult(undefined, res);
         });
+        let socket;
         req.on('socket', sock => {
             socket = sock;
         });
@@ -1214,12 +1607,12 @@ class HttpClient {
             if (socket) {
                 socket.end();
             }
-            handleResult(new Error('Request timeout: ' + info.options.path), null);
+            handleResult(new Error(`Request timeout: ${info.options.path}`));
         });
         req.on('error', function (err) {
             // err has statusCode property
             // res should have headers
-            handleResult(err, null);
+            handleResult(err);
         });
         if (data && typeof data === 'string') {
             req.write(data, 'utf8');
@@ -1240,7 +1633,7 @@ class HttpClient {
      * @param serverUrl  The server URL where the request will be sent. For example, https://api.github.com
      */
     getAgent(serverUrl) {
-        let parsedUrl = new URL(serverUrl);
+        const parsedUrl = new URL(serverUrl);
         return this._getAgent(parsedUrl);
     }
     _prepareRequest(method, requestUrl, headers) {
@@ -1264,21 +1657,19 @@ class HttpClient {
         info.options.agent = this._getAgent(info.parsedUrl);
         // gives handlers an opportunity to participate
         if (this.handlers) {
-            this.handlers.forEach(handler => {
+            for (const handler of this.handlers) {
                 handler.prepareRequest(info.options);
-            });
+            }
         }
         return info;
     }
     _mergeHeaders(headers) {
-        const lowercaseKeys = obj => Object.keys(obj).reduce((c, k) => ((c[k.toLowerCase()] = obj[k]), c), {});
         if (this.requestOptions && this.requestOptions.headers) {
-            return Object.assign({}, lowercaseKeys(this.requestOptions.headers), lowercaseKeys(headers));
+            return Object.assign({}, lowercaseKeys(this.requestOptions.headers), lowercaseKeys(headers || {}));
         }
         return lowercaseKeys(headers || {});
     }
     _getExistingOrDefaultHeader(additionalHeaders, header, _default) {
-        const lowercaseKeys = obj => Object.keys(obj).reduce((c, k) => ((c[k.toLowerCase()] = obj[k]), c), {});
         let clientHeader;
         if (this.requestOptions && this.requestOptions.headers) {
             clientHeader = lowercaseKeys(this.requestOptions.headers)[header];
@@ -1287,8 +1678,8 @@ class HttpClient {
     }
     _getAgent(parsedUrl) {
         let agent;
-        let proxyUrl = pm.getProxyUrl(parsedUrl);
-        let useProxy = proxyUrl && proxyUrl.hostname;
+        const proxyUrl = pm.getProxyUrl(parsedUrl);
+        const useProxy = proxyUrl && proxyUrl.hostname;
         if (this._keepAlive && useProxy) {
             agent = this._proxyAgent;
         }
@@ -1296,29 +1687,22 @@ class HttpClient {
             agent = this._agent;
         }
         // if agent is already assigned use that agent.
-        if (!!agent) {
+        if (agent) {
             return agent;
         }
         const usingSsl = parsedUrl.protocol === 'https:';
         let maxSockets = 100;
-        if (!!this.requestOptions) {
+        if (this.requestOptions) {
             maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets;
         }
-        if (useProxy) {
-            // If using proxy, need tunnel
-            if (!tunnel) {
-                tunnel = __nccwpck_require__(8822);
-            }
+        // This is `useProxy` again, but we need to check `proxyURl` directly for TypeScripts's flow analysis.
+        if (proxyUrl && proxyUrl.hostname) {
             const agentOptions = {
-                maxSockets: maxSockets,
+                maxSockets,
                 keepAlive: this._keepAlive,
-                proxy: {
-                    ...((proxyUrl.username || proxyUrl.password) && {
-                        proxyAuth: `${proxyUrl.username}:${proxyUrl.password}`
-                    }),
-                    host: proxyUrl.hostname,
-                    port: proxyUrl.port
-                }
+                proxy: Object.assign(Object.assign({}, ((proxyUrl.username || proxyUrl.password) && {
+                    proxyAuth: `${proxyUrl.username}:${proxyUrl.password}`
+                })), { host: proxyUrl.hostname, port: proxyUrl.port })
             };
             let tunnelAgent;
             const overHttps = proxyUrl.protocol === 'https:';
@@ -1333,7 +1717,7 @@ class HttpClient {
         }
         // if reusing agent across request and tunneling agent isn't assigned create a new agent
         if (this._keepAlive && !agent) {
-            const options = { keepAlive: this._keepAlive, maxSockets: maxSockets };
+            const options = { keepAlive: this._keepAlive, maxSockets };
             agent = usingSsl ? new https.Agent(options) : new http.Agent(options);
             this._agent = agent;
         }
@@ -1352,109 +1736,117 @@ class HttpClient {
         return agent;
     }
     _performExponentialBackoff(retryNumber) {
-        retryNumber = Math.min(ExponentialBackoffCeiling, retryNumber);
-        const ms = ExponentialBackoffTimeSlice * Math.pow(2, retryNumber);
-        return new Promise(resolve => setTimeout(() => resolve(), ms));
+        return __awaiter(this, void 0, void 0, function* () {
+            retryNumber = Math.min(ExponentialBackoffCeiling, retryNumber);
+            const ms = ExponentialBackoffTimeSlice * Math.pow(2, retryNumber);
+            return new Promise(resolve => setTimeout(() => resolve(), ms));
+        });
     }
-    static dateTimeDeserializer(key, value) {
-        if (typeof value === 'string') {
-            let a = new Date(value);
-            if (!isNaN(a.valueOf())) {
-                return a;
-            }
-        }
-        return value;
-    }
-    async _processResponse(res, options) {
-        return new Promise(async (resolve, reject) => {
-            const statusCode = res.message.statusCode;
-            const response = {
-                statusCode: statusCode,
-                result: null,
-                headers: {}
-            };
-            // not found leads to null obj returned
-            if (statusCode == HttpCodes.NotFound) {
-                resolve(response);
-            }
-            let obj;
-            let contents;
-            // get the result from the body
-            try {
-                contents = await res.readBody();
-                if (contents && contents.length > 0) {
-                    if (options && options.deserializeDates) {
-                        obj = JSON.parse(contents, HttpClient.dateTimeDeserializer);
+    _processResponse(res, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                const statusCode = res.message.statusCode || 0;
+                const response = {
+                    statusCode,
+                    result: null,
+                    headers: {}
+                };
+                // not found leads to null obj returned
+                if (statusCode === HttpCodes.NotFound) {
+                    resolve(response);
+                }
+                // get the result from the body
+                function dateTimeDeserializer(key, value) {
+                    if (typeof value === 'string') {
+                        const a = new Date(value);
+                        if (!isNaN(a.valueOf())) {
+                            return a;
+                        }
+                    }
+                    return value;
+                }
+                let obj;
+                let contents;
+                try {
+                    contents = yield res.readBody();
+                    if (contents && contents.length > 0) {
+                        if (options && options.deserializeDates) {
+                            obj = JSON.parse(contents, dateTimeDeserializer);
+                        }
+                        else {
+                            obj = JSON.parse(contents);
+                        }
+                        response.result = obj;
+                    }
+                    response.headers = res.message.headers;
+                }
+                catch (err) {
+                    // Invalid resource (contents not json);  leaving result obj null
+                }
+                // note that 3xx redirects are handled by the http layer.
+                if (statusCode > 299) {
+                    let msg;
+                    // if exception/error in body, attempt to get better error
+                    if (obj && obj.message) {
+                        msg = obj.message;
+                    }
+                    else if (contents && contents.length > 0) {
+                        // it may be the case that the exception is in the body message as string
+                        msg = contents;
                     }
                     else {
-                        obj = JSON.parse(contents);
+                        msg = `Failed request: (${statusCode})`;
                     }
-                    response.result = obj;
-                }
-                response.headers = res.message.headers;
-            }
-            catch (err) {
-                // Invalid resource (contents not json);  leaving result obj null
-            }
-            // note that 3xx redirects are handled by the http layer.
-            if (statusCode > 299) {
-                let msg;
-                // if exception/error in body, attempt to get better error
-                if (obj && obj.message) {
-                    msg = obj.message;
-                }
-                else if (contents && contents.length > 0) {
-                    // it may be the case that the exception is in the body message as string
-                    msg = contents;
+                    const err = new HttpClientError(msg, statusCode);
+                    err.result = response.result;
+                    reject(err);
                 }
                 else {
-                    msg = 'Failed request: (' + statusCode + ')';
+                    resolve(response);
                 }
-                let err = new HttpClientError(msg, statusCode);
-                err.result = response.result;
-                reject(err);
-            }
-            else {
-                resolve(response);
-            }
+            }));
         });
     }
 }
 exports.HttpClient = HttpClient;
-
+const lowercaseKeys = (obj) => Object.keys(obj).reduce((c, k) => ((c[k.toLowerCase()] = obj[k]), c), {});
+//# sourceMappingURL=index.js.map
 
 /***/ }),
 
-/***/ 9236:
+/***/ 531:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.checkBypass = exports.getProxyUrl = void 0;
 function getProxyUrl(reqUrl) {
-    let usingSsl = reqUrl.protocol === 'https:';
-    let proxyUrl;
+    const usingSsl = reqUrl.protocol === 'https:';
     if (checkBypass(reqUrl)) {
-        return proxyUrl;
+        return undefined;
     }
-    let proxyVar;
-    if (usingSsl) {
-        proxyVar = process.env['https_proxy'] || process.env['HTTPS_PROXY'];
+    const proxyVar = (() => {
+        if (usingSsl) {
+            return process.env['https_proxy'] || process.env['HTTPS_PROXY'];
+        }
+        else {
+            return process.env['http_proxy'] || process.env['HTTP_PROXY'];
+        }
+    })();
+    if (proxyVar) {
+        return new URL(proxyVar);
     }
     else {
-        proxyVar = process.env['http_proxy'] || process.env['HTTP_PROXY'];
+        return undefined;
     }
-    if (proxyVar) {
-        proxyUrl = new URL(proxyVar);
-    }
-    return proxyUrl;
 }
 exports.getProxyUrl = getProxyUrl;
 function checkBypass(reqUrl) {
     if (!reqUrl.hostname) {
         return false;
     }
-    let noProxy = process.env['no_proxy'] || process.env['NO_PROXY'] || '';
+    const noProxy = process.env['no_proxy'] || process.env['NO_PROXY'] || '';
     if (!noProxy) {
         return false;
     }
@@ -1470,12 +1862,12 @@ function checkBypass(reqUrl) {
         reqPort = 443;
     }
     // Format the request hostname and hostname with port
-    let upperReqHosts = [reqUrl.hostname.toUpperCase()];
+    const upperReqHosts = [reqUrl.hostname.toUpperCase()];
     if (typeof reqPort === 'number') {
         upperReqHosts.push(`${upperReqHosts[0]}:${reqPort}`);
     }
     // Compare request host against noproxy
-    for (let upperNoProxyItem of noProxy
+    for (const upperNoProxyItem of noProxy
         .split(',')
         .map(x => x.trim().toUpperCase())
         .filter(x => x)) {
@@ -1486,11 +1878,11 @@ function checkBypass(reqUrl) {
     return false;
 }
 exports.checkBypass = checkBypass;
-
+//# sourceMappingURL=proxy.js.map
 
 /***/ }),
 
-/***/ 7149:
+/***/ 2268:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1553,7 +1945,7 @@ exports.createTokenAuth = createTokenAuth;
 
 /***/ }),
 
-/***/ 8338:
+/***/ 3520:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -1561,11 +1953,11 @@ exports.createTokenAuth = createTokenAuth;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 
-var universalUserAgent = __nccwpck_require__(4354);
-var beforeAfterHook = __nccwpck_require__(7293);
-var request = __nccwpck_require__(8739);
-var graphql = __nccwpck_require__(1307);
-var authToken = __nccwpck_require__(7149);
+var universalUserAgent = __nccwpck_require__(7571);
+var beforeAfterHook = __nccwpck_require__(9081);
+var request = __nccwpck_require__(9610);
+var graphql = __nccwpck_require__(8129);
+var authToken = __nccwpck_require__(2268);
 
 function _objectWithoutPropertiesLoose(source, excluded) {
   if (source == null) return {};
@@ -1603,7 +1995,7 @@ function _objectWithoutProperties(source, excluded) {
   return target;
 }
 
-const VERSION = "3.5.1";
+const VERSION = "3.6.0";
 
 const _excluded = ["authStrategy"];
 class Octokit {
@@ -1737,7 +2129,7 @@ exports.Octokit = Octokit;
 
 /***/ }),
 
-/***/ 2567:
+/***/ 8658:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -1745,8 +2137,8 @@ exports.Octokit = Octokit;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 
-var isPlainObject = __nccwpck_require__(3137);
-var universalUserAgent = __nccwpck_require__(4354);
+var isPlainObject = __nccwpck_require__(4014);
+var universalUserAgent = __nccwpck_require__(7571);
 
 function lowercaseKeys(object) {
   if (!object) {
@@ -2135,7 +2527,7 @@ exports.endpoint = endpoint;
 
 /***/ }),
 
-/***/ 1307:
+/***/ 8129:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -2143,8 +2535,8 @@ exports.endpoint = endpoint;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 
-var request = __nccwpck_require__(8739);
-var universalUserAgent = __nccwpck_require__(4354);
+var request = __nccwpck_require__(9610);
+var universalUserAgent = __nccwpck_require__(7571);
 
 const VERSION = "4.8.0";
 
@@ -2261,7 +2653,7 @@ exports.withCustomRequest = withCustomRequest;
 
 /***/ }),
 
-/***/ 3672:
+/***/ 2947:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -2486,7 +2878,7 @@ exports.paginatingEndpoints = paginatingEndpoints;
 
 /***/ }),
 
-/***/ 2616:
+/***/ 8818:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -3519,7 +3911,7 @@ exports.restEndpointMethods = restEndpointMethods;
 
 /***/ }),
 
-/***/ 1663:
+/***/ 877:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -3529,8 +3921,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var deprecation = __nccwpck_require__(502);
-var once = _interopDefault(__nccwpck_require__(407));
+var deprecation = __nccwpck_require__(8455);
+var once = _interopDefault(__nccwpck_require__(6210));
 
 const logOnceCode = once(deprecation => console.warn(deprecation));
 const logOnceHeaders = once(deprecation => console.warn(deprecation));
@@ -3601,7 +3993,7 @@ exports.RequestError = RequestError;
 
 /***/ }),
 
-/***/ 8739:
+/***/ 9610:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -3611,13 +4003,13 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var endpoint = __nccwpck_require__(2567);
-var universalUserAgent = __nccwpck_require__(4354);
-var isPlainObject = __nccwpck_require__(3137);
-var nodeFetch = _interopDefault(__nccwpck_require__(4277));
-var requestError = __nccwpck_require__(1663);
+var endpoint = __nccwpck_require__(8658);
+var universalUserAgent = __nccwpck_require__(7571);
+var isPlainObject = __nccwpck_require__(4014);
+var nodeFetch = _interopDefault(__nccwpck_require__(9608));
+var requestError = __nccwpck_require__(877);
 
-const VERSION = "5.6.2";
+const VERSION = "5.6.3";
 
 function getBufferResponse(response) {
   return response.arrayBuffer();
@@ -3786,7 +4178,7 @@ exports.request = request;
 
 /***/ }),
 
-/***/ 4984:
+/***/ 247:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -3797,14 +4189,14 @@ const fs_1 = __nccwpck_require__(7147);
 const path_1 = __nccwpck_require__(1017);
 const tls_1 = __nccwpck_require__(4404);
 const util_1 = __nccwpck_require__(3837);
-const FtpContext_1 = __nccwpck_require__(3216);
-const parseList_1 = __nccwpck_require__(8534);
-const ProgressTracker_1 = __nccwpck_require__(7593);
-const StringWriter_1 = __nccwpck_require__(131);
-const parseListMLSD_1 = __nccwpck_require__(1851);
-const netUtils_1 = __nccwpck_require__(6643);
-const transfer_1 = __nccwpck_require__(9428);
-const parseControlResponse_1 = __nccwpck_require__(1406);
+const FtpContext_1 = __nccwpck_require__(4279);
+const parseList_1 = __nccwpck_require__(2956);
+const ProgressTracker_1 = __nccwpck_require__(1327);
+const StringWriter_1 = __nccwpck_require__(4835);
+const parseListMLSD_1 = __nccwpck_require__(1611);
+const netUtils_1 = __nccwpck_require__(7954);
+const transfer_1 = __nccwpck_require__(9302);
+const parseControlResponse_1 = __nccwpck_require__(6352);
 // Use promisify to keep the library compatible with Node 8.
 const fsReadDir = util_1.promisify(fs_1.readdir);
 const fsMkDir = util_1.promisify(fs_1.mkdir);
@@ -4556,7 +4948,7 @@ async function ignoreError(func) {
 
 /***/ }),
 
-/***/ 9137:
+/***/ 2404:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -4656,7 +5048,7 @@ FileInfo.UnixPermission = {
 
 /***/ }),
 
-/***/ 3216:
+/***/ 4279:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -4664,7 +5056,7 @@ FileInfo.UnixPermission = {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.FTPContext = exports.FTPError = void 0;
 const net_1 = __nccwpck_require__(1808);
-const parseControlResponse_1 = __nccwpck_require__(1406);
+const parseControlResponse_1 = __nccwpck_require__(6352);
 /**
  * Describes an FTP server error response including the FTP response code.
  */
@@ -5015,7 +5407,7 @@ exports.FTPContext = FTPContext;
 
 /***/ }),
 
-/***/ 7593:
+/***/ 1327:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -5095,7 +5487,7 @@ function noop() { }
 
 /***/ }),
 
-/***/ 637:
+/***/ 5440:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -5105,7 +5497,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 /***/ }),
 
-/***/ 131:
+/***/ 4835:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -5136,7 +5528,7 @@ exports.StringWriter = StringWriter;
 
 /***/ }),
 
-/***/ 3270:
+/***/ 2877:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -5156,19 +5548,19 @@ exports.enterPassiveModeIPv6 = exports.enterPassiveModeIPv4 = void 0;
 /**
  * Public API
  */
-__exportStar(__nccwpck_require__(4984), exports);
-__exportStar(__nccwpck_require__(3216), exports);
-__exportStar(__nccwpck_require__(9137), exports);
-__exportStar(__nccwpck_require__(8534), exports);
-__exportStar(__nccwpck_require__(637), exports);
-var transfer_1 = __nccwpck_require__(9428);
+__exportStar(__nccwpck_require__(247), exports);
+__exportStar(__nccwpck_require__(4279), exports);
+__exportStar(__nccwpck_require__(2404), exports);
+__exportStar(__nccwpck_require__(2956), exports);
+__exportStar(__nccwpck_require__(5440), exports);
+var transfer_1 = __nccwpck_require__(9302);
 Object.defineProperty(exports, "enterPassiveModeIPv4", ({ enumerable: true, get: function () { return transfer_1.enterPassiveModeIPv4; } }));
 Object.defineProperty(exports, "enterPassiveModeIPv6", ({ enumerable: true, get: function () { return transfer_1.enterPassiveModeIPv6; } }));
 
 
 /***/ }),
 
-/***/ 6643:
+/***/ 7954:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -5242,7 +5634,7 @@ exports.ipIsPrivateV4Address = ipIsPrivateV4Address;
 
 /***/ }),
 
-/***/ 1406:
+/***/ 6352:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -5317,7 +5709,7 @@ function isNotBlank(str) {
 
 /***/ }),
 
-/***/ 8534:
+/***/ 2956:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -5343,9 +5735,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.parseList = void 0;
-const dosParser = __importStar(__nccwpck_require__(6729));
-const unixParser = __importStar(__nccwpck_require__(1543));
-const mlsdParser = __importStar(__nccwpck_require__(1851));
+const dosParser = __importStar(__nccwpck_require__(1187));
+const unixParser = __importStar(__nccwpck_require__(1880));
+const mlsdParser = __importStar(__nccwpck_require__(1611));
 /**
  * Available directory listing parsers. These are candidates that will be tested
  * in the order presented. The first candidate will be used to parse the whole list.
@@ -5387,14 +5779,14 @@ exports.parseList = parseList;
 
 /***/ }),
 
-/***/ 6729:
+/***/ 1187:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.transformList = exports.parseLine = exports.testLine = void 0;
-const FileInfo_1 = __nccwpck_require__(9137);
+const FileInfo_1 = __nccwpck_require__(2404);
 /**
  * This parser is based on the FTP client library source code in Apache Commons Net provided
  * under the Apache 2.0 license. It has been simplified and rewritten to better fit the Javascript language.
@@ -5448,14 +5840,14 @@ exports.transformList = transformList;
 
 /***/ }),
 
-/***/ 1851:
+/***/ 1611:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.parseMLSxDate = exports.transformList = exports.parseLine = exports.testLine = void 0;
-const FileInfo_1 = __nccwpck_require__(9137);
+const FileInfo_1 = __nccwpck_require__(2404);
 function parseSize(value, info) {
     info.size = parseInt(value, 10);
 }
@@ -5644,14 +6036,14 @@ exports.parseMLSxDate = parseMLSxDate;
 
 /***/ }),
 
-/***/ 1543:
+/***/ 1880:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.transformList = exports.parseLine = exports.testLine = void 0;
-const FileInfo_1 = __nccwpck_require__(9137);
+const FileInfo_1 = __nccwpck_require__(2404);
 const JA_MONTH = "\u6708";
 const JA_DAY = "\u65e5";
 const JA_YEAR = "\u5e74";
@@ -5808,16 +6200,16 @@ function parseMode(r, w, x) {
 
 /***/ }),
 
-/***/ 9428:
+/***/ 9302:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.downloadTo = exports.uploadFrom = exports.connectForPassiveTransfer = exports.parsePasvResponse = exports.enterPassiveModeIPv4 = exports.parseEpsvResponse = exports.enterPassiveModeIPv6 = void 0;
-const netUtils_1 = __nccwpck_require__(6643);
+const netUtils_1 = __nccwpck_require__(7954);
 const tls_1 = __nccwpck_require__(4404);
-const parseControlResponse_1 = __nccwpck_require__(1406);
+const parseControlResponse_1 = __nccwpck_require__(6352);
 /**
  * Prepare a data socket using passive mode over IPv6.
  */
@@ -6112,12 +6504,12 @@ function isWritableFinished(stream) {
 
 /***/ }),
 
-/***/ 7293:
+/***/ 9081:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-var register = __nccwpck_require__(3886)
-var addHook = __nccwpck_require__(546)
-var removeHook = __nccwpck_require__(9326)
+var register = __nccwpck_require__(7334)
+var addHook = __nccwpck_require__(1706)
+var removeHook = __nccwpck_require__(400)
 
 // bind with array of arguments: https://stackoverflow.com/a/21792913
 var bind = Function.bind
@@ -6176,7 +6568,7 @@ module.exports.Collection = Hook.Collection
 
 /***/ }),
 
-/***/ 546:
+/***/ 1706:
 /***/ ((module) => {
 
 module.exports = addHook;
@@ -6229,7 +6621,7 @@ function addHook(state, kind, name, hook) {
 
 /***/ }),
 
-/***/ 3886:
+/***/ 7334:
 /***/ ((module) => {
 
 module.exports = register;
@@ -6263,7 +6655,7 @@ function register(state, name, method, options) {
 
 /***/ }),
 
-/***/ 9326:
+/***/ 400:
 /***/ ((module) => {
 
 module.exports = removeHook;
@@ -6289,7 +6681,7 @@ function removeHook(state, name, method) {
 
 /***/ }),
 
-/***/ 1897:
+/***/ 9041:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 // Copyright Joyent, Inc. and other Node contributors.
@@ -6403,7 +6795,7 @@ function objectToString(o) {
 
 /***/ }),
 
-/***/ 502:
+/***/ 8455:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -6431,7 +6823,7 @@ exports.Deprecation = Deprecation;
 
 /***/ }),
 
-/***/ 555:
+/***/ 108:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 var fs = __nccwpck_require__(7147),
@@ -6442,8 +6834,8 @@ var fs = __nccwpck_require__(7147),
     inherits = (__nccwpck_require__(3837).inherits),
     inspect = (__nccwpck_require__(3837).inspect);
 
-var Parser = __nccwpck_require__(8480);
-var XRegExp = (__nccwpck_require__(5483)/* .XRegExp */ .d);
+var Parser = __nccwpck_require__(8207);
+var XRegExp = (__nccwpck_require__(5493)/* .XRegExp */ .d);
 
 var REX_TIMEVAL = XRegExp.cache('^(?<year>\\d{4})(?<month>\\d{2})(?<date>\\d{2})(?<hour>\\d{2})(?<minute>\\d{2})(?<second>\\d+)(?:.\\d+)?$'),
     RE_PASV = /([\d]+),([\d]+),([\d]+),([\d]+),([-\d]+),([-\d]+)/,
@@ -7508,15 +7900,15 @@ function makeError(code, text) {
 
 /***/ }),
 
-/***/ 8480:
+/***/ 8207:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 var WritableStream = (__nccwpck_require__(2781).Writable)
-                     || (__nccwpck_require__(1853).Writable),
+                     || (__nccwpck_require__(2882).Writable),
     inherits = (__nccwpck_require__(3837).inherits),
     inspect = (__nccwpck_require__(3837).inspect);
 
-var XRegExp = (__nccwpck_require__(5483)/* .XRegExp */ .d);
+var XRegExp = (__nccwpck_require__(5493)/* .XRegExp */ .d);
 
 var REX_LISTUNIX = XRegExp.cache('^(?<type>[\\-ld])(?<permission>([\\-r][\\-w][\\-xstT]){3})(?<acl>(\\+))?\\s+(?<inodes>\\d+)\\s+(?<owner>\\S+)\\s+(?<group>\\S+)\\s+(?<size>\\d+)\\s+(?<timestamp>((?<month1>\\w{3})\\s+(?<date1>\\d{1,2})\\s+(?<hour>\\d{1,2}):(?<minute>\\d{2}))|((?<month2>\\w{3})\\s+(?<date2>\\d{1,2})\\s+(?<year>\\d{4})))\\s+(?<name>.+)$'),
     REX_LISTMSDOS = XRegExp.cache('^(?<month>\\d{2})(?:\\-|\\/)(?<date>\\d{2})(?:\\-|\\/)(?<year>\\d{2,4})\\s+(?<hour>\\d{2}):(?<minute>\\d{2})\\s{0,1}(?<ampm>[AaMmPp]{1,2})\\s+(?:(?<size>\\d+)|(?<isdir>\\<DIR\\>))\\s+(?<name>.+)$'),
@@ -7731,7 +8123,7 @@ module.exports = Parser;
 
 /***/ }),
 
-/***/ 9678:
+/***/ 8520:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 try {
@@ -7741,13 +8133,13 @@ try {
   module.exports = util.inherits;
 } catch (e) {
   /* istanbul ignore next */
-  module.exports = __nccwpck_require__(9911);
+  module.exports = __nccwpck_require__(7415);
 }
 
 
 /***/ }),
 
-/***/ 9911:
+/***/ 7415:
 /***/ ((module) => {
 
 if (typeof Object.create === 'function') {
@@ -7781,7 +8173,7 @@ if (typeof Object.create === 'function') {
 
 /***/ }),
 
-/***/ 3137:
+/***/ 4014:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -7827,7 +8219,7 @@ exports.isPlainObject = isPlainObject;
 
 /***/ }),
 
-/***/ 5436:
+/***/ 5608:
 /***/ ((module) => {
 
 module.exports = Array.isArray || function (arr) {
@@ -7837,24 +8229,24 @@ module.exports = Array.isArray || function (arr) {
 
 /***/ }),
 
-/***/ 9664:
+/***/ 3419:
 /***/ (function(__unused_webpack_module, exports) {
 
 (function (global, factory) {
      true ? factory(exports) :
     0;
-}(this, (function (exports) { 'use strict';
+})(this, (function (exports) { 'use strict';
 
     /********************************************************************
      * @author:      Kaven
      * @email:       kaven@wuwenkai.com
      * @website:     http://blog.kaven.xyz
-     * @file:        [Kaven-Basic] /src/libs/Constants.ts
+     * @file:        [Kaven-Basic] /src/libs/base/Constants.ts
      * @create:      2021-08-05 18:29:30.832
-     * @modify:      2021-08-06 13:18:08.122
-     * @version:     2.0.14
-     * @times:       2
-     * @lines:       54
+     * @modify:      2021-12-22 15:20:54.673
+     * @version:     4.0.0
+     * @times:       4
+     * @lines:       41
      * @copyright:   Copyright © 2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
@@ -7876,578 +8268,26 @@ module.exports = Array.isArray || function (arr) {
      * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
      * SOFTWARE.
      ********************************************************************/
-    // Number of milliseconds per time unit
+    /**
+     * Number of milliseconds per second
+     */
     var MsPerSecond = 1000;
     var MsPerMinute = MsPerSecond * 60;
     var MsPerHour = MsPerMinute * 60;
     var MsPerDay = MsPerHour * 24;
     var MsPerWeek = MsPerDay * 7;
-    /**
-     * Su Mo ... Fr Sa
-     */
-    var DayOfWeekTdd = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-    /**
-     * Sun Mon ... Fri Sat
-     */
-    var DayOfWeekTddd = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    /**
-     * Sunday Monday ... Friday Saturday
-     */
-    var DayOfWeekTdddd = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
     /********************************************************************
      * @author:      Kaven
      * @email:       kaven@wuwenkai.com
      * @website:     http://blog.kaven.xyz
-     * @file:        [Kaven-Basic] /src/libs/StringPosition.ts
-     * @create:      2018-09-01 10:52:52.750
-     * @modify:      2020-02-18 15:38:03.944
-     * @version:     2.0.4
-     * @times:       6
-     * @lines:       70
-     * @copyright:   Copyright © 2018 Kaven. All Rights Reserved.
-     * @description: [description]
-     * @license:
-     * Permission is hereby granted, free of charge, to any person obtaining a copy
-     * of this software and associated documentation files (the "Software"), to deal
-     * in the Software without restriction, including without limitation the rights
-     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-     * copies of the Software, and to permit persons to whom the Software is
-     * furnished to do so, subject to the following conditions:
-     *
-     * The above copyright notice and this permission notice shall be included in all
-     * copies or substantial portions of the Software.
-     *
-     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-     * SOFTWARE.
-     ********************************************************************/
-    var StringPosition = /** @class */ (function () {
-        function StringPosition(start, end, length) {
-            this.end = undefined;
-            this.Start = start;
-            if (end) {
-                this.end = end;
-            }
-            else if (length) {
-                this.Length = length;
-            }
-        }
-        Object.defineProperty(StringPosition.prototype, "End", {
-            get: function () {
-                return this.end;
-            },
-            set: function (val) {
-                this.end = val;
-            },
-            enumerable: false,
-            configurable: true
-        });
-        Object.defineProperty(StringPosition.prototype, "Length", {
-            get: function () {
-                if (this.End) {
-                    return this.End - this.Start;
-                }
-                return Number.NaN;
-            },
-            set: function (len) {
-                this.end = this.Start + len;
-            },
-            enumerable: false,
-            configurable: true
-        });
-        return StringPosition;
-    }());
-
-    /********************************************************************
-     * @author:      Kaven
-     * @email:       kaven@wuwenkai.com
-     * @website:     http://blog.kaven.xyz
-     * @file:        [Kaven-Basic] /src/libs/KavenBasic.Core.ts
-     * @create:      2020-06-02 15:33:55.173
-     * @modify:      2021-08-07 06:04:28.807
-     * @version:     2.0.14
-     * @times:       23
-     * @lines:       489
-     * @copyright:   Copyright © 2020-2021 Kaven. All Rights Reserved.
-     * @description: [description]
-     * @license:
-     * Permission is hereby granted, free of charge, to any person obtaining a copy
-     * of this software and associated documentation files (the "Software"), to deal
-     * in the Software without restriction, including without limitation the rights
-     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-     * copies of the Software, and to permit persons to whom the Software is
-     * furnished to do so, subject to the following conditions:
-     *
-     * The above copyright notice and this permission notice shall be included in all
-     * copies or substantial portions of the Software.
-     *
-     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-     * SOFTWARE.
-     ********************************************************************/
-    var __awaiter$4 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-        return new (P || (P = Promise))(function (resolve, reject) {
-            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-            step((generator = generator.apply(thisArg, _arguments || [])).next());
-        });
-    };
-    var __generator$4 = (undefined && undefined.__generator) || function (thisArg, body) {
-        var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-        return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-        function verb(n) { return function (v) { return step([n, v]); }; }
-        function step(op) {
-            if (f) throw new TypeError("Generator is already executing.");
-            while (_) try {
-                if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-                if (y = 0, t) op = [op[0] & 2, t.value];
-                switch (op[0]) {
-                    case 0: case 1: t = op; break;
-                    case 4: _.label++; return { value: op[1], done: false };
-                    case 5: _.label++; y = op[1]; op = [0]; continue;
-                    case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                    default:
-                        if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                        if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                        if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                        if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                        if (t[2]) _.ops.pop();
-                        _.trys.pop(); continue;
-                }
-                op = body.call(thisArg, _);
-            } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-            if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-        }
-    };
-    /**
-     *
-     * @param val
-     * @since 2.0.11
-     * @version 2021-02-01
-     */
-    function ConvertTo(val) {
-        return val;
-    }
-    /**
-     *
-     * @param val
-     * @version 2020-07-11
-     */
-    function IsNotEmpty(val) {
-        if (Array.isArray(val)) {
-            return val.length > 0;
-        }
-        if (IsString(val)) {
-            return val.length > 0;
-        }
-        return false;
-    }
-    function IsStartsWithNumber(str) {
-        if (!str) {
-            return false;
-        }
-        if (str.match(/^\d/)) {
-            return true;
-        }
-        return false;
-    }
-    function TrimStart(str, trim, max) {
-        if (max === void 0) { max = 1; }
-        var result = str;
-        while (max-- > 0) {
-            if (IsNotEmpty(trim)) {
-                if (String.prototype.startsWith.call(result, trim)) {
-                    result = String.prototype.substring.call(result, trim.length);
-                }
-                else {
-                    return result;
-                }
-            }
-        }
-        return result;
-    }
-    function IsString(val) {
-        if (typeof val === "string" || val instanceof String) {
-            return true;
-        }
-        return false;
-    }
-    /**
-     *
-     * @param a
-     * @param b
-     * @param ignoreCase
-     * @returns
-     * @since 2.0.13
-     * @version 2021-03-18
-     */
-    function IsEqual(a, b, ignoreCase) {
-        if (ignoreCase === void 0) { ignoreCase = true; }
-        if (a === undefined || b === undefined) {
-            return a === b;
-        }
-        if (ignoreCase) {
-            return a.toLowerCase() === b.toLowerCase();
-        }
-        return a === b;
-    }
-    /**
-     * @static
-     * @param {number} time
-     * @returns
-     * @memberof KavenBasic
-     * @since 1.1.7
-     * @version 2018-08-30
-     */
-    function Sleep(time) {
-        return new Promise(function (resolve) { return setTimeout(resolve, time); });
-    }
-    /**
-     *
-     * @param timeout in million seconds
-     * @version 2020-06-02
-     * @since 2.0.6
-     */
-    function RejectAfter(timeout) {
-        return __awaiter$4(this, void 0, void 0, function () {
-            return __generator$4(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, Sleep(timeout)];
-                    case 1:
-                        _a.sent();
-                        return [2 /*return*/, Promise.reject(new Error("timeout: " + timeout))];
-                }
-            });
-        });
-    }
-    /**
-     *
-     * @param timeout in million seconds
-     * @version 2020-06-02
-     * @since 2.0.6
-     */
-    function ResolveAfter(data, timeout) {
-        return __awaiter$4(this, void 0, void 0, function () {
-            return __generator$4(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, Sleep(timeout)];
-                    case 1:
-                        _a.sent();
-                        return [2 /*return*/, Promise.resolve(data)];
-                }
-            });
-        });
-    }
-    /**
-     *
-     * @param action
-     * @param timeout in million seconds
-     * @version 2020-06-02
-     * @since 2.0.6
-     */
-    function TimeoutAfter(action, timeout) {
-        if (timeout === void 0) { timeout = 500; }
-        return __awaiter$4(this, void 0, void 0, function () {
-            return __generator$4(this, function (_a) {
-                return [2 /*return*/, Promise.race([action, RejectAfter(timeout)])];
-            });
-        });
-    }
-    /**
-     *
-     * @param action
-     * @param timeout
-     * @param retryCount
-     * @param startImmediately
-     * @version 2020-01-06
-     * @since 1.1.5
-     */
-    function DoUntilSuccess(action, timeout, retryCount, startImmediately) {
-        if (timeout === void 0) { timeout = 500; }
-        if (retryCount === void 0) { retryCount = 5; }
-        if (startImmediately === void 0) { startImmediately = false; }
-        return __awaiter$4(this, void 0, void 0, function () {
-            return __generator$4(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (startImmediately) {
-                            if (action()) {
-                                return [2 /*return*/, true];
-                            }
-                            retryCount--;
-                        }
-                        _a.label = 1;
-                    case 1:
-                        if (!(retryCount > 0)) return [3 /*break*/, 3];
-                        return [4 /*yield*/, Sleep(timeout)];
-                    case 2:
-                        _a.sent();
-                        if (action()) {
-                            return [2 /*return*/, true];
-                        }
-                        retryCount--;
-                        return [3 /*break*/, 1];
-                    case 3:
-                        console.warn("function exec failed.");
-                        return [2 /*return*/, false];
-                }
-            });
-        });
-    }
-    /*
-    Convert  an ArrayBuffer into a string
-    from https://developers.google.com/web/updates/2012/06/How-to-convert-ArrayBuffer-to-and-from-String
-    */
-    function ArrayBuffer2String(buf) {
-        return String.fromCharCode.apply(null, new Uint8Array(buf));
-    }
-    /*
-      Convert a string into an ArrayBuffer
-      from https://developers.google.com/web/updates/2012/06/How-to-convert-ArrayBuffer-to-and-from-String
-      */
-    function String2ArrayBuffer(str) {
-        var buf = new ArrayBuffer(str.length);
-        var bufView = new Uint8Array(buf);
-        for (var i = 0, strLen = str.length; i < strLen; i++) {
-            bufView[i] = str.charCodeAt(i);
-        }
-        return buf;
-    }
-    function Number2Hex(number, trimStart) {
-        var result = number.toString(16).padStart(8, "0");
-        if (trimStart) {
-            var trimmed = TrimStart(result, "00", result.length);
-            return trimmed === "" ? "0" : trimmed;
-        }
-        return result;
-    }
-    function SplitByN(str, n, fromLeft) {
-        var reg = fromLeft !== true ? ".{1," + n + "}(?=(.{" + n + "})+(?!.))|.{1," + n + "}$" : ".{1," + n + "}";
-        return str.match(new RegExp(reg, "g"));
-    }
-    function Number2Uint8Array(number) {
-        var hex = Number2Hex(number, true);
-        var hexArray = SplitByN(hex, 2).map(function (p) { return parseInt(p, 16); });
-        var result = new Uint8Array(hexArray);
-        return result;
-    }
-    function ToUTF8ByteArray(str) {
-        // https://github.com/google/closure-library/blob/8598d87242af59aac233270742c8984e2b2bdbe0/closure/goog/crypt/crypt.js#L117-L143
-        var out = [];
-        var p = 0;
-        for (var i = 0; i < str.length; i++) {
-            var c = str.charCodeAt(i);
-            if (c < 128) {
-                out[p++] = c;
-            }
-            else if (c < 2048) {
-                out[p++] = (c >> 6) | 192;
-                out[p++] = (c & 63) | 128;
-            }
-            else if (((c & 0xFC00) === 0xD800) && (i + 1) < str.length &&
-                ((str.charCodeAt(i + 1) & 0xFC00) === 0xDC00)) {
-                // Surrogate Pair
-                c = 0x10000 + ((c & 0x03FF) << 10) + (str.charCodeAt(++i) & 0x03FF);
-                out[p++] = (c >> 18) | 240;
-                out[p++] = ((c >> 12) & 63) | 128;
-                out[p++] = ((c >> 6) & 63) | 128;
-                out[p++] = (c & 63) | 128;
-            }
-            else {
-                out[p++] = (c >> 12) | 224;
-                out[p++] = ((c >> 6) & 63) | 128;
-                out[p++] = (c & 63) | 128;
-            }
-        }
-        return out;
-    }
-    function Split(array, size, fromLeft) {
-        var result = new Array(0);
-        if (fromLeft === true) {
-            for (var i = 0; i < array.length; i += size) {
-                result.push(array.slice(i, i + size));
-            }
-        }
-        else {
-            var remainder = array.length % size;
-            if (remainder > 0) {
-                result.push(array.slice(0, remainder));
-            }
-            for (var i = remainder; i < array.length; i += size) {
-                result.push(array.slice(i, i + size));
-            }
-        }
-        return result;
-    }
-    function LeftRotate(num, n, bits) {
-        if (bits === undefined) {
-            bits = 32;
-        }
-        return (num << n) | (num >>> (bits - n));
-    }
-    function RightRotate(num, n, bits) {
-        if (bits === undefined) {
-            bits = 32;
-        }
-        return (num >>> n) | (num << (bits - n));
-    }
-    /**
-     *
-     * @param url
-     * @since 2.0.6
-     * @version 2020-06-22
-     */
-    function IsHttpsUrl(url) {
-        var urlLowerCase = url.toLowerCase();
-        if (urlLowerCase.startsWith("https://") || urlLowerCase.startsWith("//:")) {
-            return true;
-        }
-        if (urlLowerCase.startsWith("http://")) {
-            return false;
-        }
-        return undefined;
-    }
-    /**
-     *
-     * @param date
-     * @param iso
-     * @returns
-     * @since 2.0.14
-     * @version 2021-08-06
-     */
-    function GetWeekOfYear(date, iso) {
-        // https://stackoverflow.com/questions/6117814/get-week-of-year-in-javascript-like-in-php
-        if (iso) {
-            // Copy date so don't modify original
-            date = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-            // Set to nearest Thursday: current date + 4 - current day number
-            // Make Sunday's day number 7
-            date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
-            // Get first day of year
-            var yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-            // Calculate full weeks to nearest Thursday
-            var week = Math.ceil((((date.valueOf() - yearStart.valueOf()) / 86400000) + 1) / 7);
-            return week;
-        }
-        else {
-            var date_1 = new Date();
-            var date2 = new Date(date_1.getFullYear(), 0, 1);
-            var week = Math.ceil((((date_1.getTime() - date2.getTime()) / 86400000) + date2.getDay() + 1) / 7);
-            return week;
-        }
-    }
-    /**
-     *
-     *
-     * @export
-     * @param {string} str
-     * @param {string} strStart
-     * @param {string} strEnd
-     * @returns
-     * @version 2018-09-01
-     * @since 1.0.6
-     */
-    function GetStringBetween(str, strStart, strEnd, max) {
-        if (max === void 0) { max = -1; }
-        return GetStringPositionBetween(str, strStart, strEnd, max).map(function (p) { return str.substring(p.Start, p.End); });
-    }
-    /**
-     * @param {string} str
-     * @param {string} strStart
-     * @param {string} strEnd
-     * @returns
-     * @version 2018-09-02
-     * @since 1.1.7
-     */
-    function GetStringPositionBetween(str, strStart, strEnd, max, startIndex) {
-        if (max === void 0) { max = -1; }
-        if (startIndex === void 0) { startIndex = 0; }
-        var list = [];
-        if (str &&
-            strStart &&
-            strEnd &&
-            str.IsNotEmpty() &&
-            strStart.IsNotEmpty() &&
-            strEnd.IsNotEmpty()) {
-            var current = startIndex;
-            while (true) {
-                var index = str.indexOf(strStart, current);
-                if (index !== -1) {
-                    var endIndex = str.indexOf(strEnd, index + strStart.length + 1);
-                    if (endIndex !== -1) {
-                        var pos = new StringPosition(index + strStart.length, endIndex);
-                        pos.RelatedString = str.GetSubstring(pos);
-                        list.push(
-                        // str.substring(index + strStart.length, endIndex)
-                        pos);
-                        if (max > 0 && list.length >= max) {
-                            break;
-                        }
-                        current = endIndex + strEnd.length + 1;
-                    }
-                    else {
-                        break;
-                    }
-                }
-                else {
-                    break;
-                }
-            }
-        }
-        return list;
-    }
-    /**
-     *
-     * @param replaceMethod
-     * @param str
-     * @param strStart
-     * @param strEnd
-     * @since 1.1.7
-     * @version 2018-09-01
-     */
-    function ReplaceAllStringBetween(replaceMethod, str, strStart, strEnd) {
-        var current = 0;
-        while (true) {
-            var pos = GetStringPositionBetween(str, strStart, strEnd, 1, current);
-            if (pos && pos.IsNotEmpty()) {
-                var p = pos[0];
-                if (p.RelatedString) {
-                    str = str.ReplaceAtPos(p, replaceMethod(p.RelatedString));
-                }
-                if (p.End === undefined) {
-                    throw new Error();
-                }
-                current = p.End + 1;
-            }
-            else {
-                break;
-            }
-        }
-        return str;
-    }
-
-    /********************************************************************
-     * @author:      Kaven
-     * @email:       kaven@wuwenkai.com
-     * @website:     http://blog.kaven.xyz
-     * @file:        [Kaven-Basic] /src/libs/Enums.ts
+     * @file:        [Kaven-Basic] /src/libs/base/Enums.ts
      * @create:      2018-08-30 16:07:24.162
-     * @modify:      2021-08-06 13:03:56.961
-     * @version:     2.0.14
-     * @times:       8
-     * @lines:       283
-     * @copyright:   Copyright © 2018-2021 Kaven. All Rights Reserved.
+     * @modify:      2022-04-22 15:41:38.751
+     * @version:     4.0.1
+     * @times:       11
+     * @lines:       303
+     * @copyright:   Copyright © 2018-2022 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
      * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -8583,7 +8423,7 @@ module.exports = Array.isArray || function (arr) {
          */
         DateTimeFormat["TIME_MS"] = "HH:mm:ss.SSS";
         /**
-         * 1993-W50
+         * 1993-W03
          * @version 2018-08-18 15:07:49.379
          * @since 1.1.5
          */
@@ -8716,6 +8556,124 @@ module.exports = Array.isArray || function (arr) {
         DayOfWeek[DayOfWeek["Friday"] = 5] = "Friday";
         DayOfWeek[DayOfWeek["Saturday"] = 6] = "Saturday";
     })(exports.DayOfWeek || (exports.DayOfWeek = {}));
+    exports.LogHighlightType = void 0;
+    (function (LogHighlightType) {
+        LogHighlightType[LogHighlightType["All"] = 0] = "All";
+        LogHighlightType[LogHighlightType["Date"] = 1] = "Date";
+        LogHighlightType[LogHighlightType["Level"] = 2] = "Level";
+        LogHighlightType[LogHighlightType["DateLevel"] = 3] = "DateLevel";
+    })(exports.LogHighlightType || (exports.LogHighlightType = {}));
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
+    exports.HttpRequestMethods = void 0;
+    (function (HttpRequestMethods) {
+        HttpRequestMethods["GET"] = "GET";
+        HttpRequestMethods["HEAD"] = "HEAD";
+        HttpRequestMethods["POST"] = "POST";
+        HttpRequestMethods["PUT"] = "PUT";
+        HttpRequestMethods["DELETE"] = "DELETE";
+        HttpRequestMethods["CONNECT"] = "CONNECT";
+        HttpRequestMethods["OPTIONS"] = "OPTIONS";
+        HttpRequestMethods["TRACE"] = "TRACE";
+        HttpRequestMethods["PATCH"] = "PATCH";
+    })(exports.HttpRequestMethods || (exports.HttpRequestMethods = {}));
+
+    /********************************************************************
+     * @author:      Kaven
+     * @email:       kaven@wuwenkai.com
+     * @website:     http://blog.kaven.xyz
+     * @file:        [Kaven-Basic] /src/libs/KavenBasic.Constants.ts
+     * @create:      2021-12-09 14:24:54.582
+     * @modify:      2021-12-09 15:32:04.117
+     * @version:     4.0.0
+     * @times:       4
+     * @lines:       105
+     * @copyright:   Copyright © 2021 Kaven. All Rights Reserved.
+     * @description: [description]
+     * @license:
+     * Permission is hereby granted, free of charge, to any person obtaining a copy
+     * of this software and associated documentation files (the "Software"), to deal
+     * in the Software without restriction, including without limitation the rights
+     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+     * copies of the Software, and to permit persons to whom the Software is
+     * furnished to do so, subject to the following conditions:
+     *
+     * The above copyright notice and this permission notice shall be included in all
+     * copies or substantial portions of the Software.
+     *
+     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+     * SOFTWARE.
+     ********************************************************************/
+    /**
+     * Su Mo ... Fr Sa
+     * @since 4.0.0
+     * @version 2021-12-09
+     */
+    function GetDayOfWeekTdd() {
+        return ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+    }
+    /**
+      * Sun Mon ... Fri Sat
+      * @since 4.0.0
+      * @version 2021-12-09
+      */
+    function GetDayOfWeekTddd() {
+        return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    }
+    /**
+      * Sunday Monday ... Friday Saturday
+      * @since 4.0.0
+      * @version 2021-12-09
+      */
+    function GetDayOfWeekTdddd() {
+        return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    }
+    /**
+     * @since 4.0.0
+     * @version 2021-12-09
+     */
+    function GetInvalidFileNameCharsUnix() {
+        // https://github.com/dotnet/runtime/blob/b2dc37ba181a7fa4427e717eab819ba3543d0ae4/src/libraries/System.Private.CoreLib/src/System/IO/Path.Unix.cs#L12
+        return ["\0", "/"];
+    }
+    /**
+     * @since 4.0.0
+     * @version 2021-12-09
+     */
+    function GetInvalidFileNameCharsWindows() {
+        // https://github.com/dotnet/runtime/blob/b2dc37ba181a7fa4427e717eab819ba3543d0ae4/src/libraries/System.Private.CoreLib/src/System/IO/Path.Windows.cs#L12
+        return [
+            "\"", "<", ">", "|", "\0",
+            String.fromCharCode(1), String.fromCharCode(2), String.fromCharCode(3), String.fromCharCode(4), String.fromCharCode(5), String.fromCharCode(6), String.fromCharCode(7), String.fromCharCode(8), String.fromCharCode(9), String.fromCharCode(10),
+            String.fromCharCode(11), String.fromCharCode(12), String.fromCharCode(13), String.fromCharCode(14), String.fromCharCode(15), String.fromCharCode(16), String.fromCharCode(17), String.fromCharCode(18), String.fromCharCode(19), String.fromCharCode(20),
+            String.fromCharCode(21), String.fromCharCode(22), String.fromCharCode(23), String.fromCharCode(24), String.fromCharCode(25), String.fromCharCode(26), String.fromCharCode(27), String.fromCharCode(28), String.fromCharCode(29), String.fromCharCode(30),
+            String.fromCharCode(31), ":", "*", "?", "\\", "/",
+        ];
+    }
+    /**
+     * @since 4.0.0
+     * @version 2021-12-09
+     */
+    function GetInvalidPathCharsUnix() {
+        return ["\0"];
+    }
+    /**
+     * @since 4.0.0
+     * @version 2021-12-09
+     */
+    function GetInvalidPathCharsWindows() {
+        return [
+            "|", "\0",
+            String.fromCharCode(1), String.fromCharCode(2), String.fromCharCode(3), String.fromCharCode(4), String.fromCharCode(5), String.fromCharCode(6), String.fromCharCode(7), String.fromCharCode(8), String.fromCharCode(9), String.fromCharCode(10),
+            String.fromCharCode(11), String.fromCharCode(12), String.fromCharCode(13), String.fromCharCode(14), String.fromCharCode(15), String.fromCharCode(16), String.fromCharCode(17), String.fromCharCode(18), String.fromCharCode(19), String.fromCharCode(20),
+            String.fromCharCode(21), String.fromCharCode(22), String.fromCharCode(23), String.fromCharCode(24), String.fromCharCode(25), String.fromCharCode(26), String.fromCharCode(27), String.fromCharCode(28), String.fromCharCode(29), String.fromCharCode(30),
+            String.fromCharCode(31),
+        ];
+    }
 
     /********************************************************************
      * @author:      Kaven
@@ -8723,10 +8681,10 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/Strings.ts
      * @create:      2018-08-30 16:08:53.191
-     * @modify:      2021-02-01 19:54:21.471
-     * @version:     2.0.11
-     * @times:       17
-     * @lines:       243
+     * @modify:      2021-12-24 11:30:14.069
+     * @version:     4.0.0
+     * @times:       20
+     * @lines:       221
      * @copyright:   Copyright © 2018-2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
@@ -8752,187 +8710,162 @@ module.exports = Array.isArray || function (arr) {
      * @version 1.0.0
      * @since 1.0.5
      */
-    var Strings = /** @class */ (function () {
-        function Strings() {
-        }
-        /**
-         * @version 1.0.0
-         * @since 1.0.5
-         */
-        Strings.Empty = "";
-        /**
-         * @static
-         * @memberof Strings
-         * @version 1.0.0
-         * @since 1.0.10
-         */
-        Strings.WhiteSpace = " ";
-        /**
-         * @static
-         * @memberof Strings
-         * @version 1.0.0
-         * @since 1.0.10
-         */
-        Strings.Tab = "\t";
-        /**
-         * \n, (Line Feed) Used as a new line character in Unix/Mac OS X
-         * @version 1.0.0
-         * @since 1.0.5
-         */
-        Strings.LF = "\n";
-        /**
-         * \r, (Carriage Return) Used as a new line character in Mac OS before X
-         * @version 1.0.0
-         * @since 1.0.5
-         */
-        Strings.CR = "\r";
-        /**
-         * \r\n, Used as a new line character in Windows
-         * @version 1.0.0
-         * @since 1.0.5
-         */
-        Strings.CR_LF = "\r\n";
-        /**
-         * @version 1.0.0
-         * @since 1.0.5
-         */
-        Strings.HTML_BR = "<br>";
-        /**
-         * non-breaking space
-         * @version 1.0.0
-         * @since 1.0.5
-         */
-        Strings.HTML_NBSP = "&nbsp;";
-        /**
-         * @version 1.0.0
-         * @since 1.0.5
-         */
-        Strings.LowercaseLetters = "abcdefghijklmnopqrstuvwxyz";
-        /**
-         * @version 1.0.0
-         * @since 1.0.5
-         */
-        Strings.UppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        /**
-         * @version 1.0.0
-         * @since 1.0.5
-         */
-        Strings.Numbers = "0123456789";
-        /**
-         * @version 1.0.0
-         * @since 1.0.5
-         * @see {@link https://www.owasp.org/index.php/Password_special_characters}
-         */
-        Strings.PasswordSpecialCharacters = " !\"#$%&'()*+,-./:;<=>?@[]^_`{|}~";
-        /**
-         * @version 1.0.0
-         * @since 1.0.5
-         */
-        Strings.Slash = "/";
-        /**
-         * @version 1.0.0
-         * @since 1.0.5
-         */
-        Strings.BackSlash = "\\";
-        /**
-         *
-         *
-         * @static
-         * @memberof Strings
-         * @version 1.0.0
-         * @since 1.0.6
-         */
-        Strings.DoubleQuotes = "\"";
-        /**
-         * @version 1.0.0
-         * @since 1.0.9
-         */
-        Strings.RunningMode = "RunningMode";
-        /**
-         * @version 1.0.0
-         * @since 1.0.9
-         */
-        Strings.Development = "development";
-        /**
-         * @version 1.0.0
-         * @since 1.0.9
-         */
-        Strings.Production = "production";
-        /**
-         *
-         *
-         * @static
-         * @memberof Strings
-         * @version 1.0.0
-         * @since 1.0.12
-         */
-        Strings.Dot = ".";
-        /**
-         *
-         *
-         * @static
-         * @memberof Strings
-         * @version 1.0.0
-         * @since 1.1.1
-         */
-        Strings.Unknown = "Unknown";
-        /**
-         *
-         *
-         * @static
-         * @memberof Strings
-         * @version 1.0.0
-         * @since 1.1.1
-         */
-        Strings.Success = "Success";
-        /**
-         * @static
-         * @memberof Strings
-         * @version 1.0.0
-         * @since 1.1.1
-         */
-        Strings.Failure = "Failure";
-        /**
-         * @static
-         * @memberof Strings
-         * @version 1.0.0
-         * @since 1.1.3
-         */
-        Strings.true = "true";
-        /**
-         * @static
-         * @memberof Strings
-         * @version 1.0.0
-         * @since 1.1.3
-         */
-        Strings.false = "false";
-        /**
-         * @version 2019-03-21
-         * @since 1.1.19
-         */
-        Strings.BREAK_LINE_REGEXP = /\r\n|\r|\n/g;
-        /**
-         * @since 1.1.20
-         * @version 2019-03-29
-         */
-        Strings.Prefix = "_Kaven_Default_0121_";
-        /**
-         * @since 1.1.20
-         * @version 2019-03-29
-         */
-        Strings.Names = {
-            CRC32Instance: Strings.Prefix + "CRC32Instance",
-            CRC64Instance: Strings.Prefix + "CRC64Instance",
-            SHAInstance: Strings.Prefix + "SHAInstance",
-            SHA3Instance: Strings.Prefix + "SHA3Instance",
-            MD5Instance: Strings.Prefix + "MD5Instance",
-        };
-        Strings.BEGIN_PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----";
-        Strings.END_PUBLIC_KEY = "-----END PUBLIC KEY-----";
-        Strings.BEGIN_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----";
-        Strings.END_PRIVATE_KEY = "-----END PRIVATE KEY-----";
-        return Strings;
-    }());
+    var Strings_Empty = "";
+    /**
+     * @static
+     * @memberof Strings
+     * @version 1.0.0
+     * @since 1.0.10
+     */
+    var Strings_WhiteSpace = " ";
+    /**
+     * @static
+     * @memberof Strings
+     * @version 1.0.0
+     * @since 1.0.10
+     */
+    var Strings_Tab = "\t";
+    /**
+     * \n, (Line Feed) Used as a new line character in Unix/Mac OS X
+     * @version 1.0.0
+     * @since 1.0.5
+     */
+    var Strings_LF = "\n";
+    /**
+     * \r, (Carriage Return) Used as a new line character in Mac OS before X
+     * @version 1.0.0
+     * @since 1.0.5
+     */
+    var Strings_CR = "\r";
+    /**
+     * \r\n, Used as a new line character in Windows
+     * @version 1.0.0
+     * @since 1.0.5
+     */
+    var Strings_CR_LF = "\r\n";
+    /**
+     * @version 1.0.0
+     * @since 1.0.5
+     */
+    var Strings_HTML_BR = "<br>";
+    /**
+     * non-breaking space
+     * @version 1.0.0
+     * @since 1.0.5
+     */
+    var Strings_HTML_NBSP = "&nbsp;";
+    /**
+     * @version 1.0.0
+     * @since 1.0.5
+     */
+    var Strings_LowercaseLetters = "abcdefghijklmnopqrstuvwxyz";
+    /**
+     * @version 1.0.0
+     * @since 1.0.5
+     */
+    var Strings_UppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    /**
+     * @version 1.0.0
+     * @since 1.0.5
+     */
+    var Strings_Numbers = "0123456789";
+    /**
+     * @version 1.0.0
+     * @since 1.0.5
+     * @see {@link https://www.owasp.org/index.php/Password_special_characters}
+     */
+    var Strings_PasswordSpecialCharacters = " !\"#$%&'()*+,-./:;<=>?@[]^_`{|}~";
+    /**
+     * @version 1.0.0
+     * @since 1.0.5
+     */
+    var Strings_Slash = "/";
+    /**
+     * @version 1.0.0
+     * @since 1.0.5
+     */
+    var Strings_BackSlash = "\\";
+    /**
+     *
+     *
+     * @static
+     * @memberof Strings
+     * @version 1.0.0
+     * @since 1.0.6
+     */
+    var Strings_DoubleQuotes = "\"";
+    /**
+     * @version 1.0.0
+     * @since 1.0.9
+     */
+    var Strings_RunningMode = "RunningMode";
+    /**
+     * @version 1.0.0
+     * @since 1.0.9
+     */
+    var Strings_Development = "development";
+    /**
+     * @version 1.0.0
+     * @since 1.0.9
+     */
+    var Strings_Production = "production";
+    /**
+     *
+     *
+     * @static
+     * @memberof Strings
+     * @version 1.0.0
+     * @since 1.0.12
+     */
+    var Strings_Dot = ".";
+    /**
+     *
+     *
+     * @static
+     * @memberof Strings
+     * @version 1.0.0
+     * @since 1.1.1
+     */
+    var Strings_Unknown = "Unknown";
+    /**
+     *
+     *
+     * @static
+     * @memberof Strings
+     * @version 1.0.0
+     * @since 1.1.1
+     */
+    var Strings_Success = "Success";
+    /**
+     * @static
+     * @memberof Strings
+     * @version 1.0.0
+     * @since 1.1.1
+     */
+    var Strings_Failure = "Failure";
+    /**
+     * @static
+     * @memberof Strings
+     * @version 1.0.0
+     * @since 1.1.3
+     */
+    var Strings_true = "true";
+    /**
+     * @static
+     * @memberof Strings
+     * @version 1.0.0
+     * @since 1.1.3
+     */
+    var Strings_false = "false";
+    /**
+     * @version 2019-03-21
+     * @since 1.1.19
+     */
+    var Strings_BREAK_LINE_REGEXP = /\r\n|\r|\n/g;
+    var Strings_BEGIN_PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----";
+    var Strings_END_PUBLIC_KEY = "-----END PUBLIC KEY-----";
+    var Strings_BEGIN_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----";
+    var Strings_END_PRIVATE_KEY = "-----END PRIVATE KEY-----";
 
     /********************************************************************
      * @author:      Kaven
@@ -8940,10 +8873,10 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/KavenBasic.Extension.ts
      * @create:      2020-01-19 13:07:41.405
-     * @modify:      2021-08-07 16:06:26.842
-     * @version:     2.0.14
-     * @times:       26
-     * @lines:       563
+     * @modify:      2021-12-24 12:26:46.949
+     * @version:     4.0.0
+     * @times:       60
+     * @lines:       836
      * @copyright:   Copyright © 2020-2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
@@ -8965,12 +8898,75 @@ module.exports = Array.isArray || function (arr) {
      * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
      * SOFTWARE.
      ********************************************************************/
-    var __spreadArray$2 = (undefined && undefined.__spreadArray) || function (to, from) {
-        for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-            to[j] = from[i];
-        return to;
+    var __spreadArray$3 = (undefined && undefined.__spreadArray) || function (to, from, pack) {
+        if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+            if (ar || !(i in from)) {
+                if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+                ar[i] = from[i];
+            }
+        }
+        return to.concat(ar || Array.prototype.slice.call(from));
     };
     // #region String
+    function IsString(val) {
+        if (typeof val === "string" || val instanceof String) {
+            return true;
+        }
+        return false;
+    }
+    /**
+     *
+     * @param a
+     * @param b
+     * @param ignoreCase
+     * @returns
+     * @since 2.0.13
+     * @version 2021-03-18
+     */
+    function IsEqual(a, b, ignoreCase) {
+        if (ignoreCase === void 0) { ignoreCase = true; }
+        if (a === undefined || b === undefined) {
+            return a === b;
+        }
+        if (ignoreCase) {
+            return a.toLowerCase() === b.toLowerCase();
+        }
+        return a === b;
+    }
+    /**
+     *
+     * @since 3.0.4
+     * @version 2021-12-07
+     */
+    function IsNotEmpty(val) {
+        if (val === undefined) {
+            return false;
+        }
+        if (Array.isArray(val)) {
+            return val.length > 0;
+        }
+        if (IsString(val)) {
+            return val.length > 0;
+        }
+        return false;
+    }
+    /**
+     *
+     * @since 3.0.4
+     * @version 2021-12-07
+     */
+    function IsEmpty(val) {
+        if (val === undefined) {
+            return false;
+        }
+        if (Array.isArray(val)) {
+            return val.length === 0;
+        }
+        if (IsString(val)) {
+            return val.length === 0;
+        }
+        return false;
+    }
     function ReplaceAll(str, old, rep) {
         return str.split(old).join(rep);
     }
@@ -8986,47 +8982,99 @@ module.exports = Array.isArray || function (arr) {
         }
         return String.prototype.substring.call(str, 0, pos.Start) + rep;
     }
-    function TrimEnd(str, trim, max) {
-        if (max === void 0) { max = 1; }
-        var result = str;
-        while (max-- > 0) {
-            if (IsNotEmpty(trim)) {
-                if (String.prototype.endsWith.call(result, trim)) {
-                    result = String.prototype.slice.call(str, 0, -trim.length);
-                }
-                else {
-                    return result;
+    function TrimStart(p1, p2, p3) {
+        var f = function (str, trim, max) {
+            if (max === undefined) {
+                max = str.length;
+            }
+            var result = str;
+            while (max-- > 0) {
+                if (IsNotEmpty(trim)) {
+                    if (String.prototype.startsWith.call(result, trim)) {
+                        result = String.prototype.substring.call(result, trim.length);
+                    }
+                    else {
+                        return result;
+                    }
                 }
             }
-        }
-        return result;
-    }
-    function TrimAll(str, trim, max) {
-        if (max === void 0) { max = 1; }
-        return TrimEnd(TrimStart(str, trim, max), trim, max);
-    }
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
-    function padStart(str, targetLength, padString) {
-        targetLength = targetLength >> 0; // truncate if number or convert non-number to 0;
-        // padString = String(typeof padString !== 'undefined' ? padString : ' ')
-        if (str.length > targetLength) {
-            return String(str);
+            return result;
+        };
+        if (Array.isArray(p2)) {
+            var trimAll = p3 !== false;
+            var r = p1;
+            var len = r.length;
+            do {
+                len = r.length;
+                for (var _i = 0, p2_1 = p2; _i < p2_1.length; _i++) {
+                    var trim = p2_1[_i];
+                    r = f(r, trim, undefined);
+                }
+                if (!trimAll) {
+                    break;
+                }
+            } while (r.length < len);
+            return r;
         }
         else {
-            targetLength = targetLength - str.length;
-            if (targetLength > padString.length) {
-                // append to original to ensure we are longer than needed
-                padString += padString.repeat(targetLength / padString.length);
+            return f(p1, p2, p3);
+        }
+    }
+    function TrimEnd(p1, p2, p3) {
+        var f = function (str, trim, max) {
+            if (max === undefined) {
+                max = str.length;
             }
-            return padString.slice(0, targetLength) + String(str);
+            var result = str;
+            while (max-- > 0) {
+                if (IsNotEmpty(trim)) {
+                    if (String.prototype.endsWith.call(result, trim)) {
+                        result = String.prototype.slice.call(result, 0, -trim.length);
+                    }
+                    else {
+                        return result;
+                    }
+                }
+            }
+            return result;
+        };
+        if (Array.isArray(p2)) {
+            var trimAll = p3 !== false;
+            var r = p1;
+            var len = r.length;
+            do {
+                len = r.length;
+                for (var _i = 0, p2_2 = p2; _i < p2_2.length; _i++) {
+                    var trim = p2_2[_i];
+                    r = f(r, trim, undefined);
+                }
+                if (!trimAll) {
+                    break;
+                }
+            } while (r.length < len);
+            return r;
+        }
+        else {
+            return f(p1, p2, p3);
+        }
+    }
+    function TrimAll(p1, p2, p3) {
+        if (Array.isArray(p2)) {
+            return TrimEnd(TrimStart(p1, p2), p2);
+        }
+        else {
+            if (p3 !== undefined) {
+                return TrimEnd(TrimStart(p1, p2, p3), p2, p3);
+            }
+            return TrimEnd(TrimStart(p1, p2), p2);
         }
     }
     function GetIndent(str) {
         if (IsNotEmpty(str)) {
-            var result = Strings.Empty;
+            var result = Strings_Empty;
             for (var _i = 0, str_1 = str; _i < str_1.length; _i++) {
                 var c = str_1[_i];
-                if (c === Strings.WhiteSpace || c === Strings.Tab) {
+                if (c === Strings_WhiteSpace || c === Strings_Tab) {
                     result += c;
                     continue;
                 }
@@ -9034,7 +9082,104 @@ module.exports = Array.isArray || function (arr) {
             }
             return result;
         }
-        return Strings.Empty;
+        return Strings_Empty;
+    }
+    /**
+     * @since 4.0.0
+     * @version 2021-12-11
+     */
+    function StringToArray(str) {
+        if (IsNotEmpty(str)) {
+            // https://stackoverflow.com/questions/6484670/how-do-i-split-a-string-into-an-array-of-characters/38901550#38901550
+            // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/split#Syntax
+            // return str.split(Strings_Empty); // 2019-04-03
+            return Array.from(str);
+        }
+        return [];
+    }
+    /**
+     * Converts a JS string to a UTF-8 "byte" array.
+     * @since 4.0.0
+     * @version 2021-12-11
+     */
+    function StringToUTF8ByteArray(str) {
+        // https://github.com/google/closure-library/blob/8d12f806f506d88b360a61ab6e044ecd9eac4392/closure/goog/crypt/crypt.js#L113
+        var out = [];
+        var p = 0;
+        for (var i = 0; i < str.length; i++) {
+            var c = str.charCodeAt(i);
+            if (c < 128) {
+                out[p++] = c;
+            }
+            else if (c < 2048) {
+                out[p++] = (c >> 6) | 192;
+                out[p++] = (c & 63) | 128;
+            }
+            else if (((c & 0xFC00) === 0xD800) && (i + 1) < str.length &&
+                ((str.charCodeAt(i + 1) & 0xFC00) === 0xDC00)) {
+                // Surrogate Pair
+                c = 0x10000 + ((c & 0x03FF) << 10) + (str.charCodeAt(++i) & 0x03FF);
+                out[p++] = (c >> 18) | 240;
+                out[p++] = ((c >> 12) & 63) | 128;
+                out[p++] = ((c >> 6) & 63) | 128;
+                out[p++] = (c & 63) | 128;
+            }
+            else {
+                out[p++] = (c >> 12) | 224;
+                out[p++] = ((c >> 6) & 63) | 128;
+                out[p++] = (c & 63) | 128;
+            }
+        }
+        return out;
+    }
+    /**
+     * Converts a UTF-8 byte array to JavaScript's 16-bit Unicode.
+     * @since 4.0.0
+     * @version 2021-12-11
+     */
+    function UTF8ByteArrayToString(bytes) {
+        // https://github.com/google/closure-library/blob/8d12f806f506d88b360a61ab6e044ecd9eac4392/closure/goog/crypt/crypt.js#L148
+        var out = [];
+        var pos = 0;
+        var c = 0;
+        while (pos < bytes.length) {
+            var c1 = bytes[pos++];
+            var c2 = void 0, c3 = void 0;
+            if (c1 < 128) {
+                out[c++] = String.fromCharCode(c1);
+            }
+            else if (c1 > 191 && c1 < 224) {
+                c2 = bytes[pos++];
+                out[c++] = String.fromCharCode((c1 & 31) << 6 | c2 & 63);
+            }
+            else if (c1 > 239 && c1 < 365) {
+                // Surrogate Pair
+                c2 = bytes[pos++];
+                c3 = bytes[pos++];
+                var c4 = bytes[pos++];
+                var u = ((c1 & 7) << 18 | (c2 & 63) << 12 | (c3 & 63) << 6 | c4 & 63) -
+                    0x10000;
+                out[c++] = String.fromCharCode(0xD800 + (u >> 10));
+                out[c++] = String.fromCharCode(0xDC00 + (u & 1023));
+            }
+            else {
+                c2 = bytes[pos++];
+                c3 = bytes[pos++];
+                out[c++] =
+                    String.fromCharCode((c1 & 15) << 12 | (c2 & 63) << 6 | c3 & 63);
+            }
+        }
+        return out.join("");
+    }
+    function Distinct(val) {
+        if (Array.isArray(val)) {
+            // https://stackoverflow.com/questions/1960473/get-all-unique-values-in-a-javascript-array-remove-duplicates
+            return Array.from(new Set(val));
+        }
+        if (IsNotEmpty(val)) {
+            return Distinct(StringToArray(val)).join(Strings_Empty);
+        }
+        return val;
     }
     function OnlyContains(str) {
         var characters = [];
@@ -9042,7 +9187,7 @@ module.exports = Array.isArray || function (arr) {
             characters[_i - 1] = arguments[_i];
         }
         if (IsNotEmpty(str)) {
-            var charactersStr = Distinct(characters.join(Strings.Empty));
+            var charactersStr = Distinct(characters.join(Strings_Empty));
             for (var _a = 0, str_2 = str; _a < str_2.length; _a++) {
                 var val = str_2[_a];
                 if (!charactersStr.includes(val)) {
@@ -9075,7 +9220,7 @@ module.exports = Array.isArray || function (arr) {
         }
         var count = 0;
         if (IsNotEmpty(str)) {
-            var charactersStr = Distinct(characters.join(Strings.Empty));
+            var charactersStr = Distinct(characters.join(Strings_Empty));
             for (var _a = 0, str_3 = str; _a < str_3.length; _a++) {
                 var val = str_3[_a];
                 if (charactersStr.includes(val)) {
@@ -9085,73 +9230,32 @@ module.exports = Array.isArray || function (arr) {
         }
         return count;
     }
-    function ToArray(str) {
-        if (IsNotEmpty(str)) {
-            // https://stackoverflow.com/questions/6484670/how-do-i-split-a-string-into-an-array-of-characters/38901550#38901550
-            // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/split#Syntax
-            // return str.split(Strings.Empty); // 2019-04-03
-            return Array.from(str);
-        }
-        return [];
-    }
-    function Distinct(val) {
-        if (Array.isArray(val)) {
-            // https://stackoverflow.com/questions/1960473/get-all-unique-values-in-a-javascript-array-remove-duplicates
-            return Array.from(new Set(val));
-        }
-        if (IsNotEmpty(val)) {
-            return Distinct(ToArray(val)).join(Strings.Empty);
-        }
-        return val;
-    }
     function GetSubstring(str, pos) {
         return str.substring(pos.Start, pos.End);
     }
+    /**
+     * @since 4.0.0
+     * @version 2021-12-11
+     */
     function CapitalizeSentences(sentences) {
-        function LeftTrim(str, chars) {
-            chars = chars || "\\s";
-            return str.replace(new RegExp("^[" + chars + "]+", "g"), "");
-        }
+        var candidates = [".", "!", "?"];
         var result = sentences;
-        var tempArray = sentences.split(".");
-        var tempStr = "";
-        for (var i = 0; i < tempArray.length; i++) {
-            tempArray[i] = LeftTrim(tempArray[i], " ");
-            tempStr =
-                tempStr +
-                    tempArray[i].substring(0, 1).toUpperCase() +
-                    tempArray[i].slice(1).toLowerCase();
-            if (i < tempArray.length - 1) {
-                tempStr = tempStr + ". ";
+        for (var _i = 0, candidates_1 = candidates; _i < candidates_1.length; _i++) {
+            var char = candidates_1[_i];
+            var tempArray = sentences.split(char);
+            var tempStr = "";
+            for (var i = 0; i < tempArray.length; i++) {
+                tempArray[i] = TrimStart(tempArray[i], " ");
+                tempStr =
+                    tempStr +
+                        tempArray[i].substring(0, 1).toUpperCase() +
+                        tempArray[i].slice(1).toLowerCase();
+                if (i < tempArray.length - 1) {
+                    tempStr = tempStr + char;
+                }
             }
+            result = tempStr;
         }
-        result = tempStr;
-        tempArray = result.split("?");
-        tempStr = "";
-        for (var i = 0; i < tempArray.length; i++) {
-            tempArray[i] = LeftTrim(tempArray[i], " ");
-            tempStr =
-                tempStr +
-                    tempArray[i].substring(0, 1).toUpperCase() +
-                    tempArray[i].slice(1);
-            if (i < tempArray.length - 1) {
-                tempStr = tempStr + "? ";
-            }
-        }
-        result = tempStr;
-        tempArray = result.split("!");
-        tempStr = "";
-        for (var i = 0; i < tempArray.length; i++) {
-            tempArray[i] = LeftTrim(tempArray[i], " ");
-            tempStr =
-                tempStr +
-                    tempArray[i].substring(0, 1).toUpperCase() +
-                    tempArray[i].slice(1);
-            if (i < tempArray.length - 1) {
-                tempStr = tempStr + "! ";
-            }
-        }
-        result = tempStr;
         return result;
     }
     function CapitalizeWords(str) {
@@ -9165,36 +9269,34 @@ module.exports = Array.isArray || function (arr) {
         //     .encode(this)
         //     .reduce(
         //         (prev, curr) => prev + String.fromCharCode(curr),
-        //         Strings.Empty
+        //         Strings_Empty
         //     );
         // };
-        var imp2 = function () {
-            return unescape(encodeURIComponent(str));
-        };
-        var imp3 = function () {
-            return ToUTF8ByteArray(str).reduce(function (prev, curr) { return prev + String.fromCharCode(curr); }, Strings.Empty);
-        };
+        // const imp2 = () => {
+        //     return unescape(encodeURIComponent(str));
+        // };
+        // const imp3 = () => {
+        return StringToUTF8ByteArray(str).reduce(function (prev, curr) { return prev + String.fromCharCode(curr); }, Strings_Empty);
+        // };
         // try {
         //     return imp1();
         // } catch (ex) {
         //     console.error(ex);
         // }
-        try {
-            return imp2();
-        }
-        catch (ex) {
-            console.error(ex);
-        }
-        try {
-            return imp3();
-        }
-        catch (ex) {
-            console.error(ex);
-        }
-        return str;
+        // try {
+        //     return imp2();
+        // } catch (ex) {
+        //     console.error(ex);
+        // }
+        // try {
+        //     return imp3();
+        // } catch (ex) {
+        //     console.error(ex);
+        // }
+        // return str;
     }
     function Reverse(str) {
-        return ToArray(str).reverse().join(Strings.Empty);
+        return StringToArray(str).reverse().join(Strings_Empty);
     }
     function FormatString(format) {
         var args = [];
@@ -9209,10 +9311,25 @@ module.exports = Array.isArray || function (arr) {
         }
         return str;
     }
+    /**
+     * @since 4.0.0
+     * @version 2021-12-24
+     */
+    function SurroundBy(text, left, right) {
+        return "".concat(left).concat(text).concat(right !== undefined ? right : left);
+    }
     // #endregion
     // #region Array
+    /**
+     * @since 4.0.0
+     * @version 2021-12-14
+     */
     function Remove(array, index) {
-        return Array.prototype.splice.call(array, index, 1);
+        var deletedElements = Array.prototype.splice.call(array, index, 1);
+        if (deletedElements.length > 0) {
+            return deletedElements[0];
+        }
+        return undefined;
     }
     function First(array) {
         if (IsNotEmpty(array)) {
@@ -9221,7 +9338,7 @@ module.exports = Array.isArray || function (arr) {
         return undefined;
     }
     function Last(array) {
-        if (array && IsNotEmpty(array)) {
+        if (IsNotEmpty(array)) {
             return array[array.length - 1];
         }
         return undefined;
@@ -9231,17 +9348,17 @@ module.exports = Array.isArray || function (arr) {
         for (var _i = 0; _i < arguments.length; _i++) {
             array[_i] = arguments[_i];
         }
-        return array.map(function (p) { return p.toString(16).padStart(8, "0"); }).join(Strings.Empty);
+        return array.map(function (p) { return p.toString(16).padStart(8, "0"); }).join(Strings_Empty);
     }
     function SequenceEqual(array, second) {
         if (array === second) {
             return true;
         }
         if (!array) {
-            throw new Error("first: " + array);
+            throw new Error("first: ".concat(array));
         }
         if (!second) {
-            throw new Error("second: " + second);
+            throw new Error("second: ".concat(second));
         }
         if (array.length !== second.length) {
             return false;
@@ -9270,8 +9387,42 @@ module.exports = Array.isArray || function (arr) {
         }
         return false;
     }
+    function Split(array, size, fromLeft) {
+        var result = new Array(0);
+        if (fromLeft === true) {
+            for (var i = 0; i < array.length; i += size) {
+                result.push(array.slice(i, i + size));
+            }
+        }
+        else {
+            var remainder = array.length % size;
+            if (remainder > 0) {
+                result.push(array.slice(0, remainder));
+            }
+            for (var i = remainder; i < array.length; i += size) {
+                result.push(array.slice(i, i + size));
+            }
+        }
+        return result;
+    }
+    function SplitByN(str, n, fromLeft) {
+        var reg = fromLeft !== true ? ".{1,".concat(n, "}(?=(.{").concat(n, "})+(?!.))|.{1,").concat(n, "}$") : ".{1,".concat(n, "}");
+        return str.match(new RegExp(reg, "g"));
+    }
     // #endregion
     // #region Number
+    function LeftRotate(num, n, bits) {
+        if (bits === undefined) {
+            bits = 32;
+        }
+        return (num << n) | (num >>> (bits - n));
+    }
+    function RightRotate(num, n, bits) {
+        if (bits === undefined) {
+            bits = 32;
+        }
+        return (num >>> n) | (num << (bits - n));
+    }
     function ToMilliseconds(num, currentUnit) {
         switch (currentUnit) {
             case exports.TimeUnit.milliseconds:
@@ -9284,8 +9435,7 @@ module.exports = Array.isArray || function (arr) {
             case exports.TimeUnit.years:
                 return num * exports.TimeFactor[currentUnit];
             default:
-                console.warn("Unexpected time unit: " + currentUnit + ".");
-                return num;
+                throw new Error("Unexpected time unit: ".concat(currentUnit, "."));
         }
     }
     function ToSeconds(num, currentUnit) {
@@ -9309,15 +9459,15 @@ module.exports = Array.isArray || function (arr) {
     function ToYears(num, currentUnit) {
         return ToMilliseconds(num, currentUnit) / exports.TimeFactor.years;
     }
-    function ToUInt32() {
+    function ToUInt32(n) {
         // note '>>> 0' for 'addition modulo 2^32'
         // The reason >> works is because it operates only on 32-bit integers, so the value is truncated.
-        return this >>> 0;
+        return n >>> 0;
         // same to:
-        // return this & 0xffffffff;
+        // return n & 0xffffffff;
     }
-    function Swap32() {
-        return ((this & 0xFF) << 24) | ((this & 0xFF00) << 8) | ((this >> 8) & 0xFF00) | ((this >> 24) & 0xFF);
+    function Swap32(n) {
+        return ((n & 0xFF) << 24) | ((n & 0xFF00) << 8) | ((n >> 8) & 0xFF00) | ((n >> 24) & 0xFF);
     }
     function GetBaseLog(num, baseNumber) {
         return Math.log(num) / Math.log(baseNumber);
@@ -9350,16 +9500,12 @@ module.exports = Array.isArray || function (arr) {
     }
     // #endregion
     /**
-     *
-     * @param str
-     * @param float
-     * @returns
      * @since 3.0.0
-     * @version 2021-08-07
+     * @version 2021-12-11
      */
     function GetLeadingNumber(str, float) {
         if (float === void 0) { float = false; }
-        return str.replace(float ? /[^d+.\d+].*/ : /[^d+].*/, "");
+        return str.replace(float ? /[^d+.\d+].*/ : /[^d+\d+].*/, "");
     }
     /**
      *
@@ -9413,7 +9559,552 @@ module.exports = Array.isArray || function (arr) {
      * @version 2020-01-11
      */
     function CloneArray(array) {
-        return __spreadArray$2([], array);
+        return __spreadArray$3([], array, true);
+    }
+    /**
+     *
+     * @since 4.0.0
+     * @version 2021-12-11
+     */
+    function NumberToHex(number, len) {
+        var result = number.toString(16);
+        if (len !== undefined && len > result.length) {
+            result = result.padStart(len, "0");
+        }
+        return result;
+    }
+
+    /********************************************************************
+     * @author:      Kaven
+     * @email:       kaven@wuwenkai.com
+     * @website:     http://blog.kaven.xyz
+     * @file:        [Kaven-Basic] /src/libs/StringPosition.ts
+     * @create:      2018-09-01 10:52:52.750
+     * @modify:      2021-12-10 21:56:31.628
+     * @version:     4.0.0
+     * @times:       10
+     * @lines:       90
+     * @copyright:   Copyright © 2018-2021 Kaven. All Rights Reserved.
+     * @description: [description]
+     * @license:
+     * Permission is hereby granted, free of charge, to any person obtaining a copy
+     * of this software and associated documentation files (the "Software"), to deal
+     * in the Software without restriction, including without limitation the rights
+     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+     * copies of the Software, and to permit persons to whom the Software is
+     * furnished to do so, subject to the following conditions:
+     *
+     * The above copyright notice and this permission notice shall be included in all
+     * copies or substantial portions of the Software.
+     *
+     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+     * SOFTWARE.
+     ********************************************************************/
+    var StringPosition = /** @class */ (function () {
+        function StringPosition(start, end) {
+            this.end = undefined;
+            this.Start = start;
+            if (end) {
+                this.end = end;
+            }
+        }
+        StringPosition.Create = function (start, length) {
+            var sp = new StringPosition(start);
+            sp.Length = length;
+            return sp;
+        };
+        Object.defineProperty(StringPosition.prototype, "End", {
+            get: function () {
+                return this.end;
+            },
+            set: function (val) {
+                this.end = val;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(StringPosition.prototype, "Length", {
+            get: function () {
+                if (this.End) {
+                    return this.End - this.Start;
+                }
+                return Number.NaN;
+            },
+            set: function (len) {
+                this.end = this.Start + len;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        StringPosition.prototype.toString = function () {
+            return "".concat(this.Start, "-").concat(this.End);
+        };
+        StringPosition.prototype.Equals = function (another, checkRelatedString) {
+            if (checkRelatedString === void 0) { checkRelatedString = false; }
+            if (checkRelatedString) {
+                if (this.RelatedString !== another.RelatedString) {
+                    return false;
+                }
+            }
+            return this.Start === another.Start && this.End === another.End;
+        };
+        return StringPosition;
+    }());
+
+    /********************************************************************
+     * @author:      Kaven
+     * @email:       kaven@wuwenkai.com
+     * @website:     http://blog.kaven.xyz
+     * @file:        [Kaven-Basic] /src/libs/KavenBasic.Core.ts
+     * @create:      2020-06-02 15:33:55.173
+     * @modify:      2022-01-04 16:25:53.953
+     * @version:     4.0.0
+     * @times:       61
+     * @lines:       456
+     * @copyright:   Copyright © 2020-2022 Kaven. All Rights Reserved.
+     * @description: [description]
+     * @license:
+     * Permission is hereby granted, free of charge, to any person obtaining a copy
+     * of this software and associated documentation files (the "Software"), to deal
+     * in the Software without restriction, including without limitation the rights
+     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+     * copies of the Software, and to permit persons to whom the Software is
+     * furnished to do so, subject to the following conditions:
+     *
+     * The above copyright notice and this permission notice shall be included in all
+     * copies or substantial portions of the Software.
+     *
+     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+     * SOFTWARE.
+     ********************************************************************/
+    var __awaiter$8 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+        return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+        });
+    };
+    var __generator$8 = (undefined && undefined.__generator) || function (thisArg, body) {
+        var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+        return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+        function verb(n) { return function (v) { return step([n, v]); }; }
+        function step(op) {
+            if (f) throw new TypeError("Generator is already executing.");
+            while (_) try {
+                if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+                if (y = 0, t) op = [op[0] & 2, t.value];
+                switch (op[0]) {
+                    case 0: case 1: t = op; break;
+                    case 4: _.label++; return { value: op[1], done: false };
+                    case 5: _.label++; y = op[1]; op = [0]; continue;
+                    case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                    default:
+                        if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                        if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                        if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                        if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                        if (t[2]) _.ops.pop();
+                        _.trys.pop(); continue;
+                }
+                op = body.call(thisArg, _);
+            } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+            if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+        }
+    };
+    /**
+     *
+     * @param val
+     * @since 2.0.11
+     * @version 2021-02-01
+     */
+    function ConvertTo(val) {
+        return val;
+    }
+    /**
+     *
+     * @since 4.0.0
+     * @version 2021-12-11
+     */
+    function IsStartsWithNumber(str) {
+        if (!str) {
+            return false;
+        }
+        if (str.match(/^\d/)) {
+            return true;
+        }
+        return false;
+    }
+    /**
+     * @since 1.1.7
+     * @version 2021-12-11
+     */
+    function Sleep(time) {
+        return __awaiter$8(this, void 0, void 0, function () {
+            return __generator$8(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (time <= 0) {
+                            return [2 /*return*/];
+                        }
+                        return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, time); })];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
+    }
+    /**
+     *
+     * @param timeout in million seconds
+     * @version 2020-06-02
+     * @since 2.0.6
+     */
+    function RejectAfter(timeout) {
+        return __awaiter$8(this, void 0, void 0, function () {
+            return __generator$8(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, Sleep(timeout)];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/, Promise.reject(new Error("timeout: ".concat(timeout)))];
+                }
+            });
+        });
+    }
+    /**
+     *
+     * @param timeout in million seconds
+     * @version 2020-06-02
+     * @since 2.0.6
+     */
+    function ResolveAfter(data, timeout) {
+        return __awaiter$8(this, void 0, void 0, function () {
+            return __generator$8(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, Sleep(timeout)];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/, Promise.resolve(data)];
+                }
+            });
+        });
+    }
+    /**
+     *
+     * @param action
+     * @param timeout in million seconds, Defaults: `500`
+     * @since 2.0.6
+     * @version 2020-06-02
+     */
+    function TimeoutAfter(action, timeout) {
+        if (timeout === void 0) { timeout = 500; }
+        return __awaiter$8(this, void 0, void 0, function () {
+            return __generator$8(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, Promise.race([action, RejectAfter(timeout)])];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
+    }
+    /**
+     *
+     * @since 1.1.5
+     * @version 2020-01-06
+     */
+    function DoUntilSuccess(action, retryDelayInMillionSeconds, retryCount, startImmediately) {
+        if (retryDelayInMillionSeconds === void 0) { retryDelayInMillionSeconds = 500; }
+        if (retryCount === void 0) { retryCount = 5; }
+        if (startImmediately === void 0) { startImmediately = false; }
+        return __awaiter$8(this, void 0, void 0, function () {
+            return __generator$8(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        retryCount++;
+                        if (!startImmediately) return [3 /*break*/, 2];
+                        return [4 /*yield*/, action()];
+                    case 1:
+                        if (_a.sent()) {
+                            return [2 /*return*/, true];
+                        }
+                        retryCount--;
+                        _a.label = 2;
+                    case 2:
+                        if (!(retryCount > 0)) return [3 /*break*/, 5];
+                        return [4 /*yield*/, Sleep(retryDelayInMillionSeconds)];
+                    case 3:
+                        _a.sent();
+                        return [4 /*yield*/, action()];
+                    case 4:
+                        if (_a.sent()) {
+                            return [2 /*return*/, true];
+                        }
+                        retryCount--;
+                        return [3 /*break*/, 2];
+                    case 5: return [2 /*return*/, false];
+                }
+            });
+        });
+    }
+    /**
+     *
+     * @since 1.1.5
+     * @version 2021-12-14
+     */
+    function Countdown(count, interval, intervalAction) {
+        if (interval === void 0) { interval = 1000; }
+        return new Promise(function (resolve, reject) {
+            var left = count;
+            var id = setInterval(function () {
+                if (left > 0) {
+                    try {
+                        if (intervalAction) {
+                            if (!intervalAction(left)) {
+                                clearInterval(id);
+                                resolve(left);
+                                return;
+                            }
+                        }
+                    }
+                    catch (ex) {
+                        clearInterval(id);
+                        reject(ex);
+                        return;
+                    }
+                    left--;
+                }
+                else {
+                    clearInterval(id);
+                    resolve(left);
+                }
+            }, interval);
+        });
+    }
+    /*
+    Convert  an ArrayBuffer into a string
+    from https://developers.google.com/web/updates/2012/06/How-to-convert-ArrayBuffer-to-and-from-String
+    */
+    function ArrayBuffer2String(buf) {
+        return String.fromCharCode.apply(null, new Uint8Array(buf));
+    }
+    /*
+      Convert a string into an ArrayBuffer
+      from https://developers.google.com/web/updates/2012/06/How-to-convert-ArrayBuffer-to-and-from-String
+      */
+    function String2ArrayBuffer(str) {
+        var buf = new ArrayBuffer(str.length);
+        var bufView = new Uint8Array(buf);
+        for (var i = 0, strLen = str.length; i < strLen; i++) {
+            bufView[i] = str.charCodeAt(i);
+        }
+        return buf;
+    }
+    /**
+     *
+     * @param date
+     * @param iso
+     * @returns
+     * @since 2.0.14
+     * @version 2021-08-06
+     */
+    function GetWeekOfYear(date, iso) {
+        // https://stackoverflow.com/questions/6117814/get-week-of-year-in-javascript-like-in-php
+        if (iso) {
+            // Copy date so don't modify original
+            date = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            // Set to nearest Thursday: current date + 4 - current day number
+            // Make Sunday's day number 7
+            date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
+            // Get first day of year
+            var yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+            // Calculate full weeks to nearest Thursday
+            var week = Math.ceil((((date.valueOf() - yearStart.valueOf()) / 86400000) + 1) / 7);
+            return week;
+        }
+        else {
+            var date_1 = new Date();
+            var date2 = new Date(date_1.getFullYear(), 0, 1);
+            var week = Math.ceil((((date_1.getTime() - date2.getTime()) / 86400000) + date2.getDay() + 1) / 7);
+            return week;
+        }
+    }
+    /**
+     * @param {string} str
+     * @param {string} strStart
+     * @param {string} strEnd
+     * @returns
+     * @since 1.1.7
+     * @version 2021-12-07
+     */
+    function GetStringPositionBetween(str, strStart, strEnd, max, startIndex) {
+        if (max === void 0) { max = -1; }
+        if (startIndex === void 0) { startIndex = 0; }
+        var list = [];
+        if (str &&
+            strStart &&
+            strEnd &&
+            IsNotEmpty(str) &&
+            IsNotEmpty(strStart) &&
+            IsNotEmpty(strEnd)) {
+            var current = startIndex;
+            while (true) {
+                var index = str.indexOf(strStart, current);
+                if (index !== -1) {
+                    var endIndex = str.indexOf(strEnd, index + strStart.length + 1);
+                    if (endIndex !== -1) {
+                        var pos = new StringPosition(index + strStart.length, endIndex);
+                        pos.RelatedString = GetSubstring(str, pos);
+                        list.push(
+                        // str.substring(index + strStart.length, endIndex)
+                        pos);
+                        if (max > 0 && list.length >= max) {
+                            break;
+                        }
+                        current = endIndex + strEnd.length + 1;
+                    }
+                    else {
+                        break;
+                    }
+                }
+                else {
+                    break;
+                }
+            }
+        }
+        return list;
+    }
+    /**
+     *
+     *
+     * @export
+     * @param {string} str
+     * @param {string} strStart
+     * @param {string} strEnd
+     * @returns
+     * @version 2018-09-01
+     * @since 1.0.6
+     */
+    function GetStringBetween(str, strStart, strEnd, max) {
+        if (max === void 0) { max = -1; }
+        return GetStringPositionBetween(str, strStart, strEnd, max).map(function (p) { return str.substring(p.Start, p.End); });
+    }
+    /**
+     *
+     * @param replaceMethod
+     * @param str
+     * @param strStart
+     * @param strEnd
+     * @since 1.1.7
+     * @version 2021-12-07
+     */
+    function ReplaceAllStringBetween(replaceMethod, str, strStart, strEnd) {
+        var current = 0;
+        while (true) {
+            var pos = GetStringPositionBetween(str, strStart, strEnd, 1, current);
+            if (IsNotEmpty(pos)) {
+                var p = pos[0];
+                var replacedStr = ReplaceAtPos(str, p, replaceMethod(p.RelatedString));
+                current = p.End + 1 + (replacedStr.length - str.length);
+                str = replacedStr;
+            }
+            else {
+                break;
+            }
+        }
+        return str;
+    }
+    function IncreaseVersion(version, index, increment) {
+        var array = version.match(/\d+/g);
+        if (!array) {
+            return version;
+        }
+        var numbers = array.map(Number);
+        var strings = version.match(/[^\d]+/g);
+        if (index === undefined) {
+            index = -1;
+        }
+        if (increment === undefined) {
+            increment = 1;
+        }
+        if (index < 0) {
+            var temp = numbers.reverse();
+            temp[-index - 1] += increment;
+            numbers = temp.reverse();
+        }
+        else {
+            numbers[index - 1] += increment;
+        }
+        if (numbers && strings) {
+            var startsWithString = version.startsWith(strings[0]);
+            var result = [];
+            var s = void 0, n = void 0;
+            do {
+                s = strings.shift();
+                n = numbers.shift();
+                if (startsWithString) {
+                    if (s !== undefined) {
+                        result.push(s);
+                    }
+                    if (n !== undefined) {
+                        result.push(n);
+                    }
+                }
+                else {
+                    if (n !== undefined) {
+                        result.push(n);
+                    }
+                    if (s !== undefined) {
+                        result.push(s);
+                    }
+                }
+            } while (s !== undefined || n !== undefined);
+            return result.join("");
+        }
+        return numbers.join("");
+    }
+    /**
+     *
+     * @since 4.0.0
+     * @version 2021-12-16
+     */
+    function InitializeDataAcquisition(value) {
+        var _this = this;
+        if (typeof value === "string") {
+            value = StringToUTF8ByteArray(value);
+        }
+        if (value instanceof Uint8Array) {
+            value = Array.from(value);
+        }
+        if (Array.isArray(value)) {
+            return {
+                Acquire: function (offset, length) { return __awaiter$8(_this, void 0, void 0, function () { return __generator$8(this, function (_a) {
+                    return [2 /*return*/, value.slice(offset, offset + length)];
+                }); }); },
+                TotalLengthInBytes: value.length,
+            };
+        }
+        return value;
+    }
+    /**
+     * @since 4.0.0
+     * @version 2021-12-31
+     */
+    function WriteToConsole(message, type) {
+        if (type === undefined) {
+            type = "log";
+        }
+        console[type](message);
     }
 
     /********************************************************************
@@ -9422,10 +10113,10 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/DateTime.ts
      * @create:      2021-08-05 15:09:01.492
-     * @modify:      2021-08-07 14:37:50.375
-     * @version:     2.0.14
-     * @times:       20
-     * @lines:       211
+     * @modify:      2021-12-31 12:34:28.421
+     * @version:     4.0.0
+     * @times:       48
+     * @lines:       255
      * @copyright:   Copyright © 2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
@@ -9470,6 +10161,9 @@ module.exports = Array.isArray || function (arr) {
             configurable: true
         });
         Object.defineProperty(DateTime.prototype, "Day", {
+            /**
+             * 1 - 31
+             */
             get: function () {
                 return this.date.getUTCDate();
             },
@@ -9477,6 +10171,9 @@ module.exports = Array.isArray || function (arr) {
             configurable: true
         });
         Object.defineProperty(DateTime.prototype, "DayOfWeek", {
+            /**
+             * 0 for Sunday, 1 for Monday, 2 for Tuesday, and so on.
+             */
             get: function () {
                 return this.date.getUTCDay();
             },
@@ -9494,6 +10191,9 @@ module.exports = Array.isArray || function (arr) {
             configurable: true
         });
         Object.defineProperty(DateTime.prototype, "Hours", {
+            /**
+             * 0 - 23
+             */
             get: function () {
                 return this.date.getUTCHours();
             },
@@ -9501,6 +10201,9 @@ module.exports = Array.isArray || function (arr) {
             configurable: true
         });
         Object.defineProperty(DateTime.prototype, "Minutes", {
+            /**
+             * 0 - 59
+             */
             get: function () {
                 return this.date.getUTCMinutes();
             },
@@ -9508,6 +10211,9 @@ module.exports = Array.isArray || function (arr) {
             configurable: true
         });
         Object.defineProperty(DateTime.prototype, "Seconds", {
+            /**
+             * 0 - 59
+             */
             get: function () {
                 return this.date.getUTCSeconds();
             },
@@ -9515,6 +10221,9 @@ module.exports = Array.isArray || function (arr) {
             configurable: true
         });
         Object.defineProperty(DateTime.prototype, "Milliseconds", {
+            /**
+             * 0 - 999
+             */
             get: function () {
                 return this.date.getUTCMilliseconds();
             },
@@ -9527,6 +10236,21 @@ module.exports = Array.isArray || function (arr) {
         DateTime.prototype.formatNumber = function (number, length) {
             if (length === void 0) { length = 2; }
             return number.toString().padStart(length, "0");
+        };
+        DateTime.prototype.format = function (str) {
+            var result = str;
+            result = ReplaceAll(result, "YYYY", this.formatNumber(this.Year, 4));
+            result = ReplaceAll(result, "MM", this.formatNumber(this.Month));
+            result = ReplaceAll(result, "DD", this.formatNumber(this.Day));
+            result = ReplaceAll(result, "HH", this.formatNumber(this.Hours));
+            result = ReplaceAll(result, "mm", this.formatNumber(this.Minutes));
+            result = ReplaceAll(result, "ss", this.formatNumber(this.Seconds));
+            result = ReplaceAll(result, "SSS", this.formatNumber(this.Milliseconds, 3));
+            var DayOfWeekTdd = GetDayOfWeekTdd();
+            result = ReplaceAll(result, "dd", DayOfWeekTdd[this.DayOfWeek]);
+            result = ReplaceAll(result, "ww", this.formatNumber(GetWeekOfYear(this.date, false)));
+            result = ReplaceAll(result, "WW", this.formatNumber(GetWeekOfYear(this.date, true)));
+            return result;
         };
         DateTime.prototype.Add = function (value, unit) {
             var _this = this;
@@ -9549,14 +10273,8 @@ module.exports = Array.isArray || function (arr) {
                     return add(value * MsPerDay);
                 case exports.TimeUnit.weeks:
                     return add(value * MsPerWeek);
-                case exports.TimeUnit.months:
-                    this.millisecondsSinceEpoch = this.date.setMonth(this.Month - 1 + value);
-                    return this;
-                case exports.TimeUnit.years:
-                    this.millisecondsSinceEpoch = this.date.setFullYear(this.Year + value);
-                    return this;
                 default:
-                    throw Error("Not support: " + unit);
+                    throw new TypeError("Not support: ".concat(unit));
             }
         };
         DateTime.prototype.Subtract = function (value, unit) {
@@ -9567,6 +10285,7 @@ module.exports = Array.isArray || function (arr) {
             var diffMs = this.millisecondsSinceEpoch - another.millisecondsSinceEpoch;
             var diff;
             switch (unit) {
+                case undefined:
                 case exports.TimeUnit.milliseconds:
                     diff = diffMs;
                     break;
@@ -9586,7 +10305,7 @@ module.exports = Array.isArray || function (arr) {
                     diff = diffMs / MsPerWeek;
                     break;
                 default:
-                    throw Error("Not support: " + unit);
+                    throw TypeError("Not support: ".concat(unit));
             }
             return diff;
         };
@@ -9599,24 +10318,24 @@ module.exports = Array.isArray || function (arr) {
             if (timezoneOffset !== 0) {
                 var dt = this.Clone();
                 dt.Subtract(timezoneOffset, exports.TimeUnit.minutes);
-                return dt.ToString(format);
+                return dt.ToString(format, 0);
             }
             var str = format.toString();
-            var items = GetStringBetween(str, "[", "]");
-            for (var _i = 0, items_1 = items; _i < items_1.length; _i++) {
-                var item = items_1[_i];
-                str = ReplaceAll(str, "[" + item + "]", item);
+            var list = GetStringPositionBetween(str, "[", "]");
+            if (list.length > 0) {
+                var result = "";
+                var i = 0;
+                for (var _i = 0, list_1 = list; _i < list_1.length; _i++) {
+                    var sp = list_1[_i];
+                    result += this.format(str.substring(i, sp.Start - 1));
+                    result += str.substring(sp.Start, sp.End);
+                    i = sp.End + 1;
+                }
+                str = result + this.format(str.substr(i));
             }
-            str = ReplaceAll(str, "YYYY", this.formatNumber(this.Year, 4));
-            str = ReplaceAll(str, "MM", this.formatNumber(this.Month));
-            str = ReplaceAll(str, "DD", this.formatNumber(this.Day));
-            str = ReplaceAll(str, "HH", this.formatNumber(this.Hours));
-            str = ReplaceAll(str, "mm", this.formatNumber(this.Minutes));
-            str = ReplaceAll(str, "ss", this.formatNumber(this.Seconds));
-            str = ReplaceAll(str, "SSS", this.formatNumber(this.Milliseconds, 3));
-            str = ReplaceAll(str, "dd", DayOfWeekTdd[this.DayOfWeek]);
-            str = ReplaceAll(str, "ww", this.formatNumber(GetWeekOfYear(this.date, false)));
-            str = ReplaceAll(str, "WW", this.formatNumber(GetWeekOfYear(this.date, true)));
+            else {
+                str = this.format(str);
+            }
             return str;
         };
         DateTime.prototype.ToLocalString = function (format) {
@@ -9626,6 +10345,9 @@ module.exports = Array.isArray || function (arr) {
         DateTime.prototype.ToDate = function () {
             // return new Date(Date.UTC(this.Year, this.Month - 1, this.Day, this.Hours, this.Minutes, this.Seconds, this.Milliseconds));
             return new Date(this.millisecondsSinceEpoch);
+        };
+        DateTime.prototype.Equals = function (another) {
+            return this.millisecondsSinceEpoch === another.millisecondsSinceEpoch;
         };
         DateTime.From = function (date, timezoneOffset) {
             if (timezoneOffset === void 0) { timezoneOffset = 0; }
@@ -9640,10 +10362,10 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/KavenBasic.Date.ts
      * @create:      2021-08-07 06:10:11.256
-     * @modify:      2021-08-07 06:10:11.256
-     * @version:     2.0.14
-     * @times:       1
-     * @lines:       44
+     * @modify:      2021-12-16 17:46:54.139
+     * @version:     4.0.0
+     * @times:       8
+     * @lines:       74
      * @copyright:   Copyright © 2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
@@ -9665,25 +10387,14 @@ module.exports = Array.isArray || function (arr) {
      * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
      * SOFTWARE.
      ********************************************************************/
-    /**
-     *
-     * @param dt default `new Date()`
-     * @param format default `DateTimeFormat.FullDataTime`
-     * @param timezoneOffset default `undefined` means use local time zone offset
-     * @since 1.0.5
-     * @version 2021-08-06
-     */
     function FormatDate(dt, format, timezoneOffset) {
-        if (!dt) {
-            dt = new Date();
-        }
-        if (!format) {
-            format = exports.DateTimeFormat.FullDataTime;
-        }
         if (timezoneOffset === undefined) {
             return DateTime.From(dt).ToLocalString(format);
         }
         return DateTime.From(dt).ToString(format, timezoneOffset);
+    }
+    function FormatCurrentDate(format, timezoneOffset) {
+        return FormatDate(new Date(), format, timezoneOffset);
     }
     function AddDate(date, value, unit) {
         if (unit === void 0) { unit = exports.TimeUnit.milliseconds; }
@@ -9706,13 +10417,13 @@ module.exports = Array.isArray || function (arr) {
      * @author:      Kaven
      * @email:       kaven@wuwenkai.com
      * @website:     http://blog.kaven.xyz
-     * @file:        [Kaven-Basic] /src/libs/Extensions.ts
-     * @create:      2019-04-25 12:45:36.310
-     * @modify:      2021-08-07 06:11:57.095
-     * @version:     2.0.14
-     * @times:       47
-     * @lines:       880
-     * @copyright:   Copyright © 2019-2021 Kaven. All Rights Reserved.
+     * @file:        [Kaven-Basic] /src/libs/KavenBasic.Generate.ts
+     * @create:      2021-12-08 16:27:16.555
+     * @modify:      2021-12-24 12:27:24.275
+     * @version:     4.0.0
+     * @times:       15
+     * @lines:       224
+     * @copyright:   Copyright © 2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
      * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -9733,281 +10444,436 @@ module.exports = Array.isArray || function (arr) {
      * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
      * SOFTWARE.
      ********************************************************************/
-    var __spreadArray$1 = (undefined && undefined.__spreadArray) || function (to, from) {
-        for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-            to[j] = from[i];
-        return to;
+    var __awaiter$7 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+        return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+        });
     };
-    // #endregion
-    var isInitialized = false;
-    function InitializeKavenExtension() {
-        if (isInitialized) {
-            // console.warn("Kaven Extension already initialized.");
-            return;
+    var __generator$7 = (undefined && undefined.__generator) || function (thisArg, body) {
+        var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+        return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+        function verb(n) { return function (v) { return step([n, v]); }; }
+        function step(op) {
+            if (f) throw new TypeError("Generator is already executing.");
+            while (_) try {
+                if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+                if (y = 0, t) op = [op[0] & 2, t.value];
+                switch (op[0]) {
+                    case 0: case 1: t = op; break;
+                    case 4: _.label++; return { value: op[1], done: false };
+                    case 5: _.label++; y = op[1]; op = [0]; continue;
+                    case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                    default:
+                        if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                        if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                        if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                        if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                        if (t[2]) _.ops.pop();
+                        _.trys.pop(); continue;
+                }
+                op = body.call(thisArg, _);
+            } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+            if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
         }
-        isInitialized = true;
-        // #region console related
-        if (console.log) {
-            console.logOrigin = console.log;
-        }
-        if (console.info) {
-            console.infoOrigin = console.info;
-        }
-        if (console.warn) {
-            console.warnOrigin = console.warn;
-        }
-        if (console.error) {
-            console.errorOrigin = console.error;
-        }
-        // #endregion
-        // #region Extend Methods
-        // #region Date
-        Date.prototype.Format = function (format, timezoneOffset) {
-            return FormatDate(this, format, timezoneOffset);
-        };
-        Date.Create = function () {
-            return new Date();
-        };
-        // #region Add
-        Date.prototype.AddMilliseconds = function (milliseconds) {
-            return AddDate(this, milliseconds, exports.TimeUnit.milliseconds);
-        };
-        Date.prototype.AddSeconds = function (seconds) {
-            return AddDate(this, seconds, exports.TimeUnit.seconds);
-        };
-        Date.prototype.AddMinutes = function (minutes) {
-            return AddDate(this, minutes, exports.TimeUnit.minutes);
-        };
-        Date.prototype.AddHours = function (hours) {
-            return AddDate(this, hours, exports.TimeUnit.hours);
-        };
-        Date.prototype.AddDays = function (days) {
-            return AddDate(this, days, exports.TimeUnit.days);
-        };
-        Date.prototype.AddWeeks = function (weeks) {
-            return AddDate(this, weeks, exports.TimeUnit.weeks);
-        };
-        Date.prototype.AddMonths = function (months) {
-            return AddDate(this, months, exports.TimeUnit.months);
-        };
-        Date.prototype.AddYears = function (years) {
-            return AddDate(this, years, exports.TimeUnit.years);
-        };
-        // #endregion
-        // #region Subtract
-        Date.prototype.SubtractMilliseconds = function (milliseconds) {
-            return SubtractDate(this, milliseconds, exports.TimeUnit.milliseconds);
-        };
-        Date.prototype.SubtractSeconds = function (seconds) {
-            return SubtractDate(this, seconds, exports.TimeUnit.seconds);
-        };
-        Date.prototype.SubtractMinutes = function (minutes) {
-            return SubtractDate(this, minutes, exports.TimeUnit.minutes);
-        };
-        Date.prototype.SubtractHours = function (hours) {
-            return SubtractDate(this, hours, exports.TimeUnit.hours);
-        };
-        Date.prototype.SubtractDays = function (days) {
-            return SubtractDate(this, days, exports.TimeUnit.days);
-        };
-        Date.prototype.SubtractWeeks = function (weeks) {
-            return SubtractDate(this, weeks, exports.TimeUnit.weeks);
-        };
-        Date.prototype.SubtractMonths = function (months) {
-            return SubtractDate(this, months, exports.TimeUnit.months);
-        };
-        Date.prototype.SubtractYears = function (years) {
-            return SubtractDate(this, years, exports.TimeUnit.years);
-        };
-        // #endregion
-        Date.prototype.Diff = function (anotherDate, unit) {
-            if (unit === void 0) { unit = exports.TimeUnit.milliseconds; }
-            return DiffDate(this, anotherDate, unit);
-        };
-        // #endregion
-        // #region String
-        String.prototype.ReplaceAll = function (old, rep) {
-            return ReplaceAll(this, old, rep);
-        };
-        String.prototype.ReplaceAt = function (index, rep, length) {
-            if (length === void 0) { length = 1; }
-            return ReplaceAt(this, index, rep, length);
-        };
-        String.prototype.ReplaceAtPos = function (pos, rep) {
-            return ReplaceAtPos(this, pos, rep);
-        };
-        String.prototype.IsNotEmpty = function () {
-            return IsNotEmpty(this);
-        };
-        String.prototype.IsEmpty = function () {
-            return !this.IsNotEmpty();
-        };
-        String.prototype.TrimStart = function (trim, max) {
-            if (max === void 0) { max = 1; }
-            return TrimStart(this, trim, max);
-        };
-        String.prototype.TrimEnd = function (trim, max) {
-            if (max === void 0) { max = 1; }
-            return TrimEnd(this, trim, max);
-        };
-        String.prototype.TrimAll = function (trim, max) {
-            if (max === void 0) { max = 1; }
-            return TrimAll(this, trim, max);
-        };
-        String.prototype.GetIndent = function () {
-            return GetIndent(this);
-        };
-        String.prototype.OnlyContains = function () {
-            var characters = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                characters[_i] = arguments[_i];
-            }
-            return OnlyContains.apply(void 0, __spreadArray$1([this], characters));
-        };
-        String.prototype.ContainsSubstringOnlyOnce = function () {
-            var substrings = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                substrings[_i] = arguments[_i];
-            }
-            return ContainsSubstringOnlyOnce.apply(void 0, __spreadArray$1([this], substrings));
-        };
-        String.prototype.CharactersCount = function () {
-            var characters = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                characters[_i] = arguments[_i];
-            }
-            return CharactersCount.apply(void 0, __spreadArray$1([this], characters));
-        };
-        String.prototype.ToArray = function () {
-            return ToArray(this);
-        };
-        String.prototype.Distinct = function () {
-            return Distinct(this);
-        };
-        String.prototype.GetSubstring = function (pos) {
-            return GetSubstring(this, pos);
-        };
-        String.prototype.CapitalizeSentences = function () {
-            return CapitalizeSentences(this);
-        };
-        String.prototype.CapitalizeWords = function () {
-            return CapitalizeWords(this);
-        };
-        String.prototype.UTF8Encode = function () {
-            return UTF8Encode(this);
-        };
-        String.prototype.ToUTF8ByteArray = function () {
-            return ToUTF8ByteArray(this);
-        };
-        String.prototype.SplitByN = function (n, fromLeft) {
-            return SplitByN(this, n, fromLeft);
-        };
-        String.prototype.Reverse = function () {
-            return Reverse(this);
-        };
-        String.prototype.Format = function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            return FormatString.apply(void 0, __spreadArray$1([this], args));
-        };
-        // #endregion
-        // #region Array
-        Array.prototype.IsNotEmpty = function () {
-            return IsNotEmpty(this);
-        };
-        Array.prototype.Remove = function (index) {
-            return Remove(this, index);
-        };
-        Array.prototype.Distinct = function () {
-            return Distinct(this);
-        };
-        Array.prototype.First = function () {
-            return First(this);
-        };
-        Array.prototype.Last = function () {
-            return Last(this);
-        };
-        Array.prototype.Split = function (size, fromLeft) {
-            return Split(this, size, fromLeft);
-        };
-        Array.prototype.ToHEX = function () {
-            return ToHEX.apply(void 0, this);
-        };
-        Array.prototype.SequenceEqual = function (second) {
-            return SequenceEqual(this, second);
-        };
-        Array.prototype.Any = function (func) {
-            return Any(this, func);
-        };
-        Array.prototype.All = function (func) {
-            return All(this, func);
-        };
-        Array.prototype.Clone = function () {
-            return CloneArray(this);
-        };
-        // #endregion
-        // #region Number
-        Number.prototype.ToMilliseconds = function (currentUnit) {
-            return ToMilliseconds(this, currentUnit);
-        };
-        Number.prototype.ToSeconds = function (currentUnit) {
-            return ToSeconds(this, currentUnit);
-        };
-        Number.prototype.ToMinutes = function (currentUnit) {
-            return ToMinutes(this, currentUnit);
-        };
-        Number.prototype.ToHours = function (currentUnit) {
-            return ToHours(this, currentUnit);
-        };
-        Number.prototype.ToDays = function (currentUnit) {
-            return ToDays(this, currentUnit);
-        };
-        Number.prototype.ToWeeks = function (currentUnit) {
-            return ToWeeks(this, currentUnit);
-        };
-        Number.prototype.ToMonths = function (currentUnit) {
-            return ToMonths(this, currentUnit);
-        };
-        Number.prototype.ToYears = function (currentUnit) {
-            return ToYears(this, currentUnit);
-        };
-        Number.prototype.LeftRotate = function (n, bits) {
-            return LeftRotate(this, n, bits);
-        };
-        Number.prototype.RightRotate = function (n, bits) {
-            return RightRotate(this, n, bits);
-        };
-        Number.prototype.ToUInt32 = function () {
-            // note '>>> 0' for 'addition modulo 2^32'
-            // The reason >> works is because it operates only on 32-bit integers, so the value is truncated.
-            return this >>> 0;
-            // same to:
-            // return this & 0xffffffff;
-        };
-        Number.prototype.Swap32 = function () {
-            return ((this & 0xFF) << 24) | ((this & 0xFF00) << 8) | ((this >> 8) & 0xFF00) | ((this >> 24) & 0xFF);
-        };
-        Number.prototype.ToHEX = function (trimStart) {
-            if (trimStart === void 0) { trimStart = false; }
-            return Number2Hex(this, trimStart);
-        };
-        Number.prototype.GetBaseLog = function (baseNumber) {
-            return Math.log(this) / Math.log(baseNumber);
-        };
-        Number.prototype.Mod = function (n) {
-            // https://stackoverflow.com/questions/4467539/javascript-modulo-gives-a-negative-result-for-negative-numbers
-            return ((this % n) + n) % n;
-        };
-        Number.prototype.FileSize = function (baseOn1024) {
-            if (baseOn1024 === void 0) { baseOn1024 = true; }
-            return FileSize(this, baseOn1024);
-        };
-        // #endregion
-        // #endregion
+    };
+    /**
+     * Getting a random number between two values
+     * @param min inclusive
+     * @param max exclusive
+     * @returns The returned value is no lower than (and may possibly equal) `min`, and is less than (and not equal) `max`.
+     * @since 4.0.0
+     * @version 2021-12-12
+     */
+    function GenerateRandomArbitrary(min, max) {
+        return Math.random() * (max - min) + min;
     }
-    InitializeKavenExtension();
+    /**
+     * Getting a random number between two values
+     * @param min inclusive
+     * @param max inclusive or exclusive, depends on: `maxExclusive`
+     * @param maxExclusive Default: `false`
+     * @returns
+     * @since 4.0.0
+     * @version 2021-12-12
+     */
+    function GenerateRandomInt(min, max, maxExclusive) {
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+        if (maxExclusive === void 0) { maxExclusive = false; }
+        if (maxExclusive) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min) + min); // The maximum is exclusive and the minimum is inclusive
+        }
+        else {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1) + min); // The maximum is inclusive and the minimum is inclusive
+        }
+    }
+    /**
+     * @since 4.0.0
+     * @version 2021-12-13
+     */
+    function GenerateRandomBoolean() {
+        return Math.random() >= 0.5;
+    }
+    /**
+     * @version 1.0.0
+     * @since 1.0.5
+     */
+    function GenerateGuid() {
+        // cSpell:ignore yxxx
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+            var r = (Math.random() * 16) | 0;
+            var v = c === "x" ? r : (r & 0x3) | 0x8;
+            return v.toString(16);
+        });
+    }
+    /**
+     *
+     * @param length
+     * @param validCharacters
+     * @version 1.0.0
+     * @since 1.0.5
+     */
+    function GenerateRandomString(length, validCharacters) {
+        var str = Strings_Empty;
+        if (validCharacters === undefined || validCharacters.length < 2) {
+            validCharacters =
+                Strings_LowercaseLetters +
+                    Strings_UppercaseLetters +
+                    Strings_Numbers;
+        }
+        for (var i = 0; i < length; i++) {
+            var char = validCharacters[GenerateRandomInt(0, validCharacters.length - 1)];
+            if (str === Strings_Empty) {
+                str = char;
+            }
+            else {
+                str += char;
+            }
+        }
+        return str;
+    }
+    /**
+     *
+     * @param length
+     * @version 1.0.0
+     * @since 1.0.5
+     */
+    function GenerateNumberString(length) {
+        var result = Strings_Empty;
+        var max = 9;
+        for (var i = 0; i < length; i++) {
+            if (result === Strings_Empty) {
+                result = GenerateRandomInt(0, max).toString();
+            }
+            else {
+                result += GenerateRandomInt(0, max).toString();
+            }
+        }
+        return result;
+    }
+    /**
+     *
+     * @param length
+     * @param numbers
+     * @param lowercaseLetters
+     * @param uppercaseLetters
+     * @param specialCharacters
+     * @since 1.0.5
+     * @version 2021-12-11
+     */
+    function GeneratePassword(length, numbers, lowercaseLetters, uppercaseLetters, specialCharacters) {
+        if (numbers === void 0) { numbers = true; }
+        if (lowercaseLetters === void 0) { lowercaseLetters = true; }
+        if (uppercaseLetters === void 0) { uppercaseLetters = true; }
+        if (specialCharacters === void 0) { specialCharacters = true; }
+        var chars = Strings_Empty;
+        if (numbers) {
+            chars += Strings_Numbers;
+        }
+        if (lowercaseLetters) {
+            chars += Strings_LowercaseLetters;
+        }
+        if (uppercaseLetters) {
+            chars += Strings_UppercaseLetters;
+        }
+        if (specialCharacters) {
+            chars += Strings_PasswordSpecialCharacters;
+        }
+        if (IsNotEmpty(chars)) {
+            return GenerateRandomString(length, chars);
+        }
+        else {
+            throw new Error("Invalid parameters: ".concat(arguments));
+        }
+    }
+    /**
+     * YYYYMM + Random
+     * @since 4.0.0
+     * @version 2021-12-11
+     */
+    function GenerateYearMonthId(randomLength, validFunc) {
+        if (randomLength === void 0) { randomLength = 4; }
+        return __awaiter$7(this, void 0, void 0, function () {
+            var ym, generate, id;
+            return __generator$7(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        ym = FormatCurrentDate(exports.DateTimeFormat.YearMonth, 0);
+                        generate = function () {
+                            var randomNumberStr = GenerateNumberString(randomLength);
+                            return ym + randomNumberStr;
+                        };
+                        id = generate();
+                        if (!(validFunc !== undefined)) return [3 /*break*/, 3];
+                        _a.label = 1;
+                    case 1: return [4 /*yield*/, validFunc(id)];
+                    case 2:
+                        if (!!(_a.sent())) return [3 /*break*/, 3];
+                        id = generate();
+                        return [3 /*break*/, 1];
+                    case 3: return [2 /*return*/, id];
+                }
+            });
+        });
+    }
+    /**
+     * @since 4.0.0
+     * @version 2021-12-14
+     */
+    function GenerateFileNameByCurrentDate(timezoneOffset) {
+        return FormatCurrentDate(exports.DateTimeFormat.ForFileName, timezoneOffset);
+    }
+
+    /********************************************************************
+     * @author:      Kaven
+     * @email:       kaven@wuwenkai.com
+     * @website:     http://blog.kaven.xyz
+     * @file:        [Kaven-Basic] /src/libs/KavenBasic.URL.ts
+     * @create:      2021-12-10 16:49:18.282
+     * @modify:      2021-12-24 12:29:37.991
+     * @version:     4.0.0
+     * @times:       18
+     * @lines:       239
+     * @copyright:   Copyright © 2021 Kaven. All Rights Reserved.
+     * @description: [description]
+     * @license:
+     * Permission is hereby granted, free of charge, to any person obtaining a copy
+     * of this software and associated documentation files (the "Software"), to deal
+     * in the Software without restriction, including without limitation the rights
+     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+     * copies of the Software, and to permit persons to whom the Software is
+     * furnished to do so, subject to the following conditions:
+     *
+     * The above copyright notice and this permission notice shall be included in all
+     * copies or substantial portions of the Software.
+     *
+     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+     * SOFTWARE.
+     ********************************************************************/
+    /**
+     * @static
+     * @param {string} url
+     * @returns
+     * @memberof KavenBasic
+     * @since 1.1.7
+     * @version 2018-08-30
+     */
+    function RemoveHashFromURL(url) {
+        var index = url.indexOf("#");
+        if (index !== -1) {
+            return url.substring(0, index);
+        }
+        return url;
+    }
+    /**
+     *
+     * @since 4.0.0
+     * @version 2021-12-11
+     */
+    function RemoveQueryFromURL(url, keepHash) {
+        if (keepHash === void 0) { keepHash = false; }
+        var index = url.indexOf("#");
+        if (index !== -1) {
+            var urlWithoutQuery = url.substring(0, index).split("?")[0];
+            if (keepHash) {
+                return urlWithoutQuery + url.substring(index);
+            }
+            else {
+                return urlWithoutQuery;
+            }
+        }
+        else {
+            return url.split("?")[0];
+        }
+    }
+    /**
+     *
+     * @since 4.0.0
+     * @version 2021-12-11
+     */
+    function RemoveQueryParametersFromURL(url) {
+        var names = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            names[_i - 1] = arguments[_i];
+        }
+        if (!names || names.length < 1) {
+            return url;
+        }
+        names = Distinct(names);
+        names = names.map(encodeURIComponent);
+        var hash = Strings_Empty;
+        var index = url.indexOf("#");
+        if (index !== -1) {
+            hash = url.substring(index);
+            url = url.substring(0, index);
+        }
+        for (var _a = 0, names_1 = names; _a < names_1.length; _a++) {
+            var name_1 = names_1[_a];
+            // prefer to use l.search if you have a location/link object
+            var urlParts = url.split("?");
+            if (urlParts.length >= 2) {
+                var prefix = name_1 + "=";
+                var pars = urlParts[1].split(/[&;]/g);
+                // reverse iteration as may be destructive
+                for (var i = pars.length; i-- > 0;) {
+                    // idiom for string.startsWith
+                    if (pars[i].lastIndexOf(prefix, 0) !== -1) {
+                        pars.splice(i, 1);
+                    }
+                    else if (pars[i] === name_1) {
+                        pars.splice(i, 1);
+                    }
+                }
+                url = urlParts[0] + (pars.length > 0 ? "?" + pars.join("&") : "");
+            }
+        }
+        return url + hash;
+    }
+    /**
+     *
+     * @since 4.0.0
+     * @version 2021-12-11
+     */
+    function AddQueryParameterToURL(url, name, value, noReplace) {
+        if (noReplace === void 0) { noReplace = false; }
+        var newURL = url;
+        // Using a positive lookahead (?=\=) to find the
+        // given parameter, preceded by a ? or &, and followed
+        // by a = with a value after than (using a non-greedy selector)
+        // and then followed by a & or the end of the string
+        var val = new RegExp("(\\?|\\&)" + name + "=.*?(?=(&|$))");
+        var parts = url.toString().split("#");
+        url = parts[0];
+        var hash = parts[1];
+        var queryString = /\?.+$/;
+        // Check if the parameter exists
+        if (!noReplace && val.test(url)) {
+            // if it does, replace it, using the captured group
+            // to determine & or ? at the beginning
+            newURL = url.replace(val, "$1" + name + "=" + value);
+        }
+        else if (queryString.test(url)) {
+            // otherwise, if there is a query string at all
+            // add the param to the end of it
+            newURL = url + "&" + name + "=" + value;
+        }
+        else {
+            // if there's no query string, add one
+            newURL = url + "?" + name + "=" + value;
+        }
+        if (hash) {
+            newURL += "#" + hash;
+        }
+        return newURL;
+    }
+    /**
+     *
+     * @param url
+     * @since 1.1.7
+     * @version 2018-08-30
+     */
+    function GetFileNameFromURL(url) {
+        url = RemoveQueryFromURL(url);
+        return url.substring(url.lastIndexOf(Strings_Slash) + 1);
+    }
+    /**
+     *
+     * @param url
+     * @since 2.0.6
+     * @version 2021-12-11
+     */
+    function IsHttpsUrl(url) {
+        var urlLowerCase = url.toLowerCase();
+        if (urlLowerCase.startsWith("https://") || urlLowerCase.startsWith("//")) {
+            return true;
+        }
+        if (urlLowerCase.startsWith("http://")) {
+            return false;
+        }
+        return undefined;
+    }
+    /**
+     *
+     * @param url
+     * @since 1.1.17
+     * @version 2019-02-26
+     */
+    function GetQueryStringFromURL(url) {
+        url = RemoveHashFromURL(url);
+        var index = url.indexOf("?");
+        if (index !== -1) {
+            return url.substring(index + 1);
+        }
+        return undefined;
+    }
+    /**
+     *
+     * @param url
+     * @param decodeURIMethod
+     * @since 2.0.7
+     * @version 2020-06-24
+     */
+    function ParseQueryParameters(url, decodeURIMethod) {
+        var query = GetQueryStringFromURL(url) || url;
+        var items = query.split("&");
+        var parameters = {};
+        var Add = function (name, val) {
+            if (decodeURIMethod) {
+                if (val !== undefined) {
+                    parameters[decodeURIMethod(name)] = decodeURIMethod(val);
+                }
+                else {
+                    parameters[decodeURIMethod(name)] = undefined;
+                }
+            }
+            else {
+                parameters[name] = val;
+            }
+        };
+        for (var _i = 0, items_1 = items; _i < items_1.length; _i++) {
+            var item = items_1[_i];
+            var parts = item.split("=");
+            if (parts.length === 1) {
+                Add(parts[0], undefined);
+            }
+            else {
+                Add(parts[0], parts[1]);
+            }
+        }
+        return parameters;
+    }
 
     /********************************************************************
      * @author:      Kaven
@@ -10015,10 +10881,10 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/BitString.ts
      * @create:      2018-08-30 16:07:15.084
-     * @modify:      2021-01-31 12:26:09.803
-     * @version:     2.0.11
-     * @times:       64
-     * @lines:       408
+     * @modify:      2021-12-24 12:29:37.993
+     * @version:     4.0.0
+     * @times:       85
+     * @lines:       421
      * @copyright:   Copyright © 2018-2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
@@ -10046,47 +10912,50 @@ module.exports = Array.isArray || function (arr) {
      */
     var BitString = /** @class */ (function () {
         function BitString(initialValue, type) {
-            if (type === void 0) { type = exports.BitStringType.BIN; }
-            if (!initialValue) {
-                this.binStr = Strings.Empty;
+            if (initialValue === undefined) {
+                this.binStr = Strings_Empty;
                 return;
             }
             if (typeof initialValue === "number") {
                 if (initialValue > Number.MAX_SAFE_INTEGER) {
-                    throw new Error("Initial value is too big: " + initialValue + " > " + Number.MAX_SAFE_INTEGER);
+                    throw new Error("Initial value is too big: ".concat(initialValue, " > ").concat(Number.MAX_SAFE_INTEGER));
                 }
-                initialValue = initialValue.toString(2);
-            }
-            var radix;
-            if (typeof type === "number") {
-                radix = type;
+                this.binStr = initialValue.toString(2);
             }
             else {
-                switch (type) {
-                    case exports.BitStringType.BIN:
-                        radix = 2;
-                        break;
-                    case exports.BitStringType.HEX:
-                        radix = 16;
-                        break;
-                    default:
-                        throw new Error("Invalid BitStringType: " + type);
+                initialValue = ReplaceAll(initialValue, " ", "");
+                var radix = void 0;
+                if (typeof type === "number") {
+                    radix = type;
                 }
-            }
-            if (radix === 2) {
-                this.binStr = initialValue;
-            }
-            else if (radix === 16) {
-                var temp = Strings.Empty;
-                for (var _i = 0, initialValue_1 = initialValue; _i < initialValue_1.length; _i++) {
-                    var val = initialValue_1[_i];
-                    temp += parseInt(val, radix).toString(2).padStart(4, "0");
+                else {
+                    switch (type) {
+                        case undefined:
+                        case exports.BitStringType.BIN:
+                            radix = 2;
+                            break;
+                        case exports.BitStringType.HEX:
+                            radix = 16;
+                            break;
+                        default:
+                            throw new Error("Invalid BitStringType: ".concat(type));
+                    }
                 }
-                this.binStr = temp;
-            }
-            else {
-                // to be Refined
-                this.binStr = parseInt(initialValue, radix).toString(2);
+                if (radix === 2) {
+                    this.binStr = initialValue;
+                }
+                else if (radix === 16) {
+                    var temp = Strings_Empty;
+                    for (var _i = 0, initialValue_1 = initialValue; _i < initialValue_1.length; _i++) {
+                        var val = initialValue_1[_i];
+                        temp += parseInt(val, radix).toString(2).padStart(4, "0");
+                    }
+                    this.binStr = temp;
+                }
+                else {
+                    // to be Refined
+                    this.binStr = parseInt(initialValue, radix).toString(2);
+                }
             }
         }
         Object.defineProperty(BitString.prototype, "Length", {
@@ -10108,7 +10977,7 @@ module.exports = Array.isArray || function (arr) {
             for (var _i = 0; _i < arguments.length; _i++) {
                 bytes[_i] = arguments[_i];
             }
-            var bin = Strings.Empty;
+            var bin = Strings_Empty;
             for (var _a = 0, bytes_1 = bytes; _a < bytes_1.length; _a++) {
                 var byte = bytes_1[_a];
                 bin += byte.toString(2).padStart(8, "0");
@@ -10125,12 +10994,12 @@ module.exports = Array.isArray || function (arr) {
          */
         BitString.prototype.SetBit = function (offset, val) {
             if (offset < 1) {
-                throw new Error("Unexpected offset: " + offset);
+                throw new Error("Unexpected offset: ".concat(offset));
             }
             var value = val ? "1" : "0";
             var index = this.Length - offset;
             if (index >= 0) {
-                this.binStr = this.binStr.ReplaceAt(index, value);
+                this.binStr = ReplaceAt(this.binStr, index, value);
             }
             else {
                 this.binStr = value + this.binStr.padStart(offset - 1, "0");
@@ -10147,7 +11016,7 @@ module.exports = Array.isArray || function (arr) {
         BitString.prototype.GetBit = function (offset, defaultVal) {
             if (defaultVal === void 0) { defaultVal = false; }
             if (offset < 1) {
-                throw new Error("Unexpected offset: " + offset);
+                throw new Error("Unexpected offset: ".concat(offset));
             }
             var index = this.Length - offset;
             if (index < 0) {
@@ -10162,24 +11031,24 @@ module.exports = Array.isArray || function (arr) {
             if (type === void 0) { type = exports.BitStringType.HEX; }
             if (trim === void 0) { trim = false; }
             if (this.binStr.length === 0) {
-                return Strings.Empty;
+                return Strings_Empty;
             }
             switch (type) {
                 case exports.BitStringType.BIN:
                     return this.binStr;
                 case exports.BitStringType.HEX: {
                     var array = SplitByN(this.binStr, 4);
-                    var hex = array.map(function (p) { return parseInt(p, 2).toString(16); }).join(Strings.Empty);
+                    var hex = array.map(function (p) { return parseInt(p, 2).toString(16); }).join(Strings_Empty);
                     if (trim) {
-                        hex = hex.TrimStart("0", hex.length);
+                        hex = TrimStart(hex, "0", hex.length);
                     }
-                    if (hex === Strings.Empty) {
+                    if (hex === Strings_Empty) {
                         return "0";
                     }
                     return hex;
                 }
                 default:
-                    throw new Error("Invalid BitStringType: " + type);
+                    throw new Error("Invalid BitStringType: ".concat(type));
             }
         };
         /**
@@ -10189,7 +11058,7 @@ module.exports = Array.isArray || function (arr) {
          * @version 2019-04-01
          */
         BitString.prototype.Add = function (val) {
-            var result = Strings.Empty;
+            var result = Strings_Empty;
             var carry = false;
             var i = 1;
             var j = 1;
@@ -10238,7 +11107,7 @@ module.exports = Array.isArray || function (arr) {
             else if (this.Length < val.Length) {
                 this.SetLength(val.Length);
             }
-            var result = Strings.Empty;
+            var result = Strings_Empty;
             for (var i = 0; i < this.Length; i++) {
                 result += ((this.binStr[i] === "1" && val.binStr[i]) === "1" ? "1" : "0");
             }
@@ -10254,7 +11123,7 @@ module.exports = Array.isArray || function (arr) {
             if (typeof val === "number") {
                 val = new BitString(val);
             }
-            var result = Strings.Empty;
+            var result = Strings_Empty;
             var i = 1;
             while (i <= this.Length || i <= val.Length) {
                 var a = this.GetBit(i);
@@ -10275,7 +11144,7 @@ module.exports = Array.isArray || function (arr) {
          * @version 2019-04-01
          */
         BitString.prototype.NOT = function () {
-            var result = Strings.Empty;
+            var result = Strings_Empty;
             for (var _i = 0, _a = this.binStr; _i < _a.length; _i++) {
                 var c = _a[_i];
                 result += c === "0" ? "1" : "0";
@@ -10298,7 +11167,7 @@ module.exports = Array.isArray || function (arr) {
             else if (this.Length < val.Length) {
                 this.SetLength(val.Length);
             }
-            var result = Strings.Empty;
+            var result = Strings_Empty;
             for (var i = 0; i < this.Length; i++) {
                 result += this.binStr[i] !== val.binStr[i] ? "1" : "0";
             }
@@ -10348,7 +11217,7 @@ module.exports = Array.isArray || function (arr) {
             if (bits) {
                 this.SetLength(bits);
             }
-            return new BitString(this.binStr.Reverse());
+            return new BitString(Reverse(this.binStr));
         };
         BitString.prototype.SetLength = function (bits) {
             if (this.Length > bits) {
@@ -10365,8 +11234,11 @@ module.exports = Array.isArray || function (arr) {
         BitString.prototype.Swap = function (bytes) {
             if (bytes === void 0) { bytes = 8; }
             this.SetLength(bytes * 8);
-            var result = SplitByN(this.binStr, 8).reverse().join(Strings.Empty);
+            var result = SplitByN(this.binStr, 8).reverse().join(Strings_Empty);
             return new BitString(result);
+        };
+        BitString.prototype.Equals = function (another) {
+            return TrimStart(this.binStr, "0") === TrimStart(another.binStr, "0");
         };
         return BitString;
     }());
@@ -10377,10 +11249,10 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/hashing_algorithms/KavenCRC.ts
      * @create:      2019-04-02 17:02:48.463
-     * @modify:      2021-01-31 12:46:38.313
-     * @version:     2.0.11
-     * @times:       36
-     * @lines:       237
+     * @modify:      2021-12-20 15:07:53.203
+     * @version:     4.0.0
+     * @times:       43
+     * @lines:       255
      * @copyright:   Copyright © 2019-2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
@@ -10402,6 +11274,42 @@ module.exports = Array.isArray || function (arr) {
      * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
      * SOFTWARE.
      ********************************************************************/
+    var __awaiter$6 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+        return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+        });
+    };
+    var __generator$6 = (undefined && undefined.__generator) || function (thisArg, body) {
+        var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+        return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+        function verb(n) { return function (v) { return step([n, v]); }; }
+        function step(op) {
+            if (f) throw new TypeError("Generator is already executing.");
+            while (_) try {
+                if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+                if (y = 0, t) op = [op[0] & 2, t.value];
+                switch (op[0]) {
+                    case 0: case 1: t = op; break;
+                    case 4: _.label++; return { value: op[1], done: false };
+                    case 5: _.label++; y = op[1]; op = [0]; continue;
+                    case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                    default:
+                        if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                        if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                        if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                        if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                        if (t[2]) _.ops.pop();
+                        _.trys.pop(); continue;
+                }
+                op = body.call(thisArg, _);
+            } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+            if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+        }
+    };
     var KavenCRC = /** @class */ (function () {
         function KavenCRC(modal) {
             this.Width = modal.Width;
@@ -10517,7 +11425,7 @@ module.exports = Array.isArray || function (arr) {
             configurable: true
         });
         KavenCRC.prototype.MakeTable = function () {
-            if (this.table.IsNotEmpty()) {
+            if (IsNotEmpty(this.table)) {
                 return this.table;
             }
             for (var n = 0; n < 256; n++) {
@@ -10535,65 +11443,104 @@ module.exports = Array.isArray || function (arr) {
             }
             return this.table;
         };
+        /* istanbul ignore next */
         KavenCRC.prototype.PrintTable = function (columns) {
             if (columns === void 0) { columns = 8; }
-            this.MakeTable();
-            for (var _i = 0, _a = Split(this.table, columns, true); _i < _a.length; _i++) {
+            for (var _i = 0, _a = Split(this.MakeTable(), columns, true); _i < _a.length; _i++) {
                 var item = _a[_i];
                 console.log(item.map(function (p) { return p.HEX; }).join(", "));
             }
         };
-        KavenCRC.prototype.Compute = function (str) {
-            this.MakeTable();
-            var data = ToUTF8ByteArray(str);
-            var crc = this.InitialValue;
-            for (var _i = 0, data_1 = data; _i < data_1.length; _i++) {
-                var byte = data_1[_i];
-                var current = new BitString(byte);
-                if (this.InputReflected) {
-                    current = current.Reflect(8);
-                }
-                current = current.LeftShift(this.ShiftBits);
-                // update the MSB of crc value with next input byte
-                crc = crc.XOR(current);
-                // this MSB byte value is the index into the lookup table
-                var pos = crc.RightShift(this.ShiftBits).AND(0xff).ToNumber();
-                // shift out this index
-                crc = crc.LeftShift(8).AND(this.FullBitMask);
-                //  XOR-in remainder from lookup table using the calculated index
-                crc = crc.XOR(this.table[pos]);
-            }
-            if (this.ResultReflected) {
-                crc = crc.Reflect(this.Width);
-            }
-            return crc.XOR(this.FinalXORValue).SetLength(this.Width);
+        KavenCRC.prototype.Compute = function (input) {
+            return __awaiter$6(this, void 0, void 0, function () {
+                var crc, data, offset, size, bytes, _i, bytes_1, byte, current, pos;
+                return __generator$6(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            this.MakeTable();
+                            crc = this.InitialValue;
+                            data = InitializeDataAcquisition(input);
+                            offset = 0;
+                            size = Math.min((data.BytesPerRead !== undefined && data.BytesPerRead > 0) ? data.BytesPerRead : 4096, data.TotalLengthInBytes);
+                            _a.label = 1;
+                        case 1: return [4 /*yield*/, data.Acquire(offset, size)];
+                        case 2:
+                            bytes = _a.sent();
+                            for (_i = 0, bytes_1 = bytes; _i < bytes_1.length; _i++) {
+                                byte = bytes_1[_i];
+                                current = new BitString(byte);
+                                if (this.InputReflected) {
+                                    current = current.Reflect(8);
+                                }
+                                current = current.LeftShift(this.ShiftBits);
+                                // update the MSB of crc value with next input byte
+                                crc = crc.XOR(current);
+                                pos = crc.RightShift(this.ShiftBits).AND(0xff).ToNumber();
+                                // shift out this index
+                                crc = crc.LeftShift(8).AND(this.FullBitMask);
+                                //  XOR-in remainder from lookup table using the calculated index
+                                crc = crc.XOR(this.table[pos]);
+                            }
+                            offset += size;
+                            _a.label = 3;
+                        case 3:
+                            if (offset < data.TotalLengthInBytes) return [3 /*break*/, 1];
+                            _a.label = 4;
+                        case 4:
+                            if (this.ResultReflected) {
+                                crc = crc.Reflect(this.Width);
+                            }
+                            return [2 /*return*/, crc.XOR(this.FinalXORValue).SetLength(this.Width)];
+                    }
+                });
+            });
         };
-        KavenCRC.prototype.ComputerWithoutTable = function (str) {
-            var data = ToUTF8ByteArray(str);
-            var crc = this.InitialValue;
-            for (var _i = 0, data_2 = data; _i < data_2.length; _i++) {
-                var byte = data_2[_i];
-                var current = new BitString(byte);
-                if (this.InputReflected) {
-                    current = current.Reflect(8);
-                }
-                current = current.LeftShift(this.ShiftBits);
-                // update the MSB of crc value with next input byte
-                crc = crc.XOR(current);
-                for (var i = 0; i < 8; i++) {
-                    if (crc.AND(this.TopBitMask).AnyBit()) {
-                        crc = crc.LeftShift(1);
-                        crc = crc.XOR(this.Polynomial);
+        KavenCRC.prototype.ComputerWithoutTable = function (input) {
+            return __awaiter$6(this, void 0, void 0, function () {
+                var crc, data, offset, size, bytes, _i, bytes_2, byte, current, i;
+                return __generator$6(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            crc = this.InitialValue;
+                            data = InitializeDataAcquisition(input);
+                            offset = 0;
+                            size = (data.BytesPerRead !== undefined && data.BytesPerRead > 0) ? data.BytesPerRead : Math.min(4096, data.TotalLengthInBytes);
+                            _a.label = 1;
+                        case 1: return [4 /*yield*/, data.Acquire(offset, size)];
+                        case 2:
+                            bytes = _a.sent();
+                            for (_i = 0, bytes_2 = bytes; _i < bytes_2.length; _i++) {
+                                byte = bytes_2[_i];
+                                current = new BitString(byte);
+                                if (this.InputReflected) {
+                                    current = current.Reflect(8);
+                                }
+                                current = current.LeftShift(this.ShiftBits);
+                                // update the MSB of crc value with next input byte
+                                crc = crc.XOR(current);
+                                for (i = 0; i < 8; i++) {
+                                    if (crc.AND(this.TopBitMask).AnyBit()) {
+                                        crc = crc.LeftShift(1);
+                                        crc = crc.XOR(this.Polynomial);
+                                    }
+                                    else {
+                                        crc = crc.LeftShift(1);
+                                    }
+                                }
+                            }
+                            offset += size;
+                            _a.label = 3;
+                        case 3:
+                            if (offset < data.TotalLengthInBytes) return [3 /*break*/, 1];
+                            _a.label = 4;
+                        case 4:
+                            if (this.ResultReflected) {
+                                crc = crc.Reflect(this.Width);
+                            }
+                            return [2 /*return*/, crc.XOR(this.FinalXORValue).SetLength(this.Width)];
                     }
-                    else {
-                        crc = crc.LeftShift(1);
-                    }
-                }
-            }
-            if (this.ResultReflected) {
-                crc = crc.Reflect(this.Width);
-            }
-            return crc.XOR(this.FinalXORValue).SetLength(this.Width);
+                });
+            });
         };
         return KavenCRC;
     }());
@@ -10604,10 +11551,10 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/hashing_algorithms/KavenMD5.ts
      * @create:      2019-04-05 07:31:11.304
-     * @modify:      2021-01-31 12:47:04.829
-     * @version:     2.0.11
-     * @times:       32
-     * @lines:       194
+     * @modify:      2021-12-20 15:47:00.875
+     * @version:     4.0.0
+     * @times:       43
+     * @lines:       212
      * @copyright:   Copyright © 2019-2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
@@ -10629,135 +11576,181 @@ module.exports = Array.isArray || function (arr) {
      * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
      * SOFTWARE.
      ********************************************************************/
+    var __awaiter$5 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+        return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+        });
+    };
+    var __generator$5 = (undefined && undefined.__generator) || function (thisArg, body) {
+        var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+        return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+        function verb(n) { return function (v) { return step([n, v]); }; }
+        function step(op) {
+            if (f) throw new TypeError("Generator is already executing.");
+            while (_) try {
+                if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+                if (y = 0, t) op = [op[0] & 2, t.value];
+                switch (op[0]) {
+                    case 0: case 1: t = op; break;
+                    case 4: _.label++; return { value: op[1], done: false };
+                    case 5: _.label++; y = op[1]; op = [0]; continue;
+                    case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                    default:
+                        if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                        if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                        if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                        if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                        if (t[2]) _.ops.pop();
+                        _.trys.pop(); continue;
+                }
+                op = body.call(thisArg, _);
+            } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+            if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+        }
+    };
     /**
      * @see https://en.wikipedia.org/wiki/MD5
+     * @version 2021-12-07
      */
     var KavenMD5 = /** @class */ (function () {
         function KavenMD5() {
         }
-        KavenMD5.prototype.Compute = function (str) {
-            // Note: All variables are unsigned 32 bit and wrap modulo 2^32 when calculating
-            var data = ToUTF8ByteArray(str);
-            // s specifies the per-round shift amounts
-            var s = [
-                7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
-                5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20,
-                4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23,
-                6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21,
-            ];
-            // Use binary integer part of the sines of integers (Radians) as constants
-            // const K: number[] = new Array(64);
-            // for (let i = 0; i <= 63; i++) {
-            //     K[i] = Math.floor(Math.pow(2, 32) * Math.abs(Math.sin(i + 1)));
-            // }
-            // Or just use the following precomputed table
-            var K = [
-                0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
-                0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
-                0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
-                0x6b901122, 0xfd987193, 0xa679438e, 0x49b40821,
-                0xf61e2562, 0xc040b340, 0x265e5a51, 0xe9b6c7aa,
-                0xd62f105d, 0x02441453, 0xd8a1e681, 0xe7d3fbc8,
-                0x21e1cde6, 0xc33707d6, 0xf4d50d87, 0x455a14ed,
-                0xa9e3e905, 0xfcefa3f8, 0x676f02d9, 0x8d2a4c8a,
-                0xfffa3942, 0x8771f681, 0x6d9d6122, 0xfde5380c,
-                0xa4beea44, 0x4bdecfa9, 0xf6bb4b60, 0xbebfbc70,
-                0x289b7ec6, 0xeaa127fa, 0xd4ef3085, 0x04881d05,
-                0xd9d4d039, 0xe6db99e5, 0x1fa27cf8, 0xc4ac5665,
-                0xf4292244, 0x432aff97, 0xab9423a7, 0xfc93a039,
-                0x655b59c3, 0x8f0ccc92, 0xffeff47d, 0x85845dd1,
-                0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1,
-                0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391,
-            ];
-            // Initialize variables
-            var a0 = 0x67452301;
-            var b0 = 0xefcdab89;
-            var c0 = 0x98badcfe;
-            var d0 = 0x10325476;
-            /// Pre-processing
-            var L = data.length * 8;
-            // append a single '1' bit, where the first bit is the most significant bit of the byte
-            data.push(0x80); // 8 bits
-            // padding with zeros
-            var total = 512 - (L % 512);
-            var bitsCount = total - 8 - 64;
-            // #38
-            if (bitsCount < 0) {
-                bitsCount += 512;
-            }
-            var n = bitsCount / 8;
-            while (n-- > 0) {
-                data.push(0);
-            }
-            // append original length in bits
-            var lbe = new BitString(L).ToBytes(64);
-            data.push.apply(data, lbe.reverse());
-            /// Process the message in successive 512-bit chunks
-            var chunks = Split(data, 512 / 8, true);
-            for (var _i = 0, chunks_1 = chunks; _i < chunks_1.length; _i++) {
-                var chunk = chunks_1[_i];
-                var M = new Array(64);
-                // break chunk into sixteen 32-bit words M[j], 0 ≤ j ≤ 15
-                var bit32Array = Split(chunk, 4, true);
-                for (var j = 0; j < 16; j++) {
-                    var bits32 = bit32Array[j];
-                    M[j] = bits32[3] << 24 | bits32[2] << 16 | bits32[1] << 8 | bits32[0];
-                }
-                // Initialize hash value for this chunk
-                var A = a0;
-                var B = b0;
-                var C = c0;
-                var D = d0;
-                // Main loop
-                for (var i = 0; i <= 63; i++) {
-                    var F = void 0;
-                    var g = void 0;
-                    if (i >= 0 && i <= 15) {
-                        // F := (B and C) or ((not B) and D)
-                        F = (B & C) | ((~B) & D);
-                        // g := i
-                        g = i;
+        KavenMD5.prototype.Compute = function (input) {
+            return __awaiter$5(this, void 0, void 0, function () {
+                var data, s, K, a0, b0, c0, d0, L, paddingBytes, total, bitsCount, n, lbe, totalSize, totalChunks, i, chunk, M, bit32Array, j, bits32, A, B, C, D, i_1, F, g, result, hash;
+                return __generator$5(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            data = InitializeDataAcquisition(input);
+                            s = [
+                                7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
+                                5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20,
+                                4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23,
+                                6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21,
+                            ];
+                            K = [
+                                0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
+                                0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
+                                0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
+                                0x6b901122, 0xfd987193, 0xa679438e, 0x49b40821,
+                                0xf61e2562, 0xc040b340, 0x265e5a51, 0xe9b6c7aa,
+                                0xd62f105d, 0x02441453, 0xd8a1e681, 0xe7d3fbc8,
+                                0x21e1cde6, 0xc33707d6, 0xf4d50d87, 0x455a14ed,
+                                0xa9e3e905, 0xfcefa3f8, 0x676f02d9, 0x8d2a4c8a,
+                                0xfffa3942, 0x8771f681, 0x6d9d6122, 0xfde5380c,
+                                0xa4beea44, 0x4bdecfa9, 0xf6bb4b60, 0xbebfbc70,
+                                0x289b7ec6, 0xeaa127fa, 0xd4ef3085, 0x04881d05,
+                                0xd9d4d039, 0xe6db99e5, 0x1fa27cf8, 0xc4ac5665,
+                                0xf4292244, 0x432aff97, 0xab9423a7, 0xfc93a039,
+                                0x655b59c3, 0x8f0ccc92, 0xffeff47d, 0x85845dd1,
+                                0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1,
+                                0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391,
+                            ];
+                            a0 = 0x67452301;
+                            b0 = 0xefcdab89;
+                            c0 = 0x98badcfe;
+                            d0 = 0x10325476;
+                            L = data.TotalLengthInBytes * 8;
+                            paddingBytes = [];
+                            // append a single '1' bit, where the first bit is the most significant bit of the byte
+                            paddingBytes.push(0x80); // 8 bits
+                            total = 512 - (L % 512);
+                            bitsCount = total - 8 - 64;
+                            // #38
+                            if (bitsCount < 0) {
+                                bitsCount += 512;
+                            }
+                            n = bitsCount / 8;
+                            while (n-- > 0) {
+                                paddingBytes.push(0);
+                            }
+                            lbe = new BitString(L).ToBytes(64);
+                            paddingBytes.push.apply(paddingBytes, lbe.reverse());
+                            totalSize = data.TotalLengthInBytes + paddingBytes.length;
+                            totalChunks = totalSize / 64;
+                            i = 0;
+                            _a.label = 1;
+                        case 1:
+                            if (!(i < totalChunks)) return [3 /*break*/, 4];
+                            return [4 /*yield*/, data.Acquire(i * 64, 64)];
+                        case 2:
+                            chunk = _a.sent();
+                            while (chunk.length < 64) {
+                                chunk.push(paddingBytes.shift());
+                            }
+                            M = new Array(64);
+                            bit32Array = Split(chunk, 4, true);
+                            for (j = 0; j < 16; j++) {
+                                bits32 = bit32Array[j];
+                                M[j] = bits32[3] << 24 | bits32[2] << 16 | bits32[1] << 8 | bits32[0];
+                            }
+                            A = a0;
+                            B = b0;
+                            C = c0;
+                            D = d0;
+                            // Main loop
+                            for (i_1 = 0; i_1 <= 63; i_1++) {
+                                F = void 0;
+                                g = void 0;
+                                if (i_1 >= 0 && i_1 <= 15) {
+                                    // F := (B and C) or ((not B) and D)
+                                    F = (B & C) | ((~B) & D);
+                                    // g := i
+                                    g = i_1;
+                                }
+                                else if (i_1 >= 16 && i_1 <= 31) {
+                                    // F := (D and B) or ((not D) and C)
+                                    F = (D & B) | ((~D) & C);
+                                    // g := (5×i + 1) mod 16
+                                    g = (5 * i_1 + 1) % 16;
+                                }
+                                else if (i_1 >= 32 && i_1 <= 47) {
+                                    // F := B xor C xor D
+                                    F = B ^ C ^ D;
+                                    // g := (3×i + 5) mod 16
+                                    g = (3 * i_1 + 5) % 16;
+                                    // } else if (i >= 48 && i <= 63) {
+                                }
+                                else {
+                                    // F := C xor (B or (not D))
+                                    F = C ^ (B | (~D));
+                                    // g := (7×i) mod 16
+                                    g = (7 * i_1) % 16;
+                                }
+                                // Be wary of the below definitions of a,b,c,d
+                                F = this.addMany(F, A, K[i_1], M[g]);
+                                A = D;
+                                D = C;
+                                C = B;
+                                B = this.add(B, LeftRotate(F, s[i_1]));
+                            }
+                            // Add this chunk's hash to result so far
+                            a0 = this.add(a0, A);
+                            b0 = this.add(b0, B);
+                            c0 = this.add(c0, C);
+                            d0 = this.add(d0, D);
+                            _a.label = 3;
+                        case 3:
+                            i++;
+                            return [3 /*break*/, 1];
+                        case 4:
+                            /* istanbul ignore next */
+                            if (paddingBytes.length !== 0) {
+                                throw new Error();
+                            }
+                            result = [a0, b0, c0, d0].map(function (p) { return ToUInt32(Swap32(p)); });
+                            hash = ToHEX.apply(void 0, result);
+                            return [2 /*return*/, hash];
                     }
-                    else if (i >= 16 && i <= 31) {
-                        // F := (D and B) or ((not D) and C)
-                        F = (D & B) | ((~D) & C);
-                        // g := (5×i + 1) mod 16
-                        g = (5 * i + 1) % 16;
-                    }
-                    else if (i >= 32 && i <= 47) {
-                        // F := B xor C xor D
-                        F = B ^ C ^ D;
-                        // g := (3×i + 5) mod 16
-                        g = (3 * i + 5) % 16;
-                    }
-                    else if (i >= 48 && i <= 63) {
-                        // F := C xor (B or (not D))
-                        F = C ^ (B | (~D));
-                        // g := (7×i) mod 16
-                        g = (7 * i) % 16;
-                    }
-                    else {
-                        throw new Error("Invalid index: " + i);
-                    }
-                    // Be wary of the below definitions of a,b,c,d
-                    F = this.addMany(F, A, K[i], M[g]);
-                    A = D;
-                    D = C;
-                    C = B;
-                    B = this.add(B, F.LeftRotate(s[i]));
-                }
-                // Add this chunk's hash to result so far
-                a0 = this.add(a0, A);
-                b0 = this.add(b0, B);
-                c0 = this.add(c0, C);
-                d0 = this.add(d0, D);
-            }
-            var result = [a0, b0, c0, d0].map(function (p) { return p.Swap32().ToUInt32(); });
-            var hash = result.ToHEX();
-            return hash;
+                });
+            });
         };
         KavenMD5.prototype.add = function (a, b) {
-            return (a.ToUInt32() + b.ToUInt32()).ToUInt32();
+            return ToUInt32((ToUInt32(a) + ToUInt32(b)));
         };
         KavenMD5.prototype.addMany = function () {
             var items = [];
@@ -10780,10 +11773,10 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/hashing_algorithms/KavenSHA.ts
      * @create:      2019-04-03 18:12:33.984
-     * @modify:      2021-01-31 12:47:46.346
-     * @version:     2.0.11
-     * @times:       95
-     * @lines:       686
+     * @modify:      2021-12-24 12:28:55.858
+     * @version:     4.0.0
+     * @times:       109
+     * @lines:       704
      * @copyright:   Copyright © 2019-2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
@@ -10805,6 +11798,42 @@ module.exports = Array.isArray || function (arr) {
      * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
      * SOFTWARE.
      ********************************************************************/
+    var __awaiter$4 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+        return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+        });
+    };
+    var __generator$4 = (undefined && undefined.__generator) || function (thisArg, body) {
+        var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+        return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+        function verb(n) { return function (v) { return step([n, v]); }; }
+        function step(op) {
+            if (f) throw new TypeError("Generator is already executing.");
+            while (_) try {
+                if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+                if (y = 0, t) op = [op[0] & 2, t.value];
+                switch (op[0]) {
+                    case 0: case 1: t = op; break;
+                    case 4: _.label++; return { value: op[1], done: false };
+                    case 5: _.label++; y = op[1]; op = [0]; continue;
+                    case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                    default:
+                        if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                        if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                        if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                        if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                        if (t[2]) _.ops.pop();
+                        _.trys.pop(); continue;
+                }
+                op = body.call(thisArg, _);
+            } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+            if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+        }
+    };
     /**
      * SHA1 and SHA2
      */
@@ -10835,510 +11864,525 @@ module.exports = Array.isArray || function (arr) {
         });
         /**
          *
-         * @param str
          * @see {@link https://en.wikipedia.org/wiki/SHA-1}
+         * @version 2021-12-07
          */
-        KavenSHA.prototype.ComputeSHA1 = function (str) {
-            /*
-                Note 1: All variables are unsigned 32-bit quantities and wrap modulo 232 when calculating, except for
-                ml, the message length, which is a 64-bit quantity, and
-                hh, the message digest, which is a 160-bit quantity.
-
-                Note 2: All constants in this pseudo code are in big endian.
-                Within each word, the most significant byte is stored in the leftmost byte position
-            */
-            var message = ToUTF8ByteArray(str);
-            /// Initialize variables
-            var h0 = 0x67452301;
-            var h1 = 0xEFCDAB89;
-            var h2 = 0x98BADCFE;
-            var h3 = 0x10325476;
-            var h4 = 0xC3D2E1F0;
-            // ml = message length in bits (always a multiple of the number of bits in a character).
-            var ml = message.length * 8;
-            /// Pre-processing
-            // append the bit '1' to the message e.g. by adding 0x80 if message length is a multiple of 8 bits.
-            message.push(0x80);
-            // append 0 ≤ k < 512 bits '0', such that the resulting message length in bits
-            // is congruent to −64 ≡ 448 (mod 512)
-            var total = 512 - (ml % 512);
-            var K = total - 8 - 64;
-            if (K < 0) {
-                K += 512;
-            }
-            var n = K / 8;
-            while (n-- > 0) {
-                message.push(0);
-            }
-            // append ml, the original message length, as a 64-bit big-endian integer.
-            // Thus, the total length is a multiple of 512 bits.
-            var lbe = new BitString(ml).ToBytes(64);
-            message.push.apply(message, lbe);
-            /// Process the message in successive 512-bit chunks
-            // break message into 512-bit chunks
-            var chunks = Split(message, 512 / 8, true);
-            // for each chunk
-            for (var _i = 0, chunks_1 = chunks; _i < chunks_1.length; _i++) {
-                var chunk = chunks_1[_i];
-                var w = new Array(80);
-                // break chunk into sixteen 32-bit big-endian words w[i], 0 ≤ i ≤ 15
-                var bit32Array = Split(chunk, 4, true);
-                for (var j = 0; j < 16; j++) {
-                    var bits32 = bit32Array[j];
-                    w[j] = bits32[0] << 24 | bits32[1] << 16 | bits32[2] << 8 | bits32[3];
-                }
-                // Extend the sixteen 32-bit words into eighty 32-bit words
-                // for i from 16 to 79
-                for (var i = 16; i <= 79; i++) {
-                    // w[i] = (w[i-3] xor w[i-8] xor w[i-14] xor w[i-16]) leftrotate 1
-                    // w[i] = (w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16]).LeftRotate(1).ToInt32();
-                    if (i < 32) {
-                        // w[i] = (w[i-3] xor w[i-8] xor w[i-14] xor w[i-16]) leftrotate 1
-                        w[i] = (w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16]).LeftRotate(1).ToUInt32();
+        KavenSHA.prototype.ComputeSHA1 = function (input) {
+            return __awaiter$4(this, void 0, void 0, function () {
+                var message, h0, h1, h2, h3, h4, ml, paddingBytes, total, K, n, lbe, totalSize, totalChunks, i, chunk, w, bit32Array, j, bits32, i_1, a, b, c, d, e, f, k, i_2, temp, result, hash;
+                return __generator$4(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            message = InitializeDataAcquisition(input);
+                            h0 = 0x67452301;
+                            h1 = 0xEFCDAB89;
+                            h2 = 0x98BADCFE;
+                            h3 = 0x10325476;
+                            h4 = 0xC3D2E1F0;
+                            ml = message.TotalLengthInBytes * 8;
+                            paddingBytes = [];
+                            // append the bit '1' to the message e.g. by adding 0x80 if message length is a multiple of 8 bits.
+                            paddingBytes.push(0x80);
+                            total = 512 - (ml % 512);
+                            K = total - 8 - 64;
+                            if (K < 0) {
+                                K += 512;
+                            }
+                            n = K / 8;
+                            while (n-- > 0) {
+                                paddingBytes.push(0);
+                            }
+                            lbe = new BitString(ml).ToBytes(64);
+                            paddingBytes.push.apply(paddingBytes, lbe);
+                            totalSize = message.TotalLengthInBytes + paddingBytes.length;
+                            totalChunks = totalSize / 64;
+                            i = 0;
+                            _a.label = 1;
+                        case 1:
+                            if (!(i < totalChunks)) return [3 /*break*/, 4];
+                            return [4 /*yield*/, message.Acquire(i * 64, 64)];
+                        case 2:
+                            chunk = _a.sent();
+                            while (chunk.length < 64) {
+                                chunk.push(paddingBytes.shift());
+                            }
+                            w = new Array(80);
+                            bit32Array = Split(chunk, 4, true);
+                            for (j = 0; j < 16; j++) {
+                                bits32 = bit32Array[j];
+                                w[j] = bits32[0] << 24 | bits32[1] << 16 | bits32[2] << 8 | bits32[3];
+                            }
+                            // Extend the sixteen 32-bit words into eighty 32-bit words
+                            // for i from 16 to 79
+                            for (i_1 = 16; i_1 <= 79; i_1++) {
+                                // w[i] = (w[i-3] xor w[i-8] xor w[i-14] xor w[i-16]) leftrotate 1
+                                // w[i] = (w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16]).LeftRotate(1).ToInt32();
+                                if (i_1 < 32) {
+                                    // w[i] = (w[i-3] xor w[i-8] xor w[i-14] xor w[i-16]) leftrotate 1
+                                    w[i_1] = ToUInt32(LeftRotate((w[i_1 - 3] ^ w[i_1 - 8] ^ w[i_1 - 14] ^ w[i_1 - 16]), 1));
+                                }
+                                else {
+                                    // This transformation keeps all operands 64-bit aligned and,
+                                    // by removing the dependency of w[i] on w[i-3],
+                                    // allows efficient SIMD implementation with a vector length of 4 like x86 SSE instructions.
+                                    // the rounds 32–79 the computation can be replaced with:
+                                    // w[i] = (w[i-6] xor w[i-16] xor w[i-28] xor w[i-32]) leftrotate 2
+                                    w[i_1] = ToUInt32(LeftRotate((w[i_1 - 6] ^ w[i_1 - 16] ^ w[i_1 - 28] ^ w[i_1 - 32]), 2));
+                                }
+                            }
+                            a = h0;
+                            b = h1;
+                            c = h2;
+                            d = h3;
+                            e = h4;
+                            f = void 0;
+                            k = void 0;
+                            /// Main loop
+                            // for i from 0 to 79
+                            for (i_2 = 0; i_2 <= 79; i_2++) {
+                                if (i_2 >= 0 && i_2 <= 19) { // if 0 ≤ i ≤ 19 then
+                                    // f = (b and c) or ((not b) and d)
+                                    f = (b & c) | ((~b) & d);
+                                    // Instead of the formulation from the original FIPS PUB 180-1 shown,
+                                    // the following equivalent expressions may be used to compute f in the main loop above:
+                                    // Bitwise choice between c and d, controlled by b.
+                                    /*
+                                        f = d xor (b and (c xor d))        (alternative 1)
+                                        f = (b and c) xor ((not b) and d)  (alternative 2)
+                                        f = (b and c) + ((not b) and d)    (alternative 3)
+                                        f = vec_sel(d, c, b)               (alternative 4)
+                                    */
+                                    // k = 0x5A827999
+                                    k = 0x5A827999;
+                                }
+                                else if (i_2 >= 20 && i_2 <= 39) { // else if 20 ≤ i ≤ 39
+                                    // f = b xor c xor d
+                                    f = b ^ c ^ d;
+                                    // k = 0x6ED9EBA1
+                                    k = 0x6ED9EBA1;
+                                }
+                                else if (i_2 >= 40 && i_2 <= 59) { // else if 40 ≤ i ≤ 59
+                                    // f = (b and c) or (b and d) or (c and d)
+                                    f = (b & c) | (b & d) | (c & d);
+                                    // Bitwise majority function.
+                                    /*
+                                        f = (b and c) or (d and (b or c))          (alternative 1)
+                                        f = (b and c) or (d and (b xor c))         (alternative 2)
+                                        f = (b and c) xor (d and (b xor c))        (alternative 3)
+                                        f = (b and c) + (d and (b xor c))          (alternative 4)
+                                        f = (b and c) xor (b and d) xor (c and d)  (alternative 5)
+                                        f = vec_sel(c, b, c xor d)                 (alternative 6)
+                                    */
+                                    // k = 0x8F1BBCDC
+                                    k = 0x8F1BBCDC;
+                                    // } else if (i >= 60 && i <= 79) { // else if 60 ≤ i ≤ 79
+                                }
+                                else { // else if 60 ≤ i ≤ 79
+                                    // f = b xor c xor d
+                                    f = b ^ c ^ d;
+                                    // k = 0xCA62C1D6
+                                    k = 0xCA62C1D6;
+                                }
+                                temp = ToUInt32(((LeftRotate(a, 5)) + f + e + k + w[i_2]));
+                                e = d;
+                                d = c;
+                                c = ToUInt32(LeftRotate(b, 30));
+                                b = a;
+                                a = temp;
+                            }
+                            /// Add this chunk's hash to result so far
+                            h0 = ToUInt32((h0 + a));
+                            h1 = ToUInt32((h1 + b));
+                            h2 = ToUInt32((h2 + c));
+                            h3 = ToUInt32((h3 + d));
+                            h4 = ToUInt32((h4 + e));
+                            _a.label = 3;
+                        case 3:
+                            i++;
+                            return [3 /*break*/, 1];
+                        case 4:
+                            /* istanbul ignore next */
+                            if (paddingBytes.length !== 0) {
+                                throw new Error();
+                            }
+                            result = [h0, h1, h2, h3, h4];
+                            hash = ToHEX.apply(void 0, result);
+                            return [2 /*return*/, hash];
                     }
-                    else {
-                        // This transformation keeps all operands 64-bit aligned and,
-                        // by removing the dependency of w[i] on w[i-3],
-                        // allows efficient SIMD implementation with a vector length of 4 like x86 SSE instructions.
-                        // the rounds 32–79 the computation can be replaced with:
-                        // w[i] = (w[i-6] xor w[i-16] xor w[i-28] xor w[i-32]) leftrotate 2
-                        w[i] = (w[i - 6] ^ w[i - 16] ^ w[i - 28] ^ w[i - 32]).LeftRotate(2).ToUInt32();
-                    }
-                }
-                // Initialize hash value for this chunk
-                var a = h0;
-                var b = h1;
-                var c = h2;
-                var d = h3;
-                var e = h4;
-                var f = void 0;
-                var k = void 0;
-                /// Main loop
-                // for i from 0 to 79
-                for (var i = 0; i <= 79; i++) {
-                    if (i >= 0 && i <= 19) { // if 0 ≤ i ≤ 19 then
-                        // f = (b and c) or ((not b) and d)
-                        f = (b & c) | ((~b) & d);
-                        // Instead of the formulation from the original FIPS PUB 180-1 shown,
-                        // the following equivalent expressions may be used to compute f in the main loop above:
-                        // Bitwise choice between c and d, controlled by b.
-                        /*
-                            f = d xor (b and (c xor d))        (alternative 1)
-                            f = (b and c) xor ((not b) and d)  (alternative 2)
-                            f = (b and c) + ((not b) and d)    (alternative 3)
-                            f = vec_sel(d, c, b)               (alternative 4)
-                        */
-                        // k = 0x5A827999
-                        k = 0x5A827999;
-                    }
-                    else if (i >= 20 && i <= 39) { // else if 20 ≤ i ≤ 39
-                        // f = b xor c xor d
-                        f = b ^ c ^ d;
-                        // k = 0x6ED9EBA1
-                        k = 0x6ED9EBA1;
-                    }
-                    else if (i >= 40 && i <= 59) { // else if 40 ≤ i ≤ 59
-                        // f = (b and c) or (b and d) or (c and d)
-                        f = (b & c) | (b & d) | (c & d);
-                        // Bitwise majority function.
-                        /*
-                            f = (b and c) or (d and (b or c))          (alternative 1)
-                            f = (b and c) or (d and (b xor c))         (alternative 2)
-                            f = (b and c) xor (d and (b xor c))        (alternative 3)
-                            f = (b and c) + (d and (b xor c))          (alternative 4)
-                            f = (b and c) xor (b and d) xor (c and d)  (alternative 5)
-                            f = vec_sel(c, b, c xor d)                 (alternative 6)
-                        */
-                        // k = 0x8F1BBCDC
-                        k = 0x8F1BBCDC;
-                    }
-                    else if (i >= 60 && i <= 79) { // else if 60 ≤ i ≤ 79
-                        // f = b xor c xor d
-                        f = b ^ c ^ d;
-                        // k = 0xCA62C1D6
-                        k = 0xCA62C1D6;
-                    }
-                    if (f === undefined || k === undefined) {
-                        throw new Error("k or f is undefined, k: " + k + ", f: " + f);
-                    }
-                    var temp = ((a.LeftRotate(5)) + f + e + k + w[i]).ToUInt32();
-                    e = d;
-                    d = c;
-                    c = b.LeftRotate(30).ToUInt32();
-                    b = a;
-                    a = temp;
-                }
-                /// Add this chunk's hash to result so far
-                h0 = (h0 + a).ToUInt32();
-                h1 = (h1 + b).ToUInt32();
-                h2 = (h2 + c).ToUInt32();
-                h3 = (h3 + d).ToUInt32();
-                h4 = (h4 + e).ToUInt32();
-            }
-            /// Produce the final hash value (big-endian) as a 160-bit number:
-            // hh = (h0 leftshift 128) or (h1 leftshift 96) or (h2 leftshift 64) or (h3 leftshift 32) or h4
-            // const hh = (h0 << 128) | (h1 << 96) | (h2 << 64) | (h3 << 32) | h4;
-            var result = [h0, h1, h2, h3, h4];
-            var hash = result.ToHEX();
-            return hash;
+                });
+            });
         };
         /**
          *
-         * @param str
          * @see {@link https://en.wikipedia.org/wiki/SHA-2}
          */
-        KavenSHA.prototype.ComputeSHA256 = function (str) {
-            var initialHashValues = [
-                0x6a09e667,
-                0xbb67ae85,
-                0x3c6ef372,
-                0xa54ff53a,
-                0x510e527f,
-                0x9b05688c,
-                0x1f83d9ab,
-                0x5be0cd19,
-            ];
-            var data = ToUTF8ByteArray(str);
-            var result = this.compute_224_256(data, initialHashValues);
-            var hash = result.ToHEX();
-            return hash;
+        KavenSHA.prototype.ComputeSHA256 = function (input) {
+            return __awaiter$4(this, void 0, void 0, function () {
+                var initialHashValues, result, hash;
+                return __generator$4(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            initialHashValues = [
+                                0x6a09e667,
+                                0xbb67ae85,
+                                0x3c6ef372,
+                                0xa54ff53a,
+                                0x510e527f,
+                                0x9b05688c,
+                                0x1f83d9ab,
+                                0x5be0cd19,
+                            ];
+                            return [4 /*yield*/, this.compute_224_256(input, initialHashValues)];
+                        case 1:
+                            result = _a.sent();
+                            hash = ToHEX.apply(void 0, result);
+                            return [2 /*return*/, hash];
+                    }
+                });
+            });
         };
-        KavenSHA.prototype.ComputeSHA224 = function (str) {
-            // The second 32 bits of the fractional parts of the square roots of the 9th through 16th primes 23..53
-            var initialHashValues = [
-                0xc1059ed8,
-                0x367cd507,
-                0x3070dd17,
-                0xf70e5939,
-                0xffc00b31,
-                0x68581511,
-                0x64f98fa7,
-                0xbefa4fa4,
-            ];
-            var data = ToUTF8ByteArray(str);
-            var result = this.compute_224_256(data, initialHashValues);
-            // the output is constructed by omitting h7.
-            result.splice(-1, 1);
-            var hash = result.ToHEX();
-            return hash;
+        KavenSHA.prototype.ComputeSHA224 = function (input) {
+            return __awaiter$4(this, void 0, void 0, function () {
+                var initialHashValues, result, hash;
+                return __generator$4(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            initialHashValues = [
+                                0xc1059ed8,
+                                0x367cd507,
+                                0x3070dd17,
+                                0xf70e5939,
+                                0xffc00b31,
+                                0x68581511,
+                                0x64f98fa7,
+                                0xbefa4fa4,
+                            ];
+                            return [4 /*yield*/, this.compute_224_256(input, initialHashValues)];
+                        case 1:
+                            result = _a.sent();
+                            // the output is constructed by omitting h7.
+                            result.splice(-1, 1);
+                            hash = ToHEX.apply(void 0, result);
+                            return [2 /*return*/, hash];
+                    }
+                });
+            });
         };
-        KavenSHA.prototype.ComputeSHA512 = function (str) {
-            var data = ToUTF8ByteArray(str);
-            var result = this.compute_384_512(data, KavenSHA.SHA512_INITIAL_HASH_VALUES);
-            var hash = result.map(function (p) { return p.HEX; }).join(Strings.Empty);
-            return hash;
+        KavenSHA.prototype.ComputeSHA512 = function (input) {
+            return __awaiter$4(this, void 0, void 0, function () {
+                var result, hash;
+                return __generator$4(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, this.compute_384_512(input, KavenSHA.SHA512_INITIAL_HASH_VALUES)];
+                        case 1:
+                            result = _a.sent();
+                            hash = result.map(function (p) { return p.HEX; }).join(Strings_Empty);
+                            return [2 /*return*/, hash];
+                    }
+                });
+            });
         };
-        KavenSHA.prototype.ComputeSHA384 = function (str) {
-            /*
-                SHA-384 is identical to SHA-512, except that:
-
-                > the initial hash values h0 through h7 are different (taken from the 9th through 16th primes), and
-                > the output is constructed by omitting h6 and h7.
-            */
-            // SHA-384 initial hash values (in big-endian)
-            var initialHashValues = [
-                new BitString("cbbb9d5dc1059ed8", 16),
-                new BitString("629a292a367cd507", 16),
-                new BitString("9159015a3070dd17", 16),
-                new BitString("152fecd8f70e5939", 16),
-                new BitString("67332667ffc00b31", 16),
-                new BitString("8eb44a8768581511", 16),
-                new BitString("db0c2e0d64f98fa7", 16),
-                new BitString("47b5481dbefa4fa4", 16),
-            ];
-            var data = ToUTF8ByteArray(str);
-            var result = this.compute_384_512(data, initialHashValues);
-            result.splice(-2, 2);
-            var hash = result.map(function (p) { return p.HEX; }).join(Strings.Empty);
-            return hash;
+        KavenSHA.prototype.ComputeSHA384 = function (input) {
+            return __awaiter$4(this, void 0, void 0, function () {
+                var initialHashValues, result, hash;
+                return __generator$4(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            initialHashValues = [
+                                new BitString("cbbb9d5dc1059ed8", 16),
+                                new BitString("629a292a367cd507", 16),
+                                new BitString("9159015a3070dd17", 16),
+                                new BitString("152fecd8f70e5939", 16),
+                                new BitString("67332667ffc00b31", 16),
+                                new BitString("8eb44a8768581511", 16),
+                                new BitString("db0c2e0d64f98fa7", 16),
+                                new BitString("47b5481dbefa4fa4", 16),
+                            ];
+                            return [4 /*yield*/, this.compute_384_512(input, initialHashValues)];
+                        case 1:
+                            result = _a.sent();
+                            result.splice(-2, 2);
+                            hash = result.map(function (p) { return p.HEX; }).join(Strings_Empty);
+                            return [2 /*return*/, hash];
+                    }
+                });
+            });
         };
-        KavenSHA.prototype.ComputeSHA512T = function (str, t) {
-            /*
-                SHA-512/t is identical to SHA-512 except that:
-
-                > the initial hash values h0 through h7 are given by the SHA-512/t IV generation function,
-                > the output is constructed by truncating the concatenation of h0 through h7 at t bits,
-                > t equal to 384 is not allowed, instead SHA-384 should be used as specified, and
-                > t values 224 and 256 are especially mentioned as approved.
-             */
-            if (t === 384) {
-                throw new Error("t equal to 384 is not allowed, instead SHA-384 should be used as specified.");
-            }
-            // Denote H(0)′ to be the initial hash value of SHA-512.
-            // Hi(0)′′ = Hi(0)′ ⊕ a5a5a5a5a5a5a5a5(in hex).
-            var xorValue = new BitString("a5a5a5a5a5a5a5a5", 16);
-            var xorValues = KavenSHA.SHA512_INITIAL_HASH_VALUES.map(function (p) { return p.XOR(xorValue); });
-            // H(0) = SHA-512 ("SHA-512/t") using H(0)′′ as the IV, where t is the specific truncation value.
-            var name = "SHA-512/" + t;
-            var initialHashValues = this.compute_384_512(ToUTF8ByteArray(name), xorValues);
-            var data = ToUTF8ByteArray(str);
-            var result = this.compute_384_512(data, initialHashValues);
-            var hash = result.map(function (p) { return p.HEX; }).join(Strings.Empty);
-            return hash.substr(0, t / 4);
-        };
-        // eslint-disable-next-line camelcase
-        KavenSHA.prototype.compute_224_256 = function (data, initialHashValues) {
-            // Note 1:
-            // All variables are 32 bit unsigned integers and addition is calculated modulo 232
-            // Note 2:
-            // For each round, there is one round constant k[i] and one entry in the message schedule array w[i], 0 ≤ i ≤ 63
-            // Note 3:
-            // The compression function uses 8 working variables, a through h
-            // Note 4:
-            // Big-endian convention is used when expressing the constants in this pseudocode,
-            // and when parsing message block data from bytes to words, for example,
-            // the first word of the input message "abc" after padding is 0x61626380
-            var k = [
-                0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
-                0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
-                0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
-                0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
-                0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
-                0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
-                0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
-                0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
-            ];
-            /// Initialize hash values
-            // (first 32 bits of the fractional parts of the square roots of the first 8 primes 2..19):
-            var h0 = initialHashValues[0];
-            var h1 = initialHashValues[1];
-            var h2 = initialHashValues[2];
-            var h3 = initialHashValues[3];
-            var h4 = initialHashValues[4];
-            var h5 = initialHashValues[5];
-            var h6 = initialHashValues[6];
-            var h7 = initialHashValues[7];
-            /// Pre-processing (Padding)
-            // begin with the original message of length L bits
-            var L = data.length * 8;
-            // append a single '1' bit
-            data.push(0x80); // 8 bits
-            // append K '0' bits, where K is the minimum number >= 0 such that L + 1 + K + 64 is a multiple of 512
-            var total = 512 - (L % 512);
-            var K = total - 8 - 64;
-            if (K < 0) {
-                K += 512;
-            }
-            var n = K / 8;
-            while (n-- > 0) {
-                data.push(0);
-            }
-            // append L as a 64-bit big-endian integer, making the total post-processed length a multiple of 512 bits
-            var lbe = new BitString(L).ToBytes(64);
-            data.push.apply(data, lbe);
-            /// Process the message in successive 512-bit chunks:
-            // break message into 512-bit chunks
-            var chunksCount = data.length / 64; // Math.ceil(L / 512);
-            // for each chunk
-            for (var chunkIndex = 0; chunkIndex < chunksCount; chunkIndex++) {
-                var chunk = data.slice(chunkIndex * 64, (chunkIndex + 1) * 64);
-                if (chunk.length !== 64) {
-                    throw new Error("chunk length error: " + chunk.length);
-                }
-                // create a 64-entry message schedule array w[0..63] of 32-bit words
-                var w = new Array(64);
-                // copy chunk into first 16 words w[0..15] of the message schedule array
-                var bit32Array = Split(chunk, 4, true);
-                for (var j = 0; j < 16; j++) {
-                    var bits32 = bit32Array[j];
-                    w[j] = bits32[0] << 24 | bits32[1] << 16 | bits32[2] << 8 | bits32[3];
-                }
-                // Extend the first 16 words into the remaining 48 words w[16..63] of the message schedule array
-                for (var i = 16; i < 64; i++) {
-                    // s0 := (w[i-15] rightrotate 7) xor (w[i-15] rightrotate 18) xor (w[i-15] rightshift 3)
-                    var s0 = (w[i - 15].RightRotate(7)) ^ (w[i - 15].RightRotate(18)) ^ (w[i - 15] >>> 3);
-                    // s1 := (w[i-2] rightrotate 17) xor (w[i-2] rightrotate 19) xor (w[i-2] rightshift 10)
-                    var s1 = (w[i - 2].RightRotate(17)) ^ (w[i - 2].RightRotate(19)) ^ (w[i - 2] >>> 10);
-                    // w[i] := w[i-16] + s0 + w[i-7] + s1
-                    w[i] = (w[i - 16] + s0 + w[i - 7] + s1).ToUInt32();
-                }
-                // Initialize working variables to current hash value
-                var a = h0;
-                var b = h1;
-                var c = h2;
-                var d = h3;
-                var e = h4;
-                var f = h5;
-                var g = h6;
-                var h = h7;
-                // Compression function main loop
-                for (var i = 0; i < 64; i++) {
-                    // S1 := (e rightrotate 6) xor (e rightrotate 11) xor (e rightrotate 25)
-                    var S1 = (e.RightRotate(6)) ^ (e.RightRotate(11)) ^ (e.RightRotate(25));
-                    // ch := (e and f) xor ((not e) and g)
-                    var ch = (e & f) ^ ((~e) & g);
-                    // temp1 := h + S1 + ch + k[i] + w[i]
-                    var temp1 = h + S1 + ch + k[i] + w[i];
-                    // S0 := (a rightrotate 2) xor (a rightrotate 13) xor (a rightrotate 22)
-                    var S0 = (a.RightRotate(2)) ^ (a.RightRotate(13)) ^ (a.RightRotate(22));
-                    // maj := (a and b) xor (a and c) xor (b and c)
-                    var maj = (a & b) ^ (a & c) ^ (b & c);
-                    // temp2 := S0 + maj
-                    var temp2 = S0 + maj;
-                    h = g;
-                    g = f;
-                    f = e;
-                    e = (d + temp1).ToUInt32();
-                    d = c;
-                    c = b;
-                    b = a;
-                    a = (temp1 + temp2).ToUInt32();
-                }
-                // Add the compressed chunk to the current hash value
-                h0 = (h0 + a).ToUInt32();
-                h1 = (h1 + b).ToUInt32();
-                h2 = (h2 + c).ToUInt32();
-                h3 = (h3 + d).ToUInt32();
-                h4 = (h4 + e).ToUInt32();
-                h5 = (h5 + f).ToUInt32();
-                h6 = (h6 + g).ToUInt32();
-                h7 = (h7 + h).ToUInt32();
-            }
-            // Produce the final hash value (big-endian):
-            // digest := hash := h0 append h1 append h2 append h3 append h4 append h5 append h6 append h7
-            var result = [h0, h1, h2, h3, h4, h5, h6, h7];
-            return result;
+        KavenSHA.prototype.ComputeSHA512T = function (input, t) {
+            return __awaiter$4(this, void 0, void 0, function () {
+                var xorValue, xorValues, name, initialHashValues, result, hash;
+                return __generator$4(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            /*
+                                SHA-512/t is identical to SHA-512 except that:
+                    
+                                > the initial hash values h0 through h7 are given by the SHA-512/t IV generation function,
+                                > the output is constructed by truncating the concatenation of h0 through h7 at t bits,
+                                > t equal to 384 is not allowed, instead SHA-384 should be used as specified, and
+                                > t values 224 and 256 are especially mentioned as approved.
+                             */
+                            if (t === 384) {
+                                throw new Error("t equal to 384 is not allowed, instead SHA-384 should be used as specified.");
+                            }
+                            xorValue = new BitString("a5a5a5a5a5a5a5a5", 16);
+                            xorValues = KavenSHA.SHA512_INITIAL_HASH_VALUES.map(function (p) { return p.XOR(xorValue); });
+                            name = "SHA-512/".concat(t);
+                            return [4 /*yield*/, this.compute_384_512(StringToUTF8ByteArray(name), xorValues)];
+                        case 1:
+                            initialHashValues = _a.sent();
+                            return [4 /*yield*/, this.compute_384_512(input, initialHashValues)];
+                        case 2:
+                            result = _a.sent();
+                            hash = result.map(function (p) { return p.HEX; }).join(Strings_Empty);
+                            return [2 /*return*/, hash.substring(0, t / 4)];
+                    }
+                });
+            });
         };
         // eslint-disable-next-line camelcase
-        KavenSHA.prototype.compute_384_512 = function (data, initialHashValues) {
-            /*
-                SHA-512 is identical in structure to SHA-256, but:
-
-                > the message is broken into 1024-bit chunks,
-                > the initial hash values and round constants are extended to 64 bits,
-                > there are 80 rounds instead of 64,
-                > the message schedule array w has 80 64-bit words instead of 64 32-bit words,
-                > to extend the message schedule array w, the loop is from 16 to 79 instead of from 16 to 63,
-                > the round constants are based on the first 80 primes 2..409,
-                > the word size used for calculations is 64 bits long,
-                > the appended length of the message (before pre-processing), in bits, is a 128-bit big-endian integer, and
-                > the shift and rotate amounts used are different.
-            */
-            var k = [
-                new BitString("428a2f98d728ae22", 16), new BitString("7137449123ef65cd", 16), new BitString("b5c0fbcfec4d3b2f", 16), new BitString("e9b5dba58189dbbc", 16), new BitString("3956c25bf348b538", 16),
-                new BitString("59f111f1b605d019", 16), new BitString("923f82a4af194f9b", 16), new BitString("ab1c5ed5da6d8118", 16), new BitString("d807aa98a3030242", 16), new BitString("12835b0145706fbe", 16),
-                new BitString("243185be4ee4b28c", 16), new BitString("550c7dc3d5ffb4e2", 16), new BitString("72be5d74f27b896f", 16), new BitString("80deb1fe3b1696b1", 16), new BitString("9bdc06a725c71235", 16),
-                new BitString("c19bf174cf692694", 16), new BitString("e49b69c19ef14ad2", 16), new BitString("efbe4786384f25e3", 16), new BitString("0fc19dc68b8cd5b5", 16), new BitString("240ca1cc77ac9c65", 16),
-                new BitString("2de92c6f592b0275", 16), new BitString("4a7484aa6ea6e483", 16), new BitString("5cb0a9dcbd41fbd4", 16), new BitString("76f988da831153b5", 16), new BitString("983e5152ee66dfab", 16),
-                new BitString("a831c66d2db43210", 16), new BitString("b00327c898fb213f", 16), new BitString("bf597fc7beef0ee4", 16), new BitString("c6e00bf33da88fc2", 16), new BitString("d5a79147930aa725", 16),
-                new BitString("06ca6351e003826f", 16), new BitString("142929670a0e6e70", 16), new BitString("27b70a8546d22ffc", 16), new BitString("2e1b21385c26c926", 16), new BitString("4d2c6dfc5ac42aed", 16),
-                new BitString("53380d139d95b3df", 16), new BitString("650a73548baf63de", 16), new BitString("766a0abb3c77b2a8", 16), new BitString("81c2c92e47edaee6", 16), new BitString("92722c851482353b", 16),
-                new BitString("a2bfe8a14cf10364", 16), new BitString("a81a664bbc423001", 16), new BitString("c24b8b70d0f89791", 16), new BitString("c76c51a30654be30", 16), new BitString("d192e819d6ef5218", 16),
-                new BitString("d69906245565a910", 16), new BitString("f40e35855771202a", 16), new BitString("106aa07032bbd1b8", 16), new BitString("19a4c116b8d2d0c8", 16), new BitString("1e376c085141ab53", 16),
-                new BitString("2748774cdf8eeb99", 16), new BitString("34b0bcb5e19b48a8", 16), new BitString("391c0cb3c5c95a63", 16), new BitString("4ed8aa4ae3418acb", 16), new BitString("5b9cca4f7763e373", 16),
-                new BitString("682e6ff3d6b2b8a3", 16), new BitString("748f82ee5defb2fc", 16), new BitString("78a5636f43172f60", 16), new BitString("84c87814a1f0ab72", 16), new BitString("8cc702081a6439ec", 16),
-                new BitString("90befffa23631e28", 16), new BitString("a4506cebde82bde9", 16), new BitString("bef9a3f7b2c67915", 16), new BitString("c67178f2e372532b", 16), new BitString("ca273eceea26619c", 16),
-                new BitString("d186b8c721c0c207", 16), new BitString("eada7dd6cde0eb1e", 16), new BitString("f57d4f7fee6ed178", 16), new BitString("06f067aa72176fba", 16), new BitString("0a637dc5a2c898a6", 16),
-                new BitString("113f9804bef90dae", 16), new BitString("1b710b35131c471b", 16), new BitString("28db77f523047d84", 16), new BitString("32caab7b40c72493", 16), new BitString("3c9ebe0a15c9bebc", 16),
-                new BitString("431d67c49c100d4c", 16), new BitString("4cc5d4becb3e42b6", 16), new BitString("597f299cfc657e2a", 16), new BitString("5fcb6fab3ad6faec", 16), new BitString("6c44198c4a475817", 16),
-            ];
-            /// Initialize hash values
-            var h0 = initialHashValues[0];
-            var h1 = initialHashValues[1];
-            var h2 = initialHashValues[2];
-            var h3 = initialHashValues[3];
-            var h4 = initialHashValues[4];
-            var h5 = initialHashValues[5];
-            var h6 = initialHashValues[6];
-            var h7 = initialHashValues[7];
-            /// Pre-processing (Padding)
-            // begin with the original message of length L bits
-            var L = data.length * 8;
-            // append a single '1' bit
-            data.push(0x80); // 8 bits
-            // append K '0' bits, where K is the minimum number >= 0 such that L + 1 + K + 64 is a multiple of 1024
-            var total = 1024 - (L % 1024);
-            var K = total - 8 - 64;
-            if (K < 0) {
-                K += 1024;
-            }
-            var n = K / 8;
-            while (n-- > 0) {
-                data.push(0);
-            }
-            // append L as a 64-bit big-endian integer, making the total post-processed length a multiple of 512 bits
-            var lbe = new BitString(L).ToBytes(64);
-            data.push.apply(data, lbe);
-            /// Process the message in successive 1024-bit chunks:
-            // break message into 1024-bit chunks
-            var chunksCount = data.length / 128; // 128 = 1024 / 8
-            // for each chunk
-            for (var chunkIndex = 0; chunkIndex < chunksCount; chunkIndex++) {
-                var chunk = data.slice(chunkIndex * 128, (chunkIndex + 1) * 128);
-                if (chunk.length !== 128) {
-                    throw new Error("chunk length error: " + chunk.length);
-                }
-                // create a 80-entry message schedule array w[0..79] of 64-bit words
-                var w = new Array(80);
-                // copy chunk into first 16 words w[0..15] of the message schedule array
-                var bit64Array = Split(chunk, 8, true);
-                for (var j = 0; j < 16; j++) {
-                    var bits32 = bit64Array[j];
-                    var b1 = new BitString(bits32[0]).LeftShift(56);
-                    var b2 = new BitString(bits32[1]).LeftShift(48);
-                    var b3 = new BitString(bits32[2]).LeftShift(40);
-                    var b4 = new BitString(bits32[3]).LeftShift(32);
-                    var b5 = new BitString(bits32[4]).LeftShift(24);
-                    var b6 = new BitString(bits32[5]).LeftShift(16);
-                    var b7 = new BitString(bits32[6]).LeftShift(8);
-                    var b8 = new BitString(bits32[7]);
-                    w[j] = b1.OR(b2).OR(b3).OR(b4).OR(b5).OR(b6).OR(b7).OR(b8);
-                }
-                // Extend the first 16 words into the remaining 64 words w[16..79] of the message schedule array
-                for (var i = 16; i <= 79; i++) {
-                    // s0 := (w[i-15] rightrotate 1) xor (w[i-15] rightrotate 8) xor (w[i-15] rightshift 7)
-                    var s0 = w[i - 15].RightRotate(1).XOR(w[i - 15].RightRotate(8)).XOR(w[i - 15].RightShift(7));
-                    // s1 := (w[i-2] rightrotate 19) xor (w[i-2] rightrotate 61) xor (w[i-2] rightshift 6)
-                    var s1 = w[i - 2].RightRotate(19).XOR(w[i - 2].RightRotate(61)).XOR(w[i - 2].RightShift(6));
-                    // w[i] := w[i-16] + s0 + w[i-7] + s1
-                    w[i] = w[i - 16].Add(s0).Add(w[i - 7].Add(s1)).SetLength(64);
-                }
-                // Initialize working variables to current hash value
-                var a = h0;
-                var b = h1;
-                var c = h2;
-                var d = h3;
-                var e = h4;
-                var f = h5;
-                var g = h6;
-                var h = h7;
-                // Compression function main loop
-                for (var i = 0; i < 80; i++) {
-                    // S1 := (e rightrotate 14) xor (e rightrotate 18) xor (e rightrotate 41)
-                    var S1 = e.RightRotate(14).XOR(e.RightRotate(18)).XOR(e.RightRotate(41));
-                    // ch := (e and f) xor ((not e) and g)
-                    var ch = e.AND(f).XOR(e.NOT().AND(g));
-                    // temp1 := h + S1 + ch + k[i] + w[i]
-                    var temp1 = h.Add(S1).Add(ch).Add(k[i]).Add(w[i]);
-                    // S0 := (a rightrotate 28) xor (a rightrotate 34) xor (a rightrotate 39)
-                    var S0 = a.RightRotate(28).XOR(a.RightRotate(34)).XOR(a.RightRotate(39));
-                    // maj := (a and b) xor (a and c) xor (b and c)
-                    var maj = a.AND(b).XOR(a.AND(c)).XOR(b.AND(c));
-                    // temp2 := S0 + maj
-                    var temp2 = S0.Add(maj);
-                    h = g;
-                    g = f;
-                    f = e;
-                    e = d.Add(temp1).SetLength(64);
-                    d = c;
-                    c = b;
-                    b = a;
-                    a = temp1.Add(temp2).SetLength(64);
-                }
-                // Add the compressed chunk to the current hash value
-                h0 = h0.Add(a).SetLength(64);
-                h1 = h1.Add(b).SetLength(64);
-                h2 = h2.Add(c).SetLength(64);
-                h3 = h3.Add(d).SetLength(64);
-                h4 = h4.Add(e).SetLength(64);
-                h5 = h5.Add(f).SetLength(64);
-                h6 = h6.Add(g).SetLength(64);
-                h7 = h7.Add(h).SetLength(64);
-            }
-            // Produce the final hash value (big-endian):
-            // digest := hash := h0 append h1 append h2 append h3 append h4 append h5 append h6 append h7
-            var result = [h0, h1, h2, h3, h4, h5, h6, h7];
-            return result;
+        KavenSHA.prototype.compute_224_256 = function (input, initialHashValues) {
+            return __awaiter$4(this, void 0, void 0, function () {
+                var k, h0, h1, h2, h3, h4, h5, h6, h7, data, paddingBytes, L, total, K, n, lbe, chunksCount, chunkIndex, chunk, w, bit32Array, j, bits32, i, s0, s1, a, b, c, d, e, f, g, h, i, S1, ch, temp1, S0, maj, temp2, result;
+                return __generator$4(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            k = [
+                                0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+                                0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+                                0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+                                0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+                                0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+                                0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+                                0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+                                0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+                            ];
+                            h0 = initialHashValues[0];
+                            h1 = initialHashValues[1];
+                            h2 = initialHashValues[2];
+                            h3 = initialHashValues[3];
+                            h4 = initialHashValues[4];
+                            h5 = initialHashValues[5];
+                            h6 = initialHashValues[6];
+                            h7 = initialHashValues[7];
+                            data = InitializeDataAcquisition(input);
+                            paddingBytes = [];
+                            L = data.TotalLengthInBytes * 8;
+                            // append a single '1' bit
+                            paddingBytes.push(0x80); // 8 bits
+                            total = 512 - (L % 512);
+                            K = total - 8 - 64;
+                            if (K < 0) {
+                                K += 512;
+                            }
+                            n = K / 8;
+                            while (n-- > 0) {
+                                paddingBytes.push(0);
+                            }
+                            lbe = new BitString(L).ToBytes(64);
+                            paddingBytes.push.apply(paddingBytes, lbe);
+                            chunksCount = (data.TotalLengthInBytes + paddingBytes.length) / 64;
+                            chunkIndex = 0;
+                            _a.label = 1;
+                        case 1:
+                            if (!(chunkIndex < chunksCount)) return [3 /*break*/, 4];
+                            return [4 /*yield*/, data.Acquire(chunkIndex * 64, 64)];
+                        case 2:
+                            chunk = _a.sent();
+                            while (chunk.length < 64) {
+                                chunk.push(paddingBytes.shift());
+                            }
+                            w = new Array(64);
+                            bit32Array = Split(chunk, 4, true);
+                            for (j = 0; j < 16; j++) {
+                                bits32 = bit32Array[j];
+                                w[j] = bits32[0] << 24 | bits32[1] << 16 | bits32[2] << 8 | bits32[3];
+                            }
+                            // Extend the first 16 words into the remaining 48 words w[16..63] of the message schedule array
+                            for (i = 16; i < 64; i++) {
+                                s0 = (RightRotate(w[i - 15], 7)) ^ (RightRotate(w[i - 15], 18)) ^ (w[i - 15] >>> 3);
+                                s1 = (RightRotate(w[i - 2], 17)) ^ (RightRotate(w[i - 2], 19)) ^ (w[i - 2] >>> 10);
+                                // w[i] := w[i-16] + s0 + w[i-7] + s1
+                                w[i] = ToUInt32((w[i - 16] + s0 + w[i - 7] + s1));
+                            }
+                            a = h0;
+                            b = h1;
+                            c = h2;
+                            d = h3;
+                            e = h4;
+                            f = h5;
+                            g = h6;
+                            h = h7;
+                            // Compression function main loop
+                            for (i = 0; i < 64; i++) {
+                                S1 = (RightRotate(e, 6)) ^ (RightRotate(e, 11)) ^ (RightRotate(e, 25));
+                                ch = (e & f) ^ ((~e) & g);
+                                temp1 = h + S1 + ch + k[i] + w[i];
+                                S0 = (RightRotate(a, 2)) ^ (RightRotate(a, 13)) ^ (RightRotate(a, 22));
+                                maj = (a & b) ^ (a & c) ^ (b & c);
+                                temp2 = S0 + maj;
+                                h = g;
+                                g = f;
+                                f = e;
+                                e = ToUInt32((d + temp1));
+                                d = c;
+                                c = b;
+                                b = a;
+                                a = ToUInt32((temp1 + temp2));
+                            }
+                            // Add the compressed chunk to the current hash value
+                            h0 = ToUInt32((h0 + a));
+                            h1 = ToUInt32((h1 + b));
+                            h2 = ToUInt32((h2 + c));
+                            h3 = ToUInt32((h3 + d));
+                            h4 = ToUInt32((h4 + e));
+                            h5 = ToUInt32((h5 + f));
+                            h6 = ToUInt32((h6 + g));
+                            h7 = ToUInt32((h7 + h));
+                            _a.label = 3;
+                        case 3:
+                            chunkIndex++;
+                            return [3 /*break*/, 1];
+                        case 4:
+                            /* istanbul ignore next */
+                            if (paddingBytes.length !== 0) {
+                                throw new Error();
+                            }
+                            result = [h0, h1, h2, h3, h4, h5, h6, h7];
+                            return [2 /*return*/, result];
+                    }
+                });
+            });
+        };
+        // eslint-disable-next-line camelcase
+        KavenSHA.prototype.compute_384_512 = function (input, initialHashValues) {
+            return __awaiter$4(this, void 0, void 0, function () {
+                var k, h0, h1, h2, h3, h4, h5, h6, h7, data, paddingBytes, L, total, K, n, lbe, chunksCount, chunkIndex, chunk, w, bit64Array, j, bits32, b1, b2, b3, b4, b5, b6, b7, b8, i, s0, s1, a, b, c, d, e, f, g, h, i, S1, ch, temp1, S0, maj, temp2, result;
+                return __generator$4(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            k = [
+                                new BitString("428a2f98d728ae22", 16), new BitString("7137449123ef65cd", 16), new BitString("b5c0fbcfec4d3b2f", 16), new BitString("e9b5dba58189dbbc", 16), new BitString("3956c25bf348b538", 16),
+                                new BitString("59f111f1b605d019", 16), new BitString("923f82a4af194f9b", 16), new BitString("ab1c5ed5da6d8118", 16), new BitString("d807aa98a3030242", 16), new BitString("12835b0145706fbe", 16),
+                                new BitString("243185be4ee4b28c", 16), new BitString("550c7dc3d5ffb4e2", 16), new BitString("72be5d74f27b896f", 16), new BitString("80deb1fe3b1696b1", 16), new BitString("9bdc06a725c71235", 16),
+                                new BitString("c19bf174cf692694", 16), new BitString("e49b69c19ef14ad2", 16), new BitString("efbe4786384f25e3", 16), new BitString("0fc19dc68b8cd5b5", 16), new BitString("240ca1cc77ac9c65", 16),
+                                new BitString("2de92c6f592b0275", 16), new BitString("4a7484aa6ea6e483", 16), new BitString("5cb0a9dcbd41fbd4", 16), new BitString("76f988da831153b5", 16), new BitString("983e5152ee66dfab", 16),
+                                new BitString("a831c66d2db43210", 16), new BitString("b00327c898fb213f", 16), new BitString("bf597fc7beef0ee4", 16), new BitString("c6e00bf33da88fc2", 16), new BitString("d5a79147930aa725", 16),
+                                new BitString("06ca6351e003826f", 16), new BitString("142929670a0e6e70", 16), new BitString("27b70a8546d22ffc", 16), new BitString("2e1b21385c26c926", 16), new BitString("4d2c6dfc5ac42aed", 16),
+                                new BitString("53380d139d95b3df", 16), new BitString("650a73548baf63de", 16), new BitString("766a0abb3c77b2a8", 16), new BitString("81c2c92e47edaee6", 16), new BitString("92722c851482353b", 16),
+                                new BitString("a2bfe8a14cf10364", 16), new BitString("a81a664bbc423001", 16), new BitString("c24b8b70d0f89791", 16), new BitString("c76c51a30654be30", 16), new BitString("d192e819d6ef5218", 16),
+                                new BitString("d69906245565a910", 16), new BitString("f40e35855771202a", 16), new BitString("106aa07032bbd1b8", 16), new BitString("19a4c116b8d2d0c8", 16), new BitString("1e376c085141ab53", 16),
+                                new BitString("2748774cdf8eeb99", 16), new BitString("34b0bcb5e19b48a8", 16), new BitString("391c0cb3c5c95a63", 16), new BitString("4ed8aa4ae3418acb", 16), new BitString("5b9cca4f7763e373", 16),
+                                new BitString("682e6ff3d6b2b8a3", 16), new BitString("748f82ee5defb2fc", 16), new BitString("78a5636f43172f60", 16), new BitString("84c87814a1f0ab72", 16), new BitString("8cc702081a6439ec", 16),
+                                new BitString("90befffa23631e28", 16), new BitString("a4506cebde82bde9", 16), new BitString("bef9a3f7b2c67915", 16), new BitString("c67178f2e372532b", 16), new BitString("ca273eceea26619c", 16),
+                                new BitString("d186b8c721c0c207", 16), new BitString("eada7dd6cde0eb1e", 16), new BitString("f57d4f7fee6ed178", 16), new BitString("06f067aa72176fba", 16), new BitString("0a637dc5a2c898a6", 16),
+                                new BitString("113f9804bef90dae", 16), new BitString("1b710b35131c471b", 16), new BitString("28db77f523047d84", 16), new BitString("32caab7b40c72493", 16), new BitString("3c9ebe0a15c9bebc", 16),
+                                new BitString("431d67c49c100d4c", 16), new BitString("4cc5d4becb3e42b6", 16), new BitString("597f299cfc657e2a", 16), new BitString("5fcb6fab3ad6faec", 16), new BitString("6c44198c4a475817", 16),
+                            ];
+                            h0 = initialHashValues[0];
+                            h1 = initialHashValues[1];
+                            h2 = initialHashValues[2];
+                            h3 = initialHashValues[3];
+                            h4 = initialHashValues[4];
+                            h5 = initialHashValues[5];
+                            h6 = initialHashValues[6];
+                            h7 = initialHashValues[7];
+                            data = InitializeDataAcquisition(input);
+                            paddingBytes = [];
+                            L = data.TotalLengthInBytes * 8;
+                            // append a single '1' bit
+                            paddingBytes.push(0x80); // 8 bits
+                            total = 1024 - (L % 1024);
+                            K = total - 8 - 64;
+                            if (K < 0) {
+                                K += 1024;
+                            }
+                            n = K / 8;
+                            while (n-- > 0) {
+                                paddingBytes.push(0);
+                            }
+                            lbe = new BitString(L).ToBytes(64);
+                            paddingBytes.push.apply(paddingBytes, lbe);
+                            chunksCount = (data.TotalLengthInBytes + paddingBytes.length) / 128;
+                            chunkIndex = 0;
+                            _a.label = 1;
+                        case 1:
+                            if (!(chunkIndex < chunksCount)) return [3 /*break*/, 4];
+                            return [4 /*yield*/, data.Acquire(chunkIndex * 128, 128)];
+                        case 2:
+                            chunk = _a.sent();
+                            while (chunk.length < 128) {
+                                chunk.push(paddingBytes.shift());
+                            }
+                            w = new Array(80);
+                            bit64Array = Split(chunk, 8, true);
+                            for (j = 0; j < 16; j++) {
+                                bits32 = bit64Array[j];
+                                b1 = new BitString(bits32[0]).LeftShift(56);
+                                b2 = new BitString(bits32[1]).LeftShift(48);
+                                b3 = new BitString(bits32[2]).LeftShift(40);
+                                b4 = new BitString(bits32[3]).LeftShift(32);
+                                b5 = new BitString(bits32[4]).LeftShift(24);
+                                b6 = new BitString(bits32[5]).LeftShift(16);
+                                b7 = new BitString(bits32[6]).LeftShift(8);
+                                b8 = new BitString(bits32[7]);
+                                w[j] = b1.OR(b2).OR(b3).OR(b4).OR(b5).OR(b6).OR(b7).OR(b8);
+                            }
+                            // Extend the first 16 words into the remaining 64 words w[16..79] of the message schedule array
+                            for (i = 16; i <= 79; i++) {
+                                s0 = w[i - 15].RightRotate(1).XOR(w[i - 15].RightRotate(8)).XOR(w[i - 15].RightShift(7));
+                                s1 = w[i - 2].RightRotate(19).XOR(w[i - 2].RightRotate(61)).XOR(w[i - 2].RightShift(6));
+                                // w[i] := w[i-16] + s0 + w[i-7] + s1
+                                w[i] = w[i - 16].Add(s0).Add(w[i - 7].Add(s1)).SetLength(64);
+                            }
+                            a = h0;
+                            b = h1;
+                            c = h2;
+                            d = h3;
+                            e = h4;
+                            f = h5;
+                            g = h6;
+                            h = h7;
+                            // Compression function main loop
+                            for (i = 0; i < 80; i++) {
+                                S1 = e.RightRotate(14).XOR(e.RightRotate(18)).XOR(e.RightRotate(41));
+                                ch = e.AND(f).XOR(e.NOT().AND(g));
+                                temp1 = h.Add(S1).Add(ch).Add(k[i]).Add(w[i]);
+                                S0 = a.RightRotate(28).XOR(a.RightRotate(34)).XOR(a.RightRotate(39));
+                                maj = a.AND(b).XOR(a.AND(c)).XOR(b.AND(c));
+                                temp2 = S0.Add(maj);
+                                h = g;
+                                g = f;
+                                f = e;
+                                e = d.Add(temp1).SetLength(64);
+                                d = c;
+                                c = b;
+                                b = a;
+                                a = temp1.Add(temp2).SetLength(64);
+                            }
+                            // Add the compressed chunk to the current hash value
+                            h0 = h0.Add(a).SetLength(64);
+                            h1 = h1.Add(b).SetLength(64);
+                            h2 = h2.Add(c).SetLength(64);
+                            h3 = h3.Add(d).SetLength(64);
+                            h4 = h4.Add(e).SetLength(64);
+                            h5 = h5.Add(f).SetLength(64);
+                            h6 = h6.Add(g).SetLength(64);
+                            h7 = h7.Add(h).SetLength(64);
+                            _a.label = 3;
+                        case 3:
+                            chunkIndex++;
+                            return [3 /*break*/, 1];
+                        case 4:
+                            /* istanbul ignore next */
+                            if (paddingBytes.length !== 0) {
+                                throw new Error();
+                            }
+                            result = [h0, h1, h2, h3, h4, h5, h6, h7];
+                            return [2 /*return*/, result];
+                    }
+                });
+            });
         };
         return KavenSHA;
     }());
@@ -11347,11 +12391,1459 @@ module.exports = Array.isArray || function (arr) {
      * @author:      Kaven
      * @email:       kaven@wuwenkai.com
      * @website:     http://blog.kaven.xyz
+     * @file:        [Kaven-Basic] /src/libs/KavenUInt64.ts
+     * @create:      2019-04-11 13:01:36.287
+     * @modify:      2021-12-14 16:41:28.750
+     * @version:     4.0.0
+     * @times:       54
+     * @lines:       192
+     * @copyright:   Copyright © 2019-2021 Kaven. All Rights Reserved.
+     * @description: [description]
+     * @license:
+     * Permission is hereby granted, free of charge, to any person obtaining a copy
+     * of this software and associated documentation files (the "Software"), to deal
+     * in the Software without restriction, including without limitation the rights
+     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+     * copies of the Software, and to permit persons to whom the Software is
+     * furnished to do so, subject to the following conditions:
+     *
+     * The above copyright notice and this permission notice shall be included in all
+     * copies or substantial portions of the Software.
+     *
+     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+     * SOFTWARE.
+     ********************************************************************/
+    var KavenUInt64 = /** @class */ (function () {
+        function KavenUInt64(value, radix) {
+            if (radix === void 0) { radix = 16; }
+            this.high = 0;
+            this.low = 0;
+            if (value === undefined) {
+                return;
+            }
+            if (typeof value === "number") {
+                this.low = value;
+            }
+            else {
+                var hl = SplitByN(value, 8);
+                if (hl.length === 2) {
+                    this.high = parseInt(hl[0], radix);
+                    this.low = parseInt(hl[1], radix);
+                }
+                else {
+                    this.low = parseInt(hl[0], radix);
+                }
+            }
+        }
+        Object.defineProperty(KavenUInt64.prototype, "HEX", {
+            get: function () {
+                // this.ToUnit();
+                return NumberToHex(this.high, 8) + NumberToHex(this.low, 8);
+            },
+            enumerable: false,
+            configurable: true
+        });
+        KavenUInt64.FromBytes = function () {
+            var bytes = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                bytes[_i] = arguments[_i];
+            }
+            var _a = [0, 0], h = _a[0], l = _a[1];
+            var hl = Split(bytes, 4);
+            if (hl.length === 2) {
+                for (var i = 0; i < hl[0].length; i++) {
+                    l += (hl[0][i] << 8 * i);
+                }
+                for (var i = 0; i < hl[1].length; i++) {
+                    h += (hl[1][i] << 8 * i);
+                }
+            }
+            else {
+                for (var i = 0; i < hl[0].length; i++) {
+                    l += (hl[0][i] << 8 * i);
+                }
+            }
+            return KavenUInt64.FromHighLow(h, l);
+        };
+        KavenUInt64.FromHighLow = function (high, low) {
+            var result = new KavenUInt64();
+            result.high = high >>> 0;
+            result.low = low >>> 0;
+            return result;
+        };
+        KavenUInt64.Initialize2d = function (x, y) {
+            return new Array(x).fill(new KavenUInt64()).map(function () { return new Array(y).fill(new KavenUInt64()); });
+        };
+        KavenUInt64.prototype.Swap = function () {
+            return KavenUInt64.FromHighLow(Swap32(this.low), Swap32(this.high));
+        };
+        KavenUInt64.prototype.AND = function (val) {
+            var _a = [0, 0], h = _a[0], l = _a[1];
+            if (typeof val === "number") {
+                l = this.low & val;
+                h = 0;
+            }
+            else {
+                l = this.low & val.low;
+                h = this.high & val.high;
+            }
+            return KavenUInt64.FromHighLow(h, l);
+        };
+        KavenUInt64.prototype.XOR = function (val) {
+            var _a = [0, 0], h = _a[0], l = _a[1];
+            if (typeof val === "number") {
+                l = this.low ^ val;
+            }
+            else {
+                l = this.low ^ val.low;
+                h = this.high ^ val.high;
+            }
+            return KavenUInt64.FromHighLow(h, l);
+        };
+        KavenUInt64.prototype.NOT = function () {
+            return KavenUInt64.FromHighLow(~this.high, ~this.low);
+        };
+        KavenUInt64.prototype.LeftRotate = function (n) {
+            if (n === 0) {
+                return this.Clone();
+            }
+            var _a = [this.low, this.high], h = _a[0], l = _a[1];
+            if (n < 32) {
+                var m = 32 - n;
+                l = this.low << n | this.high >>> m;
+                h = this.high << n | this.low >>> m;
+            }
+            else if (n > 32) {
+                n -= 32;
+                var m = 32 - n;
+                l = this.high << n | this.low >>> m;
+                h = this.low << n | this.high >>> m;
+            }
+            return KavenUInt64.FromHighLow(h, l);
+        };
+        KavenUInt64.prototype.RightRotate = function (n) {
+            if (n === 0) {
+                return this.Clone();
+            }
+            var _a = [this.low, this.low], h = _a[0], l = _a[1];
+            if (n < 32) {
+                var m = 32 - n;
+                l = this.low >>> n | this.high << m;
+                h = this.high >>> n | this.low << m;
+            }
+            else if (n > 32) {
+                n -= 32;
+                var m = 32 - n;
+                l = this.high >>> n | this.low << m;
+                h = this.low >>> n | this.high << m;
+            }
+            return KavenUInt64.FromHighLow(h, l);
+        };
+        KavenUInt64.prototype.Clone = function () {
+            return KavenUInt64.FromHighLow(this.high, this.low);
+        };
+        KavenUInt64.prototype.Equals = function (another) {
+            if (typeof another === "number") {
+                return this.Equals(new KavenUInt64(another));
+            }
+            return this.high === another.high && this.low === another.low;
+        };
+        return KavenUInt64;
+    }());
+
+    /********************************************************************
+     * @author:      Kaven
+     * @email:       kaven@wuwenkai.com
+     * @website:     http://blog.kaven.xyz
+     * @file:        [Kaven-Basic] /src/libs/hashing_algorithms/KavenSHA3.ts
+     * @create:      2019-04-05 22:50:29.192
+     * @modify:      2021-12-24 12:28:55.860
+     * @version:     4.0.0
+     * @times:       151
+     * @lines:       512
+     * @copyright:   Copyright © 2019-2021 Kaven. All Rights Reserved.
+     * @description: [description]
+     * @license:
+     * Permission is hereby granted, free of charge, to any person obtaining a copy
+     * of this software and associated documentation files (the "Software"), to deal
+     * in the Software without restriction, including without limitation the rights
+     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+     * copies of the Software, and to permit persons to whom the Software is
+     * furnished to do so, subject to the following conditions:
+     *
+     * The above copyright notice and this permission notice shall be included in all
+     * copies or substantial portions of the Software.
+     *
+     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+     * SOFTWARE.
+     ********************************************************************/
+    var __awaiter$3 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+        return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+        });
+    };
+    var __generator$3 = (undefined && undefined.__generator) || function (thisArg, body) {
+        var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+        return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+        function verb(n) { return function (v) { return step([n, v]); }; }
+        function step(op) {
+            if (f) throw new TypeError("Generator is already executing.");
+            while (_) try {
+                if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+                if (y = 0, t) op = [op[0] & 2, t.value];
+                switch (op[0]) {
+                    case 0: case 1: t = op; break;
+                    case 4: _.label++; return { value: op[1], done: false };
+                    case 5: _.label++; y = op[1]; op = [0]; continue;
+                    case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                    default:
+                        if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                        if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                        if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                        if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                        if (t[2]) _.ops.pop();
+                        _.trys.pop(); continue;
+                }
+                op = body.call(thisArg, _);
+            } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+            if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+        }
+    };
+    var KavenSHA3 = /** @class */ (function () {
+        function KavenSHA3() {
+        }
+        /**
+         * Keccak-f[b]
+         * @param b b∈{25,50,100,200,400,800,1600} is the width of the permutation.
+         *
+         * The width of the permutation is also the width of the state in the sponge construction.
+         * @see https://keccak.team/keccak_specs_summary.html
+         */
+        KavenSHA3.prototype.KeccakF = function (a, b) {
+            if (b === void 0) { b = 1600; }
+            var n = 24;
+            if (b !== 1600) {
+                // w∈{1,2,4,8,16,32,64}  and b=25w
+                var w = b / 25;
+                // 2l=w
+                var l = GetBaseLog(w, 2);
+                // n=12+2l
+                n = 12 + 2 * l;
+            }
+            // for i in 0…n-1
+            for (var i = 0; i < n; i++) {
+                // A = Round[b](A, RC[i])
+                a = this.Round(a, KavenSHA3.RC[i]);
+                // this.PrintState(a);
+            }
+            // return A
+            return a;
+        };
+        /**
+         * Keccak[r,c] sponge function, with parameters capacity c and bitrate r.
+         * @param message
+         * @param r bitrate
+         * @param c capacity
+         * @param xof
+         * @param len message digest output length in bits
+         * @param b
+         */
+        KavenSHA3.prototype.Keccak = function (data, r, c, xof, len, b) {
+            if (xof === void 0) { xof = false; }
+            if (b === void 0) { b = 1600; }
+            return __awaiter$3(this, void 0, void 0, function () {
+                var hexStringLen, paddingBytes, m, q, i, i, S, w, rDividedByW, blockSizeInBytes, blockCount, blocksPerRead, bufferSize, offset, blockIndex, buffer, index, isLastBlock, start, PiData, Pi, x, y, Z, y, x;
+                return __generator$3(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            if (len === undefined) {
+                                len = c / 2; // message digest output length in bits
+                            }
+                            hexStringLen = Math.floor(len / 4);
+                            paddingBytes = [];
+                            m = data.TotalLengthInBytes;
+                            q = r / 8 - (m % (r / 8));
+                            if (xof) {
+                                if (q === 1) {
+                                    // M || 0x9F
+                                    paddingBytes.push(0x9F);
+                                }
+                                else if (q === 2) {
+                                    // M || 0x1F80
+                                    paddingBytes.push(0x1F);
+                                    paddingBytes.push(0x80);
+                                }
+                                else if (q > 2) {
+                                    // M || 0x1F || 0x00 … || 0x80
+                                    paddingBytes.push(0x1F);
+                                    for (i = 0; i < q - 2; i++) {
+                                        paddingBytes.push(0x00);
+                                    }
+                                    paddingBytes.push(0x80);
+                                }
+                            }
+                            else {
+                                if (q === 1) {
+                                    // M || 0x86
+                                    paddingBytes.push(0x86);
+                                }
+                                else if (q === 2) {
+                                    // M || 0x0680
+                                    paddingBytes.push(0x06);
+                                    paddingBytes.push(0x80);
+                                }
+                                else if (q > 2) {
+                                    // M || 0x06 || 0x00 … || 0x80
+                                    paddingBytes.push(0x06);
+                                    for (i = 0; i < q - 2; i++) {
+                                        paddingBytes.push(0x00);
+                                    }
+                                    paddingBytes.push(0x80);
+                                }
+                            }
+                            S = KavenUInt64.Initialize2d(5, 5);
+                            w = b / 25;
+                            rDividedByW = r / w;
+                            blockSizeInBytes = r / 8;
+                            blockCount = (m + paddingBytes.length) / blockSizeInBytes;
+                            blocksPerRead = data.BlocksPerRead || 1024;
+                            bufferSize = blocksPerRead * blockSizeInBytes;
+                            offset = 0;
+                            blockIndex = blocksPerRead;
+                            buffer = [];
+                            index = 0;
+                            _a.label = 1;
+                        case 1:
+                            if (!(index < blockCount)) return [3 /*break*/, 5];
+                            isLastBlock = index === blockCount - 1;
+                            if (!(blockIndex >= blocksPerRead && offset < m)) return [3 /*break*/, 3];
+                            return [4 /*yield*/, data.Acquire(offset, bufferSize)];
+                        case 2:
+                            buffer = _a.sent();
+                            offset += buffer.length;
+                            blockIndex = 0;
+                            _a.label = 3;
+                        case 3:
+                            start = blockIndex * blockSizeInBytes;
+                            PiData = buffer.slice(start, start + blockSizeInBytes);
+                            blockIndex++;
+                            if (isLastBlock) {
+                                PiData.push.apply(PiData, paddingBytes);
+                            }
+                            Pi = Split(PiData, 8, true).map(function (bits) { return KavenUInt64.FromBytes.apply(KavenUInt64, bits); });
+                            if (rDividedByW === 17) {
+                                S[0][0] = S[0][0].XOR(Pi[0]);
+                                S[0][1] = S[0][1].XOR(Pi[5]);
+                                S[0][2] = S[0][2].XOR(Pi[10]);
+                                S[0][3] = S[0][3].XOR(Pi[15]);
+                                S[1][0] = S[1][0].XOR(Pi[1]);
+                                S[1][1] = S[1][1].XOR(Pi[6]);
+                                S[1][2] = S[1][2].XOR(Pi[11]);
+                                S[1][3] = S[1][3].XOR(Pi[16]);
+                                S[2][0] = S[2][0].XOR(Pi[2]);
+                                S[2][1] = S[2][1].XOR(Pi[7]);
+                                S[2][2] = S[2][2].XOR(Pi[12]);
+                                S[3][0] = S[3][0].XOR(Pi[3]);
+                                S[3][1] = S[3][1].XOR(Pi[8]);
+                                S[3][2] = S[3][2].XOR(Pi[13]);
+                                S[4][0] = S[4][0].XOR(Pi[4]);
+                                S[4][1] = S[4][1].XOR(Pi[9]);
+                                S[4][2] = S[4][2].XOR(Pi[14]);
+                            }
+                            else {
+                                // for (x,y) such that x+5*y < r/w
+                                for (x = 0; x < 5; x++) {
+                                    for (y = 0; y < 5; y++) {
+                                        if (x + 5 * y < rDividedByW) {
+                                            // S[x,y] = S[x,y] xor Pi[x+5*y];
+                                            S[x][y] = S[x][y].XOR(Pi[x + 5 * y]);
+                                        }
+                                    }
+                                }
+                            }
+                            // S = Keccak-f[r+c](S);
+                            S = this.KeccakF(S, b);
+                            _a.label = 4;
+                        case 4:
+                            index++;
+                            return [3 /*break*/, 1];
+                        case 5:
+                            Z = Strings_Empty;
+                            while (true) {
+                                // 3.1.3 Converting State Arrays to Strings
+                                /*
+                                    For each integer j such that 0≤ j<5, define the string Plane(j) by
+                    
+                                        Plane(j)= Lane(0, j) || Lane(1, j) || Lane(2, j) || Lane(3, j) || Lane(4, j).
+                                    Then
+                    
+                                        S= Plane(0) || Plane(1) || Plane(2) || Plane(3) || Plane(4).
+                                */
+                                for (y = 0; y < 5; y++) {
+                                    for (x = 0; x < 5; x++) {
+                                        if ((x + 5 * y) < rDividedByW) {
+                                            // Z = Z || S[x,y];
+                                            Z += S[x][y].Swap().HEX;
+                                        }
+                                    }
+                                }
+                                if (Z.length >= hexStringLen) {
+                                    break;
+                                }
+                                S = this.KeccakF(S, b);
+                            }
+                            // #endregion
+                            return [2 /*return*/, Z.slice(0, hexStringLen)];
+                    }
+                });
+            });
+        };
+        KavenSHA3.prototype.Compute224 = function (input) {
+            return this.Keccak(InitializeDataAcquisition(input), 1152, 448);
+        };
+        KavenSHA3.prototype.Compute256 = function (input) {
+            return this.Keccak(InitializeDataAcquisition(input), 1088, 512);
+        };
+        KavenSHA3.prototype.Compute384 = function (input) {
+            return this.Keccak(InitializeDataAcquisition(input), 832, 768);
+        };
+        KavenSHA3.prototype.Compute512 = function (input) {
+            return this.Keccak(InitializeDataAcquisition(input), 576, 1024);
+        };
+        KavenSHA3.prototype.ComputeSHAKE128 = function (input, len) {
+            return this.Keccak(InitializeDataAcquisition(input), 1344, 256, true, len);
+        };
+        KavenSHA3.prototype.ComputeSHAKE256 = function (input, len) {
+            return this.Keccak(InitializeDataAcquisition(input), 1088, 512, true, len);
+        };
+        /* istanbul ignore next */
+        KavenSHA3.prototype.PrintState = function (state) {
+            var str = state.map(function (x) { return x.map(function (y) { return y.HEX; }).join(", "); }).join(Strings_CR_LF);
+            console.log(Strings_CR_LF + str);
+        };
+        KavenSHA3.prototype.Round = function (a, rc) {
+            // const B: KavenUInt64[][] = "0".repeat(25).ToArray().map(p => new KavenUInt64(p)).Split(5);
+            var B = KavenUInt64.Initialize2d(5, 5);
+            var C = new Array(5);
+            var D = new Array(5);
+            /// # θ step, [Keccak §2.3.2]
+            // for x = 0 to 4 do
+            // for (let x = 0; x < 5; x++) {
+            //     // C[x] = A[x,0] xor A[x,1] xor A[x,2] xor A[x,3] xor A[x,4]
+            //     C[x] = a[x][0].XOR(a[x][1]).XOR(a[x][2]).XOR(a[x][3]).XOR(a[x][4]);
+            // }
+            C[0] = a[0][0].XOR(a[0][1]).XOR(a[0][2]).XOR(a[0][3]).XOR(a[0][4]);
+            C[1] = a[1][0].XOR(a[1][1]).XOR(a[1][2]).XOR(a[1][3]).XOR(a[1][4]);
+            C[2] = a[2][0].XOR(a[2][1]).XOR(a[2][2]).XOR(a[2][3]).XOR(a[2][4]);
+            C[3] = a[3][0].XOR(a[3][1]).XOR(a[3][2]).XOR(a[3][3]).XOR(a[3][4]);
+            C[4] = a[4][0].XOR(a[4][1]).XOR(a[4][2]).XOR(a[4][3]).XOR(a[4][4]);
+            // for x = 0 to 4 do
+            // for (let x = 0; x < 5; x++) {
+            //     // D[x] = C[x-1] xor rot(C[x+1],1)
+            //     D[x] = C[(x - 1).Mod(5)].XOR(C[(x + 1).Mod(5)].LeftRotate(1));
+            // }
+            D[0] = C[4].XOR(C[1].LeftRotate(1));
+            D[1] = C[0].XOR(C[2].LeftRotate(1));
+            D[2] = C[1].XOR(C[3].LeftRotate(1));
+            D[3] = C[2].XOR(C[4].LeftRotate(1));
+            D[4] = C[3].XOR(C[0].LeftRotate(1));
+            // for (x,y) in (0…4,0…4)
+            // for (let x = 0; x < 5; x++) {
+            //     for (let y = 0; y < 5; y++) {
+            //         // A[x,y] = A[x,y] xor D[x]
+            //         a[x][y] = a[x][y].XOR(D[x]);
+            //     }
+            // }
+            a[0][0] = a[0][0].XOR(D[0]);
+            a[0][1] = a[0][1].XOR(D[0]);
+            a[0][2] = a[0][2].XOR(D[0]);
+            a[0][3] = a[0][3].XOR(D[0]);
+            a[0][4] = a[0][4].XOR(D[0]);
+            a[1][0] = a[1][0].XOR(D[1]);
+            a[1][1] = a[1][1].XOR(D[1]);
+            a[1][2] = a[1][2].XOR(D[1]);
+            a[1][3] = a[1][3].XOR(D[1]);
+            a[1][4] = a[1][4].XOR(D[1]);
+            a[2][0] = a[2][0].XOR(D[2]);
+            a[2][1] = a[2][1].XOR(D[2]);
+            a[2][2] = a[2][2].XOR(D[2]);
+            a[2][3] = a[2][3].XOR(D[2]);
+            a[2][4] = a[2][4].XOR(D[2]);
+            a[3][0] = a[3][0].XOR(D[3]);
+            a[3][1] = a[3][1].XOR(D[3]);
+            a[3][2] = a[3][2].XOR(D[3]);
+            a[3][3] = a[3][3].XOR(D[3]);
+            a[3][4] = a[3][4].XOR(D[3]);
+            a[4][0] = a[4][0].XOR(D[4]);
+            a[4][1] = a[4][1].XOR(D[4]);
+            a[4][2] = a[4][2].XOR(D[4]);
+            a[4][3] = a[4][3].XOR(D[4]);
+            a[4][4] = a[4][4].XOR(D[4]);
+            /// # ρ and π steps, [Keccak §2.3.4]
+            // for (x,y) in (0…4,0…4)
+            // for (let x = 0; x < 5; x++) {
+            //     for (let y = 0; y < 5; y++) {
+            //         // B[y,2*x+3*y] = rot(A[x,y], r[x,y])
+            //         B[y][(2 * x + 3 * y).Mod(5)] = a[x][y].LeftRotate(KavenSHA3.r[x][y]);
+            //     }
+            // }
+            B[0][0] = a[0][0].LeftRotate(KavenSHA3.r[0][0]);
+            B[1][3] = a[0][1].LeftRotate(KavenSHA3.r[0][1]);
+            B[2][1] = a[0][2].LeftRotate(KavenSHA3.r[0][2]);
+            B[3][4] = a[0][3].LeftRotate(KavenSHA3.r[0][3]);
+            B[4][2] = a[0][4].LeftRotate(KavenSHA3.r[0][4]);
+            B[0][2] = a[1][0].LeftRotate(KavenSHA3.r[1][0]);
+            B[1][0] = a[1][1].LeftRotate(KavenSHA3.r[1][1]);
+            B[2][3] = a[1][2].LeftRotate(KavenSHA3.r[1][2]);
+            B[3][1] = a[1][3].LeftRotate(KavenSHA3.r[1][3]);
+            B[4][4] = a[1][4].LeftRotate(KavenSHA3.r[1][4]);
+            B[0][4] = a[2][0].LeftRotate(KavenSHA3.r[2][0]);
+            B[1][2] = a[2][1].LeftRotate(KavenSHA3.r[2][1]);
+            B[2][0] = a[2][2].LeftRotate(KavenSHA3.r[2][2]);
+            B[3][3] = a[2][3].LeftRotate(KavenSHA3.r[2][3]);
+            B[4][1] = a[2][4].LeftRotate(KavenSHA3.r[2][4]);
+            B[0][1] = a[3][0].LeftRotate(KavenSHA3.r[3][0]);
+            B[1][4] = a[3][1].LeftRotate(KavenSHA3.r[3][1]);
+            B[2][2] = a[3][2].LeftRotate(KavenSHA3.r[3][2]);
+            B[3][0] = a[3][3].LeftRotate(KavenSHA3.r[3][3]);
+            B[4][3] = a[3][4].LeftRotate(KavenSHA3.r[3][4]);
+            B[0][3] = a[4][0].LeftRotate(KavenSHA3.r[4][0]);
+            B[1][1] = a[4][1].LeftRotate(KavenSHA3.r[4][1]);
+            B[2][4] = a[4][2].LeftRotate(KavenSHA3.r[4][2]);
+            B[3][2] = a[4][3].LeftRotate(KavenSHA3.r[4][3]);
+            B[4][0] = a[4][4].LeftRotate(KavenSHA3.r[4][4]);
+            /// # χ step
+            // for (x,y) in (0…4,0…4)
+            // for (let x = 0; x < 5; x++) {
+            //     for (let y = 0; y < 5; y++) {
+            //         // A[x,y] = B[x,y] xor ((not B[x+1,y]) and B[x+2,y])
+            //         a[x][y] = B[x][y].XOR((B[(x + 1).Mod(5)][y].NOT()).AND(B[(x + 2).Mod(5)][y]));
+            //         console.log(x, y, (x + 1).Mod(5), (x + 2).Mod(5));
+            //     }
+            // }
+            a[0][0] = B[0][0].XOR((B[1][0].NOT()).AND(B[2][0]));
+            a[0][1] = B[0][1].XOR((B[1][1].NOT()).AND(B[2][1]));
+            a[0][2] = B[0][2].XOR((B[1][2].NOT()).AND(B[2][2]));
+            a[0][3] = B[0][3].XOR((B[1][3].NOT()).AND(B[2][3]));
+            a[0][4] = B[0][4].XOR((B[1][4].NOT()).AND(B[2][4]));
+            a[1][0] = B[1][0].XOR((B[2][0].NOT()).AND(B[3][0]));
+            a[1][1] = B[1][1].XOR((B[2][1].NOT()).AND(B[3][1]));
+            a[1][2] = B[1][2].XOR((B[2][2].NOT()).AND(B[3][2]));
+            a[1][3] = B[1][3].XOR((B[2][3].NOT()).AND(B[3][3]));
+            a[1][4] = B[1][4].XOR((B[2][4].NOT()).AND(B[3][4]));
+            a[2][0] = B[2][0].XOR((B[3][0].NOT()).AND(B[4][0]));
+            a[2][1] = B[2][1].XOR((B[3][1].NOT()).AND(B[4][1]));
+            a[2][2] = B[2][2].XOR((B[3][2].NOT()).AND(B[4][2]));
+            a[2][3] = B[2][3].XOR((B[3][3].NOT()).AND(B[4][3]));
+            a[2][4] = B[2][4].XOR((B[3][4].NOT()).AND(B[4][4]));
+            a[3][0] = B[3][0].XOR((B[4][0].NOT()).AND(B[0][0]));
+            a[3][1] = B[3][1].XOR((B[4][1].NOT()).AND(B[0][1]));
+            a[3][2] = B[3][2].XOR((B[4][2].NOT()).AND(B[0][2]));
+            a[3][3] = B[3][3].XOR((B[4][3].NOT()).AND(B[0][3]));
+            a[3][4] = B[3][4].XOR((B[4][4].NOT()).AND(B[0][4]));
+            a[4][0] = B[4][0].XOR((B[0][0].NOT()).AND(B[1][0]));
+            a[4][1] = B[4][1].XOR((B[0][1].NOT()).AND(B[1][1]));
+            a[4][2] = B[4][2].XOR((B[0][2].NOT()).AND(B[1][2]));
+            a[4][3] = B[4][3].XOR((B[0][3].NOT()).AND(B[1][3]));
+            a[4][4] = B[4][4].XOR((B[0][4].NOT()).AND(B[1][4]));
+            ///  # ι step
+            // A[0,0] = A[0,0] xor RC
+            a[0][0] = a[0][0].XOR(rc);
+            return a;
+        };
+        /**
+         * Round constants
+         */
+        KavenSHA3.RC = [
+            "0000000000000001", "0000000000008082", "800000000000808a",
+            "8000000080008000", "000000000000808b", "0000000080000001",
+            "8000000080008081", "8000000000008009", "000000000000008a",
+            "0000000000000088", "0000000080008009", "000000008000000a",
+            "000000008000808b", "800000000000008b", "8000000000008089",
+            "8000000000008003", "8000000000008002", "8000000000000080",
+            "000000000000800a", "800000008000000a", "8000000080008081",
+            "8000000000008080", "0000000080000001", "8000000080008008",
+        ].map(function (p) { return new KavenUInt64(p, 16); });
+        /**
+         * Rotation offsets
+         */
+        KavenSHA3.r = [
+            [0, 36, 3, 41, 18],
+            [1, 44, 10, 45, 2],
+            [62, 6, 43, 15, 61],
+            [28, 55, 25, 21, 56],
+            [27, 20, 39, 8, 14],
+        ];
+        return KavenSHA3;
+    }());
+
+    /********************************************************************
+     * @author:      Kaven
+     * @email:       kaven@wuwenkai.com
+     * @website:     http://blog.kaven.xyz
+     * @file:        [Kaven-Basic] /src/libs/KavenBasic.Hash.ts
+     * @create:      2021-12-17 10:53:01.473
+     * @modify:      2021-12-20 16:01:35.293
+     * @version:     4.0.0
+     * @times:       10
+     * @lines:       200
+     * @copyright:   Copyright © 2021 Kaven. All Rights Reserved.
+     * @description: [description]
+     * @license:
+     * Permission is hereby granted, free of charge, to any person obtaining a copy
+     * of this software and associated documentation files (the "Software"), to deal
+     * in the Software without restriction, including without limitation the rights
+     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+     * copies of the Software, and to permit persons to whom the Software is
+     * furnished to do so, subject to the following conditions:
+     *
+     * The above copyright notice and this permission notice shall be included in all
+     * copies or substantial portions of the Software.
+     *
+     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+     * SOFTWARE.
+     ********************************************************************/
+    var MD5 = new KavenMD5();
+    var CRC32 = new KavenCRC(KavenCRC.CRC32);
+    var CRC64 = new KavenCRC(KavenCRC.CRC64_ECMA_XZ);
+    var SHA = new KavenSHA();
+    var SHA3 = new KavenSHA3();
+    /**
+     * @since 1.1.13
+     * @version 2018-10-21
+     */
+    function GetMD5(input) {
+        return MD5.Compute(input);
+    }
+    /**
+     * @since 1.1.20
+     * @version 2019-03-29
+     */
+    function GetCRC32(input) {
+        return CRC32.Compute(input);
+    }
+    /**
+     * @since 1.1.20
+     * @version 2019-03-29
+     */
+    function GetCRC64(input) {
+        return CRC64.Compute(input);
+    }
+    /**
+     * Warning: This algorithm is now considered vulnerable and should not be used.
+     * @since 1.1.20
+     * @version 2019-03-30
+     */
+    function GetSHA1(input) {
+        return SHA.ComputeSHA1(input);
+    }
+    // #region SHA-2
+    /**
+     * SHA-224
+     * @since 1.1.20
+     * @version 2019-03-29
+     */
+    function GetSHA224(input) {
+        return SHA.ComputeSHA224(input);
+    }
+    /**
+     * SHA-256
+     * @since 1.1.20
+     * @version 2019-03-29
+     */
+    function GetSHA256(input) {
+        return SHA.ComputeSHA256(input);
+    }
+    /**
+     * SHA-384
+     * @since 1.1.20
+     * @version 2019-03-29
+     */
+    function GetSHA384(input) {
+        return SHA.ComputeSHA384(input);
+    }
+    /**
+     * SHA-512
+     * @since 1.1.20
+     * @version 2019-03-29
+     */
+    function GetSHA512(input) {
+        return SHA.ComputeSHA512(input);
+    }
+    /**
+     * @since 1.1.20
+     * @version 2019-03-29
+     */
+    function GetSHA512T(input, t) {
+        return SHA.ComputeSHA512T(input, t);
+    }
+    /**
+     * SHA-512/224
+     * @since 4.0.0
+     * @version 2021-12-17
+     */
+    function GetSHA512T224(input) {
+        return SHA.ComputeSHA512T(input, 224);
+    }
+    /**
+     * SHA-512/256
+     * @since 4.0.0
+     * @version 2021-12-17
+     */
+    function GetSHA512T256(input) {
+        return SHA.ComputeSHA512T(input, 256);
+    }
+    // #endregion
+    // #region SHA-3
+    /**
+     * SHA3-224
+     * @since 4.0.0
+     * @version 2021-12-17
+     */
+    function GetSHA3P224(input) {
+        return SHA3.Compute224(input);
+    }
+    /**
+     * SHA3-256
+     * @since 4.0.0
+     * @version 2021-12-17
+     */
+    function GetSHA3P256(input) {
+        return SHA3.Compute256(input);
+    }
+    /**
+     * SHA3-384
+     * @since 4.0.0
+     * @version 2021-12-17
+     */
+    function GetSHA3P384(input) {
+        return SHA3.Compute384(input);
+    }
+    /**
+     * SHA3-512
+     * @since 4.0.0
+     * @version 2021-12-17
+     */
+    function GetSHA3P512(input) {
+        return SHA3.Compute512(input);
+    }
+    /**
+     * SHAKE128
+     * @since 4.0.0
+     * @version 2021-12-17
+     */
+    function GetSHAKE128(input, outputBits) {
+        return SHA3.ComputeSHAKE128(input, outputBits);
+    }
+    /**
+     * SHAKE256
+     * @since 4.0.0
+     * @version 2021-12-17
+     */
+    function GetSHAKE256(input, outputBits) {
+        return SHA3.ComputeSHAKE256(input, outputBits);
+    }
+    // #endregion
+
+    /********************************************************************
+     * @author:      Kaven
+     * @email:       kaven@wuwenkai.com
+     * @website:     http://blog.kaven.xyz
+     * @file:        [Kaven-Basic] /src/libs/AnsiColors.ts
+     * @create:      2021-12-23 17:55:28.084
+     * @modify:      2021-12-31 13:40:20.939
+     * @version:     4.0.0
+     * @times:       8
+     * @lines:       215
+     * @copyright:   Copyright © 2021 Kaven. All Rights Reserved.
+     * @description: [description]
+     * @license:
+     * Permission is hereby granted, free of charge, to any person obtaining a copy
+     * of this software and associated documentation files (the "Software"), to deal
+     * in the Software without restriction, including without limitation the rights
+     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+     * copies of the Software, and to permit persons to whom the Software is
+     * furnished to do so, subject to the following conditions:
+     *
+     * The above copyright notice and this permission notice shall be included in all
+     * copies or substantial portions of the Software.
+     *
+     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+     * SOFTWARE.
+     ********************************************************************/
+    var AnsiColors_Reset = "\u001b[0m";
+    var AnsiColors_Black = "\u001b[30m";
+    var AnsiColors_Red = "\u001b[31m";
+    var AnsiColors_Green = "\u001b[32m";
+    var AnsiColors_Yellow = "\u001b[33m";
+    var AnsiColors_Blue = "\u001b[34m";
+    var AnsiColors_Magenta = "\u001b[35m";
+    var AnsiColors_Cyan = "\u001b[36m";
+    var AnsiColors_White = "\u001b[37m";
+    var AnsiColors_BrightBlack = "\u001b[30;1m";
+    var AnsiColors_BrightRed = "\u001b[31;1m";
+    var AnsiColors_BrightGreen = "\u001b[32;1m";
+    var AnsiColors_BrightYellow = "\u001b[33;1m";
+    var AnsiColors_BrightBlue = "\u001b[34;1m";
+    var AnsiColors_BrightMagenta = "\u001b[35;1m";
+    var AnsiColors_BrightCyan = "\u001b[36;1m";
+    var AnsiColors_BrightWhite = "\u001b[37;1m";
+    var AnsiColors_Background_Black = "\u001b[40m";
+    var AnsiColors_Background_Red = "\u001b[41m";
+    var AnsiColors_Background_Green = "\u001b[42m";
+    var AnsiColors_Background_Yellow = "\u001b[43m";
+    var AnsiColors_Background_Blue = "\u001b[44m";
+    var AnsiColors_Background_Magenta = "\u001b[45m";
+    var AnsiColors_Background_Cyan = "\u001b[46m";
+    var AnsiColors_Background_White = "\u001b[47m";
+    var AnsiColors_Background_BrightBlack = "\u001b[40;1m";
+    var AnsiColors_Background_BrightRed = "\u001b[41;1m";
+    var AnsiColors_Background_BrightGreen = "\u001b[42;1m";
+    var AnsiColors_Background_BrightYellow = "\u001b[43;1m";
+    var AnsiColors_Background_BrightBlue = "\u001b[44;1m";
+    var AnsiColors_Background_BrightMagenta = "\u001b[45;1m";
+    var AnsiColors_Background_BrightCyan = "\u001b[46;1m";
+    var AnsiColors_Background_BrightWhite = "\u001b[47;1m";
+    function AnsiColor256(id) {
+        return "\u001B[38;5;".concat(id, "m");
+    }
+    function AnsiColorBackground256(id) {
+        return "\u001B[48;5;".concat(id, "m");
+    }
+    function AnsiTextColor(text, ansiColor, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return SurroundBy(text, ansiColor, resetRight ? AnsiColors_Reset : "");
+    }
+    function AnsiTextBlack(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Black, resetRight);
+    }
+    function AnsiTextRed(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Red, resetRight);
+    }
+    function AnsiTextGreen(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Green, resetRight);
+    }
+    function AnsiTextYellow(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Yellow, resetRight);
+    }
+    function AnsiTextBlue(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Blue, resetRight);
+    }
+    function AnsiTextMagenta(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Magenta, resetRight);
+    }
+    function AnsiTextCyan(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Cyan, resetRight);
+    }
+    function AnsiTextWhite(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Red, resetRight);
+    }
+    function AnsiTextBrightBlack(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_BrightBlack, resetRight);
+    }
+    function AnsiTextBrightRed(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_BrightRed, resetRight);
+    }
+    function AnsiTextBrightGreen(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_BrightGreen, resetRight);
+    }
+    function AnsiTextBrightYellow(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_BrightYellow, resetRight);
+    }
+    function AnsiTextBrightBlue(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_BrightBlue, resetRight);
+    }
+    function AnsiTextBrightMagenta(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_BrightMagenta, resetRight);
+    }
+    function AnsiTextBrightCyan(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_BrightCyan, resetRight);
+    }
+    function AnsiTextBrightWhite(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_BrightRed, resetRight);
+    }
+    function AnsiTextBackgroundBlack(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Background_Black, resetRight);
+    }
+    function AnsiTextBackgroundRed(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Background_Red, resetRight);
+    }
+    function AnsiTextBackgroundGreen(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Background_Green, resetRight);
+    }
+    function AnsiTextBackgroundYellow(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Background_Yellow, resetRight);
+    }
+    function AnsiTextBackgroundBlue(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Background_Blue, resetRight);
+    }
+    function AnsiTextBackgroundMagenta(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Background_Magenta, resetRight);
+    }
+    function AnsiTextBackgroundCyan(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Background_Cyan, resetRight);
+    }
+    function AnsiTextBackgroundWhite(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Background_Red, resetRight);
+    }
+    function AnsiTextBackgroundBrightBlack(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Background_BrightBlack, resetRight);
+    }
+    function AnsiTextBackgroundBrightRed(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Background_BrightRed, resetRight);
+    }
+    function AnsiTextBackgroundBrightGreen(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Background_BrightGreen, resetRight);
+    }
+    function AnsiTextBackgroundBrightYellow(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Background_BrightYellow, resetRight);
+    }
+    function AnsiTextBackgroundBrightBlue(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Background_BrightBlue, resetRight);
+    }
+    function AnsiTextBackgroundBrightMagenta(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Background_BrightMagenta, resetRight);
+    }
+    function AnsiTextBackgroundBrightCyan(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Background_BrightCyan, resetRight);
+    }
+    function AnsiTextBackgroundBrightWhite(text, resetRight) {
+        if (resetRight === void 0) { resetRight = true; }
+        return AnsiTextColor(text, AnsiColors_Background_BrightRed, resetRight);
+    }
+
+    /********************************************************************
+     * @author:      Kaven
+     * @email:       kaven@wuwenkai.com
+     * @website:     http://blog.kaven.xyz
+     * @file:        [Kaven-Basic] /src/libs/KavenLog.ts
+     * @create:      2018-08-31 16:37:59.105
+     * @modify:      2022-01-06 15:51:36.934
+     * @version:     4.0.0
+     * @times:       46
+     * @lines:       185
+     * @copyright:   Copyright © 2018-2022 Kaven. All Rights Reserved.
+     * @description: [description]
+     * @license:     [license]
+     ********************************************************************/
+    var KavenLog = /** @class */ (function () {
+        function KavenLog(message, level) {
+            this.DateTimeFormat = exports.DateTimeFormat.FullDataTime;
+            this.HighlightType = exports.LogHighlightType.All;
+            this.Level = exports.LogLevel.Log;
+            this.Message = Strings_Empty;
+            this.ShowDateTime = true;
+            this.ShowLevel = true;
+            this.AnsiColorLog = AnsiColors_Green;
+            this.AnsiColorInfo = AnsiColors_Blue;
+            this.AnsiColorWarn = AnsiColors_Yellow;
+            this.AnsiColorError = AnsiColors_Red;
+            this.Message = message;
+            this.Level = level;
+        }
+        KavenLog.CreateInfo = function (message) {
+            return new KavenLog(message, exports.LogLevel.Info);
+        };
+        KavenLog.CreateLog = function (message) {
+            return new KavenLog(message, exports.LogLevel.Log);
+        };
+        KavenLog.CreateWarn = function (message) {
+            return new KavenLog(message, exports.LogLevel.Warn);
+        };
+        KavenLog.CreateError = function (message) {
+            return new KavenLog(message, exports.LogLevel.Error);
+        };
+        Object.defineProperty(KavenLog.prototype, "HighlightDateTime", {
+            get: function () {
+                if (this.HighlightType === exports.LogHighlightType.Date) {
+                    return true;
+                }
+                if (this.HighlightType === exports.LogHighlightType.DateLevel) {
+                    return true;
+                }
+                return false;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(KavenLog.prototype, "HighlightLevel", {
+            get: function () {
+                if (this.HighlightType === exports.LogHighlightType.Level) {
+                    return true;
+                }
+                if (this.HighlightType === exports.LogHighlightType.DateLevel) {
+                    return true;
+                }
+                return false;
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(KavenLog.prototype, "ColorLevel", {
+            get: function () {
+                switch (this.Level) {
+                    case exports.LogLevel.Log:
+                        return this.AnsiColorLog;
+                    case exports.LogLevel.Info:
+                        return this.AnsiColorInfo;
+                    case exports.LogLevel.Warn:
+                        return this.AnsiColorWarn;
+                    case exports.LogLevel.Error:
+                        return this.AnsiColorError;
+                    default:
+                        if (this.AnsiColorLevel) {
+                            return this.AnsiColorLevel;
+                        }
+                        throw new Error();
+                }
+            },
+            enumerable: false,
+            configurable: true
+        });
+        KavenLog.prototype.SetAnsiColorLevel = function (color) {
+            this.AnsiColorLevel = color;
+            return this;
+        };
+        KavenLog.prototype.SetAnsiColorDateTime = function (color) {
+            this.AnsiColorDateTime = color;
+            return this;
+        };
+        KavenLog.prototype.SetHighlightType = function (type) {
+            this.HighlightType = type;
+            return this;
+        };
+        KavenLog.prototype.SetDateTimeFormat = function (format) {
+            this.DateTimeFormat = format;
+            return this;
+        };
+        KavenLog.prototype.ToString = function (raw) {
+            var _a;
+            if (raw === void 0) { raw = false; }
+            var str = Strings_Empty;
+            if (this.ShowDateTime) {
+                var temp = FormatCurrentDate(this.DateTimeFormat);
+                if (!raw) {
+                    if (this.HighlightDateTime) {
+                        /* istanbul ignore next */
+                        temp = AnsiTextColor(temp, (_a = this.AnsiColorDateTime) !== null && _a !== void 0 ? _a : this.ColorLevel);
+                    }
+                }
+                str += "[".concat(temp, "]");
+            }
+            if (this.ShowLevel) {
+                var temp = this.Level;
+                if (!raw) {
+                    if (this.HighlightLevel) {
+                        temp = AnsiTextColor(temp, this.ColorLevel);
+                    }
+                }
+                str += "[".concat(temp, "]");
+            }
+            str += this.Message;
+            if (!raw) {
+                if (this.HighlightType === exports.LogHighlightType.All) {
+                    str = AnsiTextColor(str, this.ColorLevel);
+                }
+            }
+            return str;
+        };
+        KavenLog.prototype.toString = function () {
+            return this.ToString();
+        };
+        /* istanbul ignore next */
+        KavenLog.prototype.WriteToConsole = function (type) {
+            if (type === undefined) {
+                if (this.Level === exports.LogLevel.Info) {
+                    type = "info";
+                }
+                else if (this.Level === exports.LogLevel.Log) {
+                    type = "log";
+                }
+                else if (this.Level === exports.LogLevel.Warn) {
+                    type = "warn";
+                }
+                else if (this.Level === exports.LogLevel.Error) {
+                    type = "error";
+                }
+            }
+            WriteToConsole(this.toString(), type);
+        };
+        return KavenLog;
+    }());
+
+    /********************************************************************
+     * @author:      Kaven
+     * @email:       kaven@wuwenkai.com
+     * @website:     http://blog.kaven.xyz
+     * @file:        [Kaven-Basic] /src/libs/Extensions.ts
+     * @create:      2019-04-25 12:45:36.310
+     * @modify:      2021-12-31 14:28:24.079
+     * @version:     4.0.0
+     * @times:       69
+     * @lines:       877
+     * @copyright:   Copyright © 2019-2021 Kaven. All Rights Reserved.
+     * @description: [description]
+     * @license:
+     * Permission is hereby granted, free of charge, to any person obtaining a copy
+     * of this software and associated documentation files (the "Software"), to deal
+     * in the Software without restriction, including without limitation the rights
+     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+     * copies of the Software, and to permit persons to whom the Software is
+     * furnished to do so, subject to the following conditions:
+     *
+     * The above copyright notice and this permission notice shall be included in all
+     * copies or substantial portions of the Software.
+     *
+     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+     * SOFTWARE.
+     ********************************************************************/
+    var __spreadArray$2 = (undefined && undefined.__spreadArray) || function (to, from, pack) {
+        if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+            if (ar || !(i in from)) {
+                if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+                ar[i] = from[i];
+            }
+        }
+        return to.concat(ar || Array.prototype.slice.call(from));
+    };
+    // #endregion
+    var isInitialized = false;
+    function InitializeKavenExtension() {
+        if (isInitialized) {
+            // console.warn("Kaven Extension already initialized.");
+            return;
+        }
+        isInitialized = true;
+        // #region Extend Methods
+        // #region Date
+        Date.prototype.Format = function (format, timezoneOffset) {
+            return FormatDate(this, format, timezoneOffset);
+        };
+        Date.Create = function () {
+            return new Date();
+        };
+        // #region Add
+        Date.prototype.AddMilliseconds = function (milliseconds) {
+            return AddDate(this, milliseconds, exports.TimeUnit.milliseconds);
+        };
+        Date.prototype.AddSeconds = function (seconds) {
+            return AddDate(this, seconds, exports.TimeUnit.seconds);
+        };
+        Date.prototype.AddMinutes = function (minutes) {
+            return AddDate(this, minutes, exports.TimeUnit.minutes);
+        };
+        Date.prototype.AddHours = function (hours) {
+            return AddDate(this, hours, exports.TimeUnit.hours);
+        };
+        Date.prototype.AddDays = function (days) {
+            return AddDate(this, days, exports.TimeUnit.days);
+        };
+        Date.prototype.AddWeeks = function (weeks) {
+            return AddDate(this, weeks, exports.TimeUnit.weeks);
+        };
+        Date.prototype.AddMonths = function (months) {
+            return AddDate(this, months, exports.TimeUnit.months);
+        };
+        Date.prototype.AddYears = function (years) {
+            return AddDate(this, years, exports.TimeUnit.years);
+        };
+        // #endregion
+        // #region Subtract
+        Date.prototype.SubtractMilliseconds = function (milliseconds) {
+            return SubtractDate(this, milliseconds, exports.TimeUnit.milliseconds);
+        };
+        Date.prototype.SubtractSeconds = function (seconds) {
+            return SubtractDate(this, seconds, exports.TimeUnit.seconds);
+        };
+        Date.prototype.SubtractMinutes = function (minutes) {
+            return SubtractDate(this, minutes, exports.TimeUnit.minutes);
+        };
+        Date.prototype.SubtractHours = function (hours) {
+            return SubtractDate(this, hours, exports.TimeUnit.hours);
+        };
+        Date.prototype.SubtractDays = function (days) {
+            return SubtractDate(this, days, exports.TimeUnit.days);
+        };
+        Date.prototype.SubtractWeeks = function (weeks) {
+            return SubtractDate(this, weeks, exports.TimeUnit.weeks);
+        };
+        // #endregion
+        Date.prototype.Diff = function (anotherDate, unit) {
+            if (unit === void 0) { unit = exports.TimeUnit.milliseconds; }
+            return DiffDate(this, anotherDate, unit);
+        };
+        // #endregion
+        // #region String
+        String.prototype.ReplaceAll = function (old, rep) {
+            return ReplaceAll(this, old, rep);
+        };
+        String.prototype.ReplaceAt = function (index, rep, length) {
+            if (length === void 0) { length = 1; }
+            return ReplaceAt(this, index, rep, length);
+        };
+        String.prototype.ReplaceAtPos = function (pos, rep) {
+            return ReplaceAtPos(this, pos, rep);
+        };
+        String.prototype.IsNotEmpty = function () {
+            return IsNotEmpty(this);
+        };
+        String.prototype.IsEmpty = function () {
+            return IsEmpty(this);
+        };
+        String.prototype.TrimStart = function (trim, max) {
+            if (max === void 0) { max = 1; }
+            return TrimStart(this, trim, max);
+        };
+        String.prototype.TrimEnd = function (trim, max) {
+            if (max === void 0) { max = 1; }
+            return TrimEnd(this, trim, max);
+        };
+        String.prototype.TrimAll = function (trim, max) {
+            if (max === void 0) { max = 1; }
+            return TrimAll(this, trim, max);
+        };
+        String.prototype.GetIndent = function () {
+            return GetIndent(this);
+        };
+        String.prototype.OnlyContains = function () {
+            var characters = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                characters[_i] = arguments[_i];
+            }
+            return OnlyContains.apply(void 0, __spreadArray$2([this], characters, false));
+        };
+        String.prototype.ContainsSubstringOnlyOnce = function () {
+            var substrings = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                substrings[_i] = arguments[_i];
+            }
+            return ContainsSubstringOnlyOnce.apply(void 0, __spreadArray$2([this], substrings, false));
+        };
+        String.prototype.CharactersCount = function () {
+            var characters = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                characters[_i] = arguments[_i];
+            }
+            return CharactersCount.apply(void 0, __spreadArray$2([this], characters, false));
+        };
+        String.prototype.ToArray = function () {
+            return StringToArray(this);
+        };
+        String.prototype.Distinct = function () {
+            return Distinct(this);
+        };
+        String.prototype.GetSubstring = function (pos) {
+            return GetSubstring(this, pos);
+        };
+        String.prototype.CapitalizeSentences = function () {
+            return CapitalizeSentences(this);
+        };
+        String.prototype.CapitalizeWords = function () {
+            return CapitalizeWords(this);
+        };
+        String.prototype.UTF8Encode = function () {
+            return UTF8Encode(this);
+        };
+        String.prototype.ToUTF8ByteArray = function () {
+            return StringToUTF8ByteArray(this);
+        };
+        String.prototype.SplitByN = function (n, fromLeft) {
+            return SplitByN(this, n, fromLeft);
+        };
+        String.prototype.Reverse = function () {
+            return Reverse(this);
+        };
+        String.prototype.Format = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            return FormatString.apply(void 0, __spreadArray$2([this], args, false));
+        };
+        String.prototype.SurroundBy = function (left, right) {
+            return SurroundBy(this, left, right);
+        };
+        String.prototype.AsLog = function () {
+            return KavenLog.CreateLog(this);
+        };
+        String.prototype.AsInfo = function () {
+            return KavenLog.CreateInfo(this);
+        };
+        String.prototype.AsWarn = function () {
+            return KavenLog.CreateWarn(this);
+        };
+        String.prototype.AsError = function () {
+            return KavenLog.CreateError(this);
+        };
+        String.prototype.WriteToConsole = function (ansiColor, type) {
+            if (ansiColor !== undefined) {
+                WriteToConsole(AnsiTextColor(this, ansiColor), type);
+            }
+            else {
+                WriteToConsole(this, type);
+            }
+        };
+        // #endregion
+        // #region Array
+        Array.prototype.IsNotEmpty = function () {
+            return IsNotEmpty(this);
+        };
+        Array.prototype.Remove = function (index) {
+            return Remove(this, index);
+        };
+        Array.prototype.Distinct = function () {
+            return Distinct(this);
+        };
+        Array.prototype.First = function () {
+            return First(this);
+        };
+        Array.prototype.Last = function () {
+            return Last(this);
+        };
+        Array.prototype.Split = function (size, fromLeft) {
+            return Split(this, size, fromLeft);
+        };
+        Array.prototype.ToHEX = function () {
+            return ToHEX.apply(void 0, this);
+        };
+        Array.prototype.SequenceEqual = function (second) {
+            return SequenceEqual(this, second);
+        };
+        Array.prototype.Any = function (func) {
+            return Any(this, func);
+        };
+        Array.prototype.All = function (func) {
+            return All(this, func);
+        };
+        Array.prototype.Clone = function () {
+            return CloneArray(this);
+        };
+        // #endregion
+        // #region Number
+        Number.prototype.ToMilliseconds = function (currentUnit) {
+            return ToMilliseconds(this, currentUnit);
+        };
+        Number.prototype.ToSeconds = function (currentUnit) {
+            return ToSeconds(this, currentUnit);
+        };
+        Number.prototype.ToMinutes = function (currentUnit) {
+            return ToMinutes(this, currentUnit);
+        };
+        Number.prototype.ToHours = function (currentUnit) {
+            return ToHours(this, currentUnit);
+        };
+        Number.prototype.ToDays = function (currentUnit) {
+            return ToDays(this, currentUnit);
+        };
+        Number.prototype.ToWeeks = function (currentUnit) {
+            return ToWeeks(this, currentUnit);
+        };
+        Number.prototype.ToMonths = function (currentUnit) {
+            return ToMonths(this, currentUnit);
+        };
+        Number.prototype.ToYears = function (currentUnit) {
+            return ToYears(this, currentUnit);
+        };
+        Number.prototype.LeftRotate = function (n, bits) {
+            return LeftRotate(this, n, bits);
+        };
+        Number.prototype.RightRotate = function (n, bits) {
+            return RightRotate(this, n, bits);
+        };
+        Number.prototype.ToUInt32 = function () {
+            return ToUInt32(this);
+        };
+        Number.prototype.Swap32 = function () {
+            return Swap32(this);
+        };
+        Number.prototype.ToHEX = function (len) {
+            return NumberToHex(this, len);
+        };
+        Number.prototype.GetBaseLog = function (baseNumber) {
+            return GetBaseLog(this, baseNumber);
+        };
+        Number.prototype.Mod = function (n) {
+            // https://stackoverflow.com/questions/4467539/javascript-modulo-gives-a-negative-result-for-negative-numbers
+            return ((this % n) + n) % n;
+        };
+        Number.prototype.FileSize = function (baseOn1024) {
+            if (baseOn1024 === void 0) { baseOn1024 = true; }
+            return FileSize(this, baseOn1024);
+        };
+        // #endregion
+        // #endregion
+    }
+    InitializeKavenExtension();
+
+    /********************************************************************
+     * @author:      Kaven
+     * @email:       kaven@wuwenkai.com
+     * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/MIME.ts
      * @create:      2018-10-26 09:00:10.241
-     * @modify:      2021-02-01 19:54:21.477
-     * @version:     2.0.11
-     * @times:       11
+     * @modify:      2021-12-16 17:41:41.027
+     * @version:     4.0.0
+     * @times:       12
      * @lines:       704
      * @copyright:   Copyright © 2018-2021 Kaven. All Rights Reserved.
      * @description: [description]
@@ -11977,11 +14469,11 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/KavenBasic.ts
      * @create:      2019-11-23 00:54:17.245
-     * @modify:      2021-08-07 06:04:28.805
-     * @version:     2.0.14
-     * @times:       38
-     * @lines:       1087
-     * @copyright:   Copyright © 2019-2021 Kaven. All Rights Reserved.
+     * @modify:      2022-01-04 17:04:42.796
+     * @version:     4.0.0
+     * @times:       88
+     * @lines:       515
+     * @copyright:   Copyright © 2019-2022 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
      * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -12002,167 +14494,15 @@ module.exports = Array.isArray || function (arr) {
      * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
      * SOFTWARE.
      ********************************************************************/
-    /**
-     * @version 1.0.0
-     * @since 1.0.5
-     */
-    function GetFileNameByDateTime(utc) {
-        return Date.Create().Format(exports.DateTimeFormat.ForFileName, utc ? 0 : undefined);
-    }
-    /**
-     * Module wrapper of @substack's `caller.js`
-     * @original: https://github.com/substack/node-resolve/blob/master/lib/caller.js
-     * @blessings: https://twitter.com/eriktoth/statuses/413719312273125377
-     * @see https://code.google.com/p/v8/wiki/JavaScriptStackTraceApi
-     * @version 1.0.0
-     * @since 1.0.5
-     */
-    function GetStackInfo(depth, type) {
-        if (type === void 0) { type = "getFileName"; }
-        var stack;
-        var file;
-        var frame;
-        var pst = Error.prepareStackTrace;
-        Error.prepareStackTrace = function (_, s) {
-            Error.prepareStackTrace = pst;
-            return s;
-        };
-        stack = new Error().stack;
-        if (stack) {
-            var temp = 2;
-            depth =
-                !depth || isNaN(depth)
-                    ? 1
-                    : depth > stack.length - temp
-                        ? stack.length - temp
-                        : depth;
-            stack = stack.slice(depth + 1);
-        }
-        if (stack) {
-            do {
-                // @ts-ignore
-                frame = stack.shift();
-                file = frame && frame[type](); // .getFileName();
-            } while (stack.length && file === "module.js");
-        }
-        return file;
-    }
-    /**
-     * Returns a random number between min (inclusive) and max (exclusive)
-     * @param min
-     * @param max
-     * @version 1.0.0
-     * @since 1.0.5
-     */
-    function GetRandomArbitrary(min, max) {
-        return Math.random() * (max - min) + min;
-    }
-    /**
-     * Returns a random integer between min (inclusive) and max (inclusive)
-     * Using Math.round() will give you a non-uniform distribution!
-     * @param min
-     * @param max
-     * @version 1.0.0
-     * @since 1.0.5
-     */
-    function GetRandomInt(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-    /**
-     *
-     * @param length
-     * @version 1.0.0
-     * @since 1.0.5
-     */
-    function GenerateNumberString(length) {
-        var result = Strings.Empty;
-        var max = 9;
-        for (var i = 0; i < length; i++) {
-            if (result === Strings.Empty) {
-                result = GetRandomInt(0, max).toString();
-            }
-            else {
-                result += GetRandomInt(0, max).toString();
+    var __spreadArray$1 = (undefined && undefined.__spreadArray) || function (to, from, pack) {
+        if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+            if (ar || !(i in from)) {
+                if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+                ar[i] = from[i];
             }
         }
-        return result;
-    }
-    /**
-     * @version 1.0.0
-     * @since 1.0.5
-     */
-    function GenerateGuid() {
-        // cSpell:ignore yxxx
-        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-            var r = (Math.random() * 16) | 0;
-            var v = c === "x" ? r : (r & 0x3) | 0x8;
-            return v.toString(16);
-        });
-    }
-    /**
-     *
-     * @param length
-     * @param validCharacters
-     * @version 1.0.0
-     * @since 1.0.5
-     */
-    function GenerateRandomString(length, validCharacters) {
-        var str = Strings.Empty;
-        if (validCharacters === undefined || validCharacters.length < 2) {
-            validCharacters =
-                Strings.LowercaseLetters +
-                    Strings.UppercaseLetters +
-                    Strings.Numbers;
-        }
-        for (var i = 0; i < length; i++) {
-            var char = validCharacters[GetRandomInt(0, validCharacters.length - 1)];
-            if (str === Strings.Empty) {
-                str = char;
-            }
-            else {
-                str += char;
-            }
-        }
-        return str;
-    }
-    /**
-     *
-     * @param length
-     * @param numbers
-     * @param lowercaseLetters
-     * @param uppercaseLetters
-     * @param specialCharacters
-     * @version 1.0.0
-     * @since 1.0.5
-     */
-    function GeneratePassword(length, numbers, lowercaseLetters, uppercaseLetters, specialCharacters) {
-        if (numbers === void 0) { numbers = true; }
-        if (lowercaseLetters === void 0) { lowercaseLetters = true; }
-        if (uppercaseLetters === void 0) { uppercaseLetters = true; }
-        if (specialCharacters === void 0) { specialCharacters = true; }
-        if (length < 10) {
-            console.warn("Your Password is Too Damn Short: " + length);
-        }
-        var chars = Strings.Empty;
-        if (numbers) {
-            chars += Strings.Numbers;
-        }
-        if (lowercaseLetters) {
-            chars += Strings.LowercaseLetters;
-        }
-        if (uppercaseLetters) {
-            chars += Strings.UppercaseLetters;
-        }
-        if (specialCharacters) {
-            chars += Strings.PasswordSpecialCharacters;
-        }
-        if (chars.IsNotEmpty()) {
-            return GenerateRandomString(length, chars);
-        }
-        else {
-            throw new Error("Invalid parameters: " + arguments);
-        }
-    }
+        return to.concat(ar || Array.prototype.slice.call(from));
+    };
     /**
      *
      * @param func
@@ -12174,13 +14514,6 @@ module.exports = Array.isArray || function (arr) {
         while (times-- > 0) {
             func();
         }
-    }
-    /**
-     * @version 1.0.0
-     * @since 1.0.5
-     */
-    function RandomBoolean() {
-        return Math.random() >= 0.5;
     }
     /**
      * Normalize path segment separator
@@ -12203,7 +14536,7 @@ module.exports = Array.isArray || function (arr) {
         if (!pathStr) {
             return pathStr;
         }
-        while (pathStr.endsWith(Strings.Slash) || pathStr.endsWith(Strings.BackSlash)) {
+        while (pathStr.endsWith(Strings_Slash) || pathStr.endsWith(Strings_BackSlash)) {
             pathStr = pathStr.substr(0, pathStr.length - 1);
         }
         return pathStr;
@@ -12219,11 +14552,11 @@ module.exports = Array.isArray || function (arr) {
     function GetBaseDir(pathStr, trimLastSlash) {
         if (trimLastSlash === void 0) { trimLastSlash = false; }
         if (!pathStr) {
-            return Strings.Empty;
+            return Strings_Empty;
         }
         var result = pathStr;
         var trimmed = TrimPath(pathStr);
-        var index = Math.max(trimmed.lastIndexOf(Strings.Slash), trimmed.lastIndexOf(Strings.BackSlash));
+        var index = Math.max(trimmed.lastIndexOf(Strings_Slash), trimmed.lastIndexOf(Strings_BackSlash));
         if (index !== -1) {
             result = trimmed.substring(0, trimLastSlash ? index : index + 1);
         }
@@ -12238,21 +14571,11 @@ module.exports = Array.isArray || function (arr) {
      */
     function GetFileExtension(fileName) {
         if (fileName && fileName.lastIndexOf(".") !== -1) {
-            return fileName.split(".").pop() || Strings.Empty;
+            return fileName.split(".").pop();
         }
         else {
-            return Strings.Empty;
+            return Strings_Empty;
         }
-    }
-    /**
-     *
-     * @param fileName
-     * @since 1.1.7
-     * @version 2018-08-31
-     * @example "c:/a/b.xyz" => "b"
-     */
-    function GetFileNameWithoutExtension(fileName) {
-        return GetFileName(fileName).TrimEnd(GetFileExtension(fileName)).TrimEnd(".");
     }
     /**
      *
@@ -12268,66 +14591,44 @@ module.exports = Array.isArray || function (arr) {
         if (base === fileName) {
             return fileName;
         }
-        return fileName.replace(base, Strings.Empty);
+        return fileName.replace(base, Strings_Empty);
+    }
+    /**
+     *
+     * @param fileName
+     * @since 1.1.7
+     * @version 2021-12-07
+     * @example "c:/a/b.xyz" => "b"
+     */
+    function GetFileNameWithoutExtension(fileName) {
+        var name = GetFileName(fileName);
+        var ext = GetFileExtension(fileName);
+        return TrimEnd(name, [ext, "."], false);
     }
     /**
      *
      * @param fileName
      * @param extension
-     * @version 2018-08-31
-     * @since 1.0.5
+     * @version 1.0.5
+     * @since 2021-12-07
      */
     function ChangeFileExtension(fileName, extension) {
         var ext = GetFileExtension(fileName);
-        var root = fileName.TrimEnd(ext); // fileName.substring(0, fileName.length - ext.length);
-        ext = extension.TrimStart(".");
-        root = root.TrimEnd(".");
-        return root + "." + ext;
+        var root = TrimEnd(fileName, [ext, "."], false);
+        ext = TrimStart(extension, ".");
+        return "".concat(root, ".").concat(ext);
     }
-    /**
-     *
-     * @param obj
-     * @version 1.0.0
-     * @since 1.0.5
-     */
-    function RemoveEmpty(obj) {
-        Object.keys(obj).forEach(function (k) { return !obj[k] && obj[k] !== undefined && delete obj[k]; });
-        return obj;
-    }
-    /**
-     *
-     * @param obj
-     * @version 1.0.0
-     * @since 1.0.5
-     */
-    function SortByKey(obj) {
-        var newObj = {};
-        Object.keys(obj)
-            .sort()
-            .forEach(function (key) {
-            newObj[key] = obj[key];
-        });
-        return newObj;
-    }
-    /**
-     *
-     * @param length
-     * @param start
-     * @param step
-     * @version 1.0.0
-     * @since 1.0.5
-     */
-    function CreateArray(length, start, step) {
-        var arr = [];
-        for (var i = 0; i < length; i++) {
-            if (step !== undefined) {
-                arr.push(start + step * i);
+    function CreateArray(length, value, next) {
+        var elements = [value];
+        for (var i = 1; i < length; i++) {
+            if (next) {
+                elements.push(next(i, elements[i - 1]));
             }
             else {
-                arr.push(start);
+                elements.push(value);
             }
         }
-        return arr;
+        return elements;
     }
     /**
      *
@@ -12335,107 +14636,61 @@ module.exports = Array.isArray || function (arr) {
      * @export
      * @param {string} str
      * @returns
-     * @version 2019-03-21
      * @since 1.0.8
+     * @version 2021-12-07
      */
     function SplitStringByNewline(str) {
-        if (str && str.IsNotEmpty()) {
+        if (IsNotEmpty(str)) {
             // return str.split(/\r?\n/);
-            return str.split(Strings.BREAK_LINE_REGEXP);
+            return str.split(Strings_BREAK_LINE_REGEXP);
         }
         return undefined;
     }
     /**
-     *
-     * @param pathStr
-     * @version 1.0.0
-     * @since 1.0.9
+     * @since 4.0.0
+     * @version 2021-12-09
      */
-    function RemoveInvalidCharactersForPath(pathStr) {
-        if (pathStr.IsNotEmpty()) {
-            return pathStr.replace(/[|&;$%@"<>()+,/]/g, "");
+    function RemoveAllSubStrings(str) {
+        var subStrings = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            subStrings[_i - 1] = arguments[_i];
         }
-        return pathStr;
-    }
-    /**
-     *
-     *
-     * @export
-     * @param {string} version
-     * @returns
-     * @version 1.0.0
-     * @since 1.0.12
-     */
-    function GetNextVersion(version) {
-        if (!version) {
-            return undefined;
-        }
-        var temp = Number(version);
-        if (!isNaN(temp)) {
-            return temp + 1;
-        }
-        if (version.OnlyContains(Strings.Numbers, Strings.Dot)) {
-            var items = version.split(Strings.Dot);
-            var last = items.Last();
-            if (last) {
-                temp = Number(last);
-                if (!isNaN(temp)) {
-                    version = version.TrimEnd(last) + (temp + 1).toString();
-                    return version;
+        if (IsNotEmpty(str)) {
+            if (IsNotEmpty(subStrings)) {
+                for (var _a = 0, subStrings_1 = subStrings; _a < subStrings_1.length; _a++) {
+                    var s = subStrings_1[_a];
+                    if (IsNotEmpty(s)) {
+                        str = ReplaceAll(str, s, "");
+                    }
                 }
             }
         }
-        return undefined;
+        return str;
+    }
+    /**
+     * @deprecated Please use `IncreaseVersion` instead
+     * @since 1.0.12
+     * @version 2021-12-06
+     */
+    function GetNextVersion(version) {
+        return IncreaseVersion(version);
     }
     /**
      *
      *
      * @export
      * @param {string} camelCaseStr
-     * @version 1.0.0
      * @since 1.1.1
+     * @version 2021-12-07
      * @see {@link https://stackoverflow.com/questions/7225407/convert-camelcasetext-to-sentence-case-text}
      */
     function SplitCamelCaseString(camelCaseStr) {
         // return camelCaseStr.replace(/([a-z])([A-Z])/g, ' $1 $2');
-        return camelCaseStr
+        var result = camelCaseStr
             .replace(/([A-Z]+)/g, " $1")
-            .replace(/([A-Z][a-z])/g, " $1")
-            .ReplaceAll("  ", " ")
-            .trimLeft();
-    }
-    /**
-     *
-     * @param action
-     * @param count
-     * @param interval
-     * @param completeAction
-     * @version 2018-08-19 15:59:52.369
-     * @since 1.1.5
-     */
-    function Countdown(action, count, interval, runWhenStart, completeAction) {
-        if (interval === void 0) { interval = 1000; }
-        if (runWhenStart === void 0) { runWhenStart = true; }
-        if (runWhenStart) {
-            if (action) {
-                action(count);
-            }
-            // count--;
-        }
-        var id = setInterval(function () {
-            if (count > 0) {
-                if (action) {
-                    action(count);
-                }
-                count--;
-            }
-            else {
-                clearInterval(id);
-                if (completeAction) {
-                    completeAction();
-                }
-            }
-        }, interval);
+            .replace(/([A-Z][a-z])/g, " $1");
+        result = ReplaceAll(result, "  ", " ").trimLeft();
+        return result;
     }
     /**
      * RFC3986: https://tools.ietf.org/html/rfc3986
@@ -12458,168 +14713,53 @@ module.exports = Array.isArray || function (arr) {
      * %21 %2A %28 %29 %27
      *
      * @since 1.1.6
-     * @version 2018-08-20
+     * @version 2021-12-07
      */
     function EncodeByRFC3986(str) {
-        return encodeURIComponent(str)
-            .ReplaceAll("!", "%21")
-            .ReplaceAll("*", "%2A")
-            .ReplaceAll("(", "%28")
-            .ReplaceAll(")", "%29")
-            .ReplaceAll("'", "%27");
+        var result = encodeURIComponent(str);
+        result = ReplaceAll(result, "!", "%21");
+        result = ReplaceAll(result, "*", "%2A");
+        result = ReplaceAll(result, "(", "%28");
+        result = ReplaceAll(result, ")", "%29");
+        result = ReplaceAll(result, "'", "%27");
+        return result;
     }
     /**
      *
      * @param str
      * @since 1.1.11
-     * @version 2018-10-19
+     * @version 2021-12-07
      */
     function DecodeByRFC3986(str) {
-        var temp = str.ReplaceAll("%21", "!")
-            .ReplaceAll("%2A", "*")
-            .ReplaceAll("%28", "(")
-            .ReplaceAll("%29", ")")
-            .ReplaceAll("%27", "'");
-        return decodeURIComponent(temp);
-    }
-    /**
-     *
-     * @see
-     * {
-     * @link
-     * https://stackoverflow.com/questions/7640270/adding-modify-query-string-get-variables-in-a-url-with-javascript
-     * }
-     * @static
-     * @param {string} key
-     * @param {string} value
-     * @param {string} url
-     * @returns
-     * @memberof KavenBasic
-     * @since 1.1.6
-     * @version 2018-08-27
-     */
-    function UpdateQueryString(param, value, url) {
-        var newURL = url;
-        // Using a positive lookahead (?=\=) to find the
-        // given parameter, preceded by a ? or &, and followed
-        // by a = with a value after than (using a non-greedy selector)
-        // and then followed by a & or the end of the string
-        var val = new RegExp("(\\?|\\&)" + param + "=.*?(?=(&|$))");
-        var parts = url.toString().split("#");
-        url = parts[0];
-        var hash = parts[1];
-        var queryString = /\?.+$/;
-        // Check if the parameter exists
-        if (val.test(url)) {
-            // if it does, replace it, using the captured group
-            // to determine & or ? at the beginning
-            newURL = url.replace(val, "$1" + param + "=" + value);
-        }
-        else if (queryString.test(url)) {
-            // otherwise, if there is a query string at all
-            // add the param to the end of it
-            newURL = url + "&" + param + "=" + value;
-        }
-        else {
-            // if there's no query string, add one
-            newURL = url + "?" + param + "=" + value;
-        }
-        if (hash) {
-            newURL += "#" + hash;
-        }
-        return newURL;
-    }
-    /**
-     * @static
-     * @param {string} url
-     * @returns
-     * @memberof KavenBasic
-     * @since 1.1.7
-     * @version 2018-08-30
-     */
-    function RemoveHashFromURL(url) {
-        var index = url.indexOf("#");
-        if (index !== -1) {
-            return url.substring(0, index);
-        }
-        return url;
-    }
-    /**
-     *
-     * @param url
-     * @since 1.1.7
-     * @version 2018-08-30
-     */
-    function RemoveQueriesFromURL(url) {
-        return url.split("?")[0];
-    }
-    /**
-     *
-     * @param url
-     * @param names
-     * @since 1.1.17
-     * @version 2019-02-19
-     */
-    function RemoveQueryFromURL(url) {
-        var names = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            names[_i - 1] = arguments[_i];
-        }
-        var hash = Strings.Empty;
-        var index = url.indexOf("#");
-        if (index !== -1) {
-            hash = url.substring(index);
-        }
-        for (var _a = 0, names_1 = names; _a < names_1.length; _a++) {
-            var name_1 = names_1[_a];
-            // prefer to use l.search if you have a location/link object
-            var urlParts = url.split("?");
-            if (urlParts.length >= 2) {
-                var prefix = encodeURIComponent(name_1) + "=";
-                var pars = urlParts[1].split(/[&;]/g);
-                // reverse iteration as may be destructive
-                for (var i = pars.length; i-- > 0;) {
-                    // idiom for string.startsWith
-                    if (pars[i].lastIndexOf(prefix, 0) !== -1) {
-                        pars.splice(i, 1);
-                    }
-                }
-                url =
-                    urlParts[0] + (pars.length > 0 ? "?" + pars.join("&") : "");
-            }
-        }
-        return url + hash;
-    }
-    /**
-     *
-     * @param url
-     * @since 1.1.7
-     * @version 2018-08-30
-     */
-    function GetFileNameFromURL(url) {
-        url = RemoveQueriesFromURL(url);
-        return url.substring(url.lastIndexOf(Strings.Slash) + 1);
+        var result = ReplaceAll(str, "%21", "!");
+        result = ReplaceAll(result, "%2A", "*");
+        result = ReplaceAll(result, "%28", "(");
+        result = ReplaceAll(result, "%29", ")");
+        result = ReplaceAll(result, "%27", "'");
+        result = decodeURIComponent(result);
+        return result;
     }
     /**
      *
      * @param base
      * @param paths
      * @since 1.1.7
-     * @version 2018-08-31
+     * @version 2021-12-07
      */
     function CombinePath(base) {
         var paths = [];
         for (var _i = 1; _i < arguments.length; _i++) {
             paths[_i - 1] = arguments[_i];
         }
-        var result = base.TrimEnd(Strings.Slash).TrimEnd(Strings.BackSlash)
-            .ReplaceAll(Strings.BackSlash, Strings.Slash);
-        var p = paths
+        var result = TrimPath(base);
+        result = ReplaceAll(result, Strings_BackSlash, Strings_Slash);
+        result = paths
             .reduce(function (accumulator, currentValue) {
             return (accumulator +
-                Strings.Slash + currentValue.TrimAll(Strings.Slash).TrimAll(Strings.BackSlash));
-        }, result).TrimEnd(Strings.Slash).TrimEnd(Strings.BackSlash);
-        return p;
+                Strings_Slash + TrimAll(currentValue, [Strings_Slash, Strings_BackSlash]));
+        }, result);
+        result = TrimPath(result);
+        return result;
     }
     /**
      *
@@ -12629,8 +14769,8 @@ module.exports = Array.isArray || function (arr) {
      */
     function GetMIMEByExtension(fileExtension) {
         return MIME.All.filter(function (p) {
-            return p.Extension.TrimStart(".") ===
-                fileExtension.TrimStart(".").toLowerCase();
+            return TrimStart(p.Extension, ".", 1) ===
+                TrimStart(fileExtension, ".", 1).toLowerCase();
         });
     }
     /**
@@ -12641,220 +14781,6 @@ module.exports = Array.isArray || function (arr) {
      */
     function GetMIMEByContentType(contentType) {
         return MIME.All.filter(function (p) { return p.Type === contentType.toLowerCase(); });
-    }
-    /**
-     * Assign the enumerable es6 Symbol properties from one or more objects to
-     * the first object passed on the arguments.
-     * Can be used as a supplement to other extend,
-     * assign or merge methods as a polyfill for the Symbols part of the es6 Object.assign method.
-     * @param target
-     * @param args
-     * @since 1.1.15
-     * @version 2018-11-02
-     * @see https://github.com/jonschlinkert/assign-symbols/blob/master/index.js
-     */
-    function AssignSymbols(target) {
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
-        function isObject(val) {
-            return (typeof val === "function" ||
-                toString.call(val) === "[object Object]" ||
-                Array.isArray(val));
-        }
-        var toString = Object.prototype.toString;
-        var isEnumerable = Object.prototype.propertyIsEnumerable;
-        var getSymbols = Object.getOwnPropertySymbols;
-        if (!isObject(target)) {
-            throw new TypeError("expected the first argument to be an object");
-        }
-        if (args.length === 0 // ||
-        // typeof Symbol !== "function" ||
-        // typeof getSymbols !== "function"
-        ) {
-            return target;
-        }
-        for (var _a = 0, args_1 = args; _a < args_1.length; _a++) {
-            var arg = args_1[_a];
-            var names = getSymbols(arg);
-            for (var _b = 0, names_2 = names; _b < names_2.length; _b++) {
-                var key = names_2[_b];
-                if (isEnumerable.call(arg, key)) {
-                    target[key] = arg[key];
-                }
-            }
-        }
-        return target;
-    }
-    /**
-     * Deeply assign the values of all enumerable-own-properties and symbols f
-     * rom one or more source objects to a target object. Returns the target object.
-     * @param target
-     * @param args
-     * @since 1.1.15
-     * @version 2018-11-02
-     * @see https://github.com/jonschlinkert/assign-deep/blob/master/index.js
-     */
-    function AssignDeep(target) {
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
-        function isObject(val) {
-            return (typeof val === "function" ||
-                toString.call(val) === "[object Object]");
-        }
-        function isPrimitive(val) {
-            return typeof val === "object"
-                ? val === null
-                : typeof val !== "function";
-        }
-        var toString = Object.prototype.toString;
-        var i = 0;
-        if (isPrimitive(target)) {
-            target = args[i++];
-        }
-        if (!target) {
-            target = {};
-        }
-        for (; i < args.length; i++) {
-            if (isObject(args[i])) {
-                for (var _a = 0, _b = Object.keys(args[i]); _a < _b.length; _a++) {
-                    var key = _b[_a];
-                    if (isObject(target[key]) && isObject(args[i][key])) {
-                        AssignDeep(target[key], args[i][key]);
-                    }
-                    else {
-                        target[key] = args[i][key];
-                    }
-                }
-                AssignSymbols(target, args[i]);
-            }
-        }
-        return target;
-    }
-    /**
-     *
-     * @param url
-     * @since 1.1.17
-     * @version 2019-02-26
-     */
-    function GetQueryStringFromURL(url) {
-        var index = url.indexOf("?");
-        if (index !== -1) {
-            return url.substring(index + 1);
-        }
-        return undefined;
-    }
-    /**
-     *
-     * @param url
-     * @param decodeURIMethod
-     * @since 2.0.7
-     * @version 2020-06-24
-     */
-    function ParseQueryParameters(url, decodeURIMethod) {
-        var query = GetQueryStringFromURL(url) || url;
-        var items = query.split("&");
-        var parameters = {};
-        var Add = function (name, val) {
-            if (decodeURIMethod) {
-                if (val !== undefined) {
-                    parameters[decodeURIMethod(name)] = decodeURIMethod(val);
-                }
-                else {
-                    parameters[decodeURIMethod(name)] = undefined;
-                }
-            }
-            else {
-                parameters[name] = val;
-            }
-        };
-        for (var _i = 0, items_1 = items; _i < items_1.length; _i++) {
-            var item = items_1[_i];
-            var parts = item.split("=");
-            if (parts.length === 1) {
-                Add(parts[0], undefined);
-            }
-            else {
-                Add(parts[0], parts[1]);
-            }
-        }
-        return parameters;
-    }
-    /**
-     *
-     * @param str
-     * @since 1.1.13
-     * @version 2018-10-21
-     */
-    function GetMD5(str, md5) {
-        if (md5 === undefined) {
-            md5 = new KavenMD5();
-        }
-        return md5.Compute(str);
-    }
-    /**
-     *
-     * @param str
-     * @since 1.1.20
-     * @version 2019-03-29
-     */
-    function GetCRC32(str, crc) {
-        if (crc === undefined) {
-            crc = new KavenCRC(KavenCRC.CRC32);
-        }
-        return crc.Compute(str);
-    }
-    function GetCRC64(str, crc) {
-        if (crc === undefined) {
-            crc = new KavenCRC(KavenCRC.CRC64_ECMA_XZ);
-        }
-        return crc.Compute(str);
-    }
-    /**
-     * Warning: This algorithm is now considered vulnerable and should not be used.
-     * @param str
-     * @param separator
-     * @since 1.1.20
-     * @version 2019-03-30
-     */
-    function GetSHA1(str, sha) {
-        if (sha === undefined) {
-            sha = new KavenSHA();
-        }
-        return sha.ComputeSHA1(str);
-    }
-    function GetSHA256(str, sha) {
-        if (sha === undefined) {
-            sha = new KavenSHA();
-        }
-        return sha.ComputeSHA256(str);
-    }
-    function GetSHA224(str, sha) {
-        if (sha === undefined) {
-            sha = new KavenSHA();
-        }
-        return sha.ComputeSHA224(str);
-    }
-    function GetSHA512(str, sha) {
-        if (sha === undefined) {
-            sha = new KavenSHA();
-        }
-        return sha.ComputeSHA512(str);
-    }
-    function GetSHA384(str, sha) {
-        if (sha === undefined) {
-            sha = new KavenSHA();
-        }
-        return sha.ComputeSHA384(str);
-    }
-    function GetSHA512T(str, t, sha) {
-        if (sha === undefined) {
-            sha = new KavenSHA();
-        }
-        return sha.ComputeSHA512T(str, t);
     }
     /**
      * @returns `true` if little endian, `false` if big endian
@@ -12869,13 +14795,13 @@ module.exports = Array.isArray || function (arr) {
             // little endian
             return true;
         }
+        /* istanbul ignore next */
         if (uint16array[0] === 0xAABB) {
             // big endian
             return false;
         }
-        else {
-            return undefined;
-        }
+        /* istanbul ignore next */
+        return undefined;
     }
     /**
      *
@@ -12894,8 +14820,8 @@ module.exports = Array.isArray || function (arr) {
         return re.test(email);
     }
     /**
-     *
-     * @param strArray
+     * @since 4.0.0
+     * @version 2021-12-11
      */
     function StringArray2String() {
         var strArray = [];
@@ -12903,44 +14829,106 @@ module.exports = Array.isArray || function (arr) {
             strArray[_i] = arguments[_i];
         }
         var header = strArray.map(function (p) { return p.length; }).join("_");
-        return header + "@" + strArray.join(Strings.Empty);
+        return header + "@" + strArray.join(Strings_Empty);
+    }
+    /**
+     * @since 4.0.0
+     * @version 2021-12-11
+     */
+    function String2StringArray(str) {
+        var index = str.indexOf("@");
+        if (index !== -1) {
+            var header = str.substring(0, index);
+            var items = header.split("_").map(function (p) { return Number(p); });
+            var list = [];
+            var start = index + 1;
+            for (var _i = 0, items_1 = items; _i < items_1.length; _i++) {
+                var item = items_1[_i];
+                list.push(str.substring(start, start + item));
+                start += item;
+            }
+            return list;
+        }
+        return undefined;
+    }
+    function TryParseVersion(line) {
+        if (!line) {
+            return undefined;
+        }
+        var keyValue = line.split(":");
+        if (keyValue.length !== 2) {
+            return undefined;
+        }
+        var key = keyValue[0];
+        var value = TrimEnd(keyValue[1].trim(), ",");
+        key = TrimAll(key, [" ", "'", "\""]);
+        value = TrimAll(value, [" ", "'", "\""]);
+        if (key !== "version") {
+            return undefined;
+        }
+        return value;
+    }
+    function NumberToUint8Array(number) {
+        var hex = NumberToHex(number);
+        var hexArray = SplitByN(hex, 2).map(function (p) { return parseInt(p, 16); });
+        var result = new Uint8Array(hexArray);
+        return result;
     }
     /**
      *
-     * @param str
+     * @since 4.0.0
+     * @version 2021-12-08
      */
-    function String2StringArray(str) {
-        try {
-            var index = str.indexOf("@");
-            if (index !== -1) {
-                var header = str.substr(0, index);
-                var items = header.split("_").map(function (p) { return Number(p); });
-                var list = [];
-                var start = index + 1;
-                for (var _i = 0, items_2 = items; _i < items_2.length; _i++) {
-                    var item = items_2[_i];
-                    list.push(str.substr(start, item));
-                    start += item;
-                }
-                return list;
-            }
-        }
-        catch (ex) {
-            console.error(ex);
-        }
-        return undefined;
+    function GetEmailAddressWithName(name, address) {
+        return "".concat(name, " <").concat(address, ">");
+    }
+    /**
+     * @since 4.0.0
+     * @version 2021-12-09
+     */
+    function GetInvalidPathChars() {
+        return Distinct(GetInvalidPathCharsUnix().concat(GetInvalidPathCharsWindows()));
+    }
+    /**
+     * @since 4.0.0
+     * @version 2021-12-09
+     */
+    function GetInvalidFileNameChars() {
+        return Distinct(GetInvalidFileNameCharsUnix().concat(GetInvalidFileNameCharsWindows()));
+    }
+    /**
+     * @since 4.0.0
+     * @version 2021-12-09
+     */
+    function RemoveInvalidCharactersFromPath(pathStr) {
+        return RemoveAllSubStrings.apply(void 0, __spreadArray$1([pathStr], GetInvalidPathChars(), false));
+    }
+    /**
+     * @since 4.0.0
+     * @version 2021-12-09
+     */
+    function RemoveInvalidCharactersFromFileName(filename) {
+        return RemoveAllSubStrings.apply(void 0, __spreadArray$1([filename], GetInvalidFileNameChars(), false));
+    }
+    /**
+     * @since 1.1.21
+     * @version 2021-12-31
+     */
+    function DefaultErrorHandler(err) {
+        /* istanbul ignore next */
+        KavenLog.CreateError("".concat(err)).WriteToConsole();
     }
 
     /********************************************************************
      * @author:      Kaven
      * @email:       kaven@wuwenkai.com
      * @website:     http://blog.kaven.xyz
-     * @file:        [Kaven-Basic] /src/libs/APIRequestBase.ts
+     * @file:        [Kaven-Basic] /src/libs/ApiRequest.ts
      * @create:      2018-08-30 16:06:50.928
-     * @modify:      2021-02-01 19:48:03.050
-     * @version:     2.0.11
-     * @times:       35
-     * @lines:       227
+     * @modify:      2021-12-24 12:28:55.859
+     * @version:     4.0.0
+     * @times:       54
+     * @lines:       213
      * @copyright:   Copyright © 2018-2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
@@ -12962,31 +14950,66 @@ module.exports = Array.isArray || function (arr) {
      * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
      * SOFTWARE.
      ********************************************************************/
-    exports.APIRequestVerifyError = void 0;
-    (function (APIRequestVerifyError) {
-        APIRequestVerifyError["TimestampNotExist"] = "TimestampNotExist";
-        APIRequestVerifyError["TimestampInvalid"] = "TimestampInvalid";
-        APIRequestVerifyError["TimeExpired"] = "TimeExpired";
-        APIRequestVerifyError["SignatureNotExist"] = "SignatureNotExist";
-        APIRequestVerifyError["SignatureInvalid"] = "SignatureInvalid";
-        APIRequestVerifyError["OtherException"] = "OtherException";
-    })(exports.APIRequestVerifyError || (exports.APIRequestVerifyError = {}));
+    var __awaiter$2 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+        return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+        });
+    };
+    var __generator$2 = (undefined && undefined.__generator) || function (thisArg, body) {
+        var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+        return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+        function verb(n) { return function (v) { return step([n, v]); }; }
+        function step(op) {
+            if (f) throw new TypeError("Generator is already executing.");
+            while (_) try {
+                if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+                if (y = 0, t) op = [op[0] & 2, t.value];
+                switch (op[0]) {
+                    case 0: case 1: t = op; break;
+                    case 4: _.label++; return { value: op[1], done: false };
+                    case 5: _.label++; y = op[1]; op = [0]; continue;
+                    case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                    default:
+                        if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                        if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                        if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                        if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                        if (t[2]) _.ops.pop();
+                        _.trys.pop(); continue;
+                }
+                op = body.call(thisArg, _);
+            } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+            if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+        }
+    };
+    exports.ApiRequestVerifyError = void 0;
+    (function (ApiRequestVerifyError) {
+        ApiRequestVerifyError["TimestampNotExist"] = "TimestampNotExist";
+        ApiRequestVerifyError["TimestampInvalid"] = "TimestampInvalid";
+        ApiRequestVerifyError["TimeExpired"] = "TimeExpired";
+        ApiRequestVerifyError["SignatureNotExist"] = "SignatureNotExist";
+        ApiRequestVerifyError["SignatureInvalid"] = "SignatureInvalid";
+    })(exports.ApiRequestVerifyError || (exports.ApiRequestVerifyError = {}));
     /**
      *
      *
      * @export
-     * @class APIRequestBase
+     * @class ApiRequest
      * @since 1.1.6
-     * @version 2018-08-20
+     * @version 2021-12-09
      */
-    var APIRequestBase = /** @class */ (function () {
+    var ApiRequest = /** @class */ (function () {
         /**
          * Warning: Remove "Action" field since version 1.1.12
          * @param url
          * @since 1.1.12
          * @version 2018-10-20
          */
-        function APIRequestBase(url, encodeURIMethod) {
+        function ApiRequest(url, encodeURIMethod) {
             var _this = this;
             this.Parameters = {};
             this.encodeURIMethod = encodeURIMethod;
@@ -13002,90 +15025,102 @@ module.exports = Array.isArray || function (arr) {
                 this.URL = url;
             }
         }
-        APIRequestBase.prototype.AddParameter = function (name, val) {
+        ApiRequest.prototype.AddParameter = function (name, val) {
             this.Parameters[name] = val;
             return this;
         };
-        APIRequestBase.prototype.AddTimestamp = function () {
-            this.AddParameter(APIRequestBase.Timestamp, String(Date.now()));
+        ApiRequest.prototype.AddTimestamp = function () {
+            this.AddParameter(ApiRequest.Timestamp, String(Date.now()));
             return this;
         };
-        APIRequestBase.prototype.AddSignatureNonce = function () {
-            this.AddParameter(APIRequestBase.SignatureNonce, GenerateRandomString(6));
+        ApiRequest.prototype.AddSignatureNonce = function () {
+            this.AddParameter(ApiRequest.SignatureNonce, GenerateRandomString(6));
             return this;
         };
-        APIRequestBase.prototype.Make = function (accessSecret, signatureMethod) {
-            if (!this.URL || !this.URL.startsWith("http")) {
-                throw new Error("Invalid URL: " + this.URL);
-            }
-            this.AddSignatureNonce().AddTimestamp();
-            var stringToSign = this.UrlWithoutSignature;
-            var hash = signatureMethod(stringToSign, accessSecret);
-            var query = stringToSign +
-                ("" + (stringToSign.includes("?") ? "&" : "?") + APIRequestBase.Signature + "=" + this.EncodeURIMethod(hash));
-            return this.URL + query;
-        };
-        APIRequestBase.Verify = function (secret, url, signatureMethod, encodeURIMethod, decodeURIMethod) {
-            try {
-                if (decodeURIMethod === undefined) {
-                    decodeURIMethod = DecodeByRFC3986;
-                }
-                var queryParameters = ParseQueryParameters(url, decodeURIMethod);
-                if (!queryParameters[APIRequestBase.Timestamp]) {
-                    return exports.APIRequestVerifyError.TimestampNotExist;
-                }
-                if (!queryParameters[APIRequestBase.Signature]) {
-                    return exports.APIRequestVerifyError.SignatureNotExist;
-                }
-                var timestamp = Number(queryParameters.Timestamp);
-                if (Number.isNaN(timestamp)) {
-                    return exports.APIRequestVerifyError.TimestampInvalid;
-                }
-                if (Date.now() - timestamp > 60 * 1000) {
-                    return exports.APIRequestVerifyError.TimeExpired;
-                }
-                var api = new APIRequestBase("", encodeURIMethod);
-                for (var _i = 0, _a = Object.keys(queryParameters); _i < _a.length; _i++) {
-                    var name_1 = _a[_i];
-                    if (name_1 === APIRequestBase.Signature) {
-                        continue;
+        ApiRequest.prototype.Make = function (accessSecret, signatureMethod) {
+            return __awaiter$2(this, void 0, void 0, function () {
+                var stringToSign, hash, query;
+                return __generator$2(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            if (!this.URL || !this.URL.startsWith("http")) {
+                                throw new Error("Invalid URL: ".concat(this.URL));
+                            }
+                            this.AddSignatureNonce().AddTimestamp();
+                            stringToSign = this.UrlWithoutSignature;
+                            return [4 /*yield*/, signatureMethod(stringToSign, accessSecret)];
+                        case 1:
+                            hash = _a.sent();
+                            query = AddQueryParameterToURL(stringToSign, ApiRequest.Signature, this.EncodeURIMethod(hash));
+                            return [2 /*return*/, this.URL + query];
                     }
-                    api.AddParameter(name_1, queryParameters[name_1]);
-                }
-                var sign = signatureMethod(api.UrlWithoutSignature, secret);
-                if (sign !== queryParameters[APIRequestBase.Signature]) {
-                    return exports.APIRequestVerifyError.SignatureInvalid;
-                }
-            }
-            catch (ex) {
-                console.error(ex);
-                return exports.APIRequestVerifyError.OtherException;
-            }
-            return true;
+                });
+            });
         };
-        Object.defineProperty(APIRequestBase.prototype, "UrlWithoutSignature", {
+        ApiRequest.Verify = function (secret, url, signatureMethod, encodeURIMethod, decodeURIMethod) {
+            if (encodeURIMethod === void 0) { encodeURIMethod = EncodeByRFC3986; }
+            if (decodeURIMethod === void 0) { decodeURIMethod = DecodeByRFC3986; }
+            return __awaiter$2(this, void 0, void 0, function () {
+                var queryParameters, timestamp, api, _i, _a, name_1, sign;
+                return __generator$2(this, function (_b) {
+                    switch (_b.label) {
+                        case 0:
+                            queryParameters = ParseQueryParameters(url, decodeURIMethod);
+                            if (!queryParameters[ApiRequest.Timestamp]) {
+                                return [2 /*return*/, exports.ApiRequestVerifyError.TimestampNotExist];
+                            }
+                            if (!queryParameters[ApiRequest.Signature]) {
+                                return [2 /*return*/, exports.ApiRequestVerifyError.SignatureNotExist];
+                            }
+                            timestamp = Number(queryParameters.Timestamp);
+                            if (Number.isNaN(timestamp)) {
+                                return [2 /*return*/, exports.ApiRequestVerifyError.TimestampInvalid];
+                            }
+                            if (Date.now() - timestamp > 60 * 1000) {
+                                return [2 /*return*/, exports.ApiRequestVerifyError.TimeExpired];
+                            }
+                            api = new ApiRequest("", encodeURIMethod);
+                            for (_i = 0, _a = Object.keys(queryParameters); _i < _a.length; _i++) {
+                                name_1 = _a[_i];
+                                if (name_1 === ApiRequest.Signature) {
+                                    continue;
+                                }
+                                api.AddParameter(name_1, queryParameters[name_1]);
+                            }
+                            return [4 /*yield*/, signatureMethod(api.UrlWithoutSignature, secret)];
+                        case 1:
+                            sign = _b.sent();
+                            if (sign !== queryParameters[ApiRequest.Signature]) {
+                                return [2 /*return*/, exports.ApiRequestVerifyError.SignatureInvalid];
+                            }
+                            return [2 /*return*/, true];
+                    }
+                });
+            });
+        };
+        Object.defineProperty(ApiRequest.prototype, "UrlWithoutSignature", {
             /**
              * @since 1.1.12
              * @version 2018-10-20
              */
             get: function () {
-                var stringToSign = Strings.Empty;
+                var stringToSign = Strings_Empty;
                 var keys = Object.keys(this.Parameters).sort();
                 for (var _i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
                     var key = keys_1[_i];
                     var val = this.Parameters[key];
-                    var valStr = Strings.Empty;
+                    var valStr = Strings_Empty;
                     if (val !== undefined) {
                         valStr = "=" + this.EncodeURIMethod(val);
                     }
-                    stringToSign += "" + (stringToSign.includes("?") ? "&" : "?") + this.EncodeURIMethod(key) + valStr;
+                    stringToSign += "".concat(stringToSign.includes("?") ? "&" : "?").concat(this.EncodeURIMethod(key)).concat(valStr);
                 }
                 return stringToSign;
             },
             enumerable: false,
             configurable: true
         });
-        Object.defineProperty(APIRequestBase.prototype, "FullUrlWithoutSignature", {
+        Object.defineProperty(ApiRequest.prototype, "FullUrlWithoutSignature", {
             /**
              * @since 1.1.17
              * @version 2019-02-20
@@ -13096,7 +15131,7 @@ module.exports = Array.isArray || function (arr) {
             enumerable: false,
             configurable: true
         });
-        Object.defineProperty(APIRequestBase.prototype, "EncodeURIMethod", {
+        Object.defineProperty(ApiRequest.prototype, "EncodeURIMethod", {
             /**
              * @since 1.1.12
              * @version 2018-10-20
@@ -13112,10 +15147,10 @@ module.exports = Array.isArray || function (arr) {
             enumerable: false,
             configurable: true
         });
-        APIRequestBase.Timestamp = "Timestamp";
-        APIRequestBase.SignatureNonce = "SignatureNonce";
-        APIRequestBase.Signature = "Signature";
-        return APIRequestBase;
+        ApiRequest.Timestamp = "Timestamp";
+        ApiRequest.SignatureNonce = "SignatureNonce";
+        ApiRequest.Signature = "Signature";
+        return ApiRequest;
     }());
 
     /********************************************************************
@@ -13124,11 +15159,11 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/FilePath.ts
      * @create:      2018-08-31 08:57:22.369
-     * @modify:      2020-02-18 15:38:03.932
-     * @version:     2.0.4
-     * @times:       23
-     * @lines:       138
-     * @copyright:   Copyright © 2018 Kaven. All Rights Reserved.
+     * @modify:      2021-12-24 12:28:55.861
+     * @version:     4.0.0
+     * @times:       33
+     * @lines:       118
+     * @copyright:   Copyright © 2018-2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
      * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -13155,9 +15190,9 @@ module.exports = Array.isArray || function (arr) {
      */
     var FilePath = /** @class */ (function () {
         function FilePath(folder, name, extension) {
-            if (folder === void 0) { folder = Strings.Empty; }
-            if (name === void 0) { name = Strings.Empty; }
-            if (extension === void 0) { extension = Strings.Empty; }
+            if (folder === void 0) { folder = Strings_Empty; }
+            if (name === void 0) { name = Strings_Empty; }
+            if (extension === void 0) { extension = Strings_Empty; }
             this.Folder = folder;
             this.Name = name;
             this.Extension = extension;
@@ -13176,7 +15211,7 @@ module.exports = Array.isArray || function (arr) {
         });
         Object.defineProperty(FilePath.prototype, "DynamicPath", {
             get: function () {
-                if (this.dynamicPath) {
+                if (this.HasDynamicPath) {
                     return this.dynamicPath;
                 }
                 if (this.GeneratePath) {
@@ -13190,7 +15225,7 @@ module.exports = Array.isArray || function (arr) {
         });
         Object.defineProperty(FilePath.prototype, "NameWithExtension", {
             get: function () {
-                return "" + this.Name + (this.Extension ? "." + this.Extension : Strings.Empty);
+                return "".concat(this.Name).concat(this.Extension ? "." + this.Extension : Strings_Empty);
             },
             set: function (val) {
                 this.Extension = GetFileExtension(val);
@@ -13214,27 +15249,10 @@ module.exports = Array.isArray || function (arr) {
             }
             return clone;
         };
-        FilePath.prototype.TryValid = function () {
-            this.Path = RemoveInvalidCharactersForPath(this.Path);
-            return this;
-        };
-        FilePath.prototype.Reset = function (dynamicPath, extension, name, folder) {
-            if (dynamicPath === void 0) { dynamicPath = true; }
-            if (extension === void 0) { extension = true; }
-            if (name === void 0) { name = true; }
-            if (folder === void 0) { folder = false; }
-            if (dynamicPath) {
-                this.dynamicPath = undefined;
-            }
-            if (extension) {
-                this.Extension = Strings.Empty;
-            }
-            if (name) {
-                this.Name = Strings.Empty;
-            }
-            if (folder) {
-                this.Folder = Strings.Empty;
-            }
+        FilePath.prototype.RemoveInvalidCharacters = function () {
+            this.Name = RemoveInvalidCharactersFromFileName(this.Name);
+            this.Extension = RemoveInvalidCharactersFromFileName(this.Extension);
+            this.Folder = RemoveInvalidCharactersFromPath(this.Folder);
             return this;
         };
         return FilePath;
@@ -13246,11 +15264,11 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/HttpStatusCode.ts
      * @create:      2018-08-30 16:07:29.667
-     * @modify:      2020-06-24 13:32:37.930
-     * @version:     2.0.7
-     * @times:       9
-     * @lines:       358
-     * @copyright:   Copyright © 2018-2020 Kaven. All Rights Reserved.
+     * @modify:      2022-04-23 08:10:40.589
+     * @version:     4.0.1
+     * @times:       18
+     * @lines:       440
+     * @copyright:   Copyright © 2018-2022 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
      * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -13272,330 +15290,412 @@ module.exports = Array.isArray || function (arr) {
      * SOFTWARE.
      ********************************************************************/
     /**
-     * @version 2020-06-24
+     * Contains the values of status codes defined for HTTP.
      * @since 1.0.5
+     * @version 2022-04-23
      */
     exports.HttpStatusCode = void 0;
     (function (HttpStatusCode) {
         /**
-         * 100: Continue
+         * Equivalent to HTTP status 100.
          *
-         * indicates that the client can continue with its request.
+         * Indicates that the client can continue with its request.
          */
         HttpStatusCode[HttpStatusCode["Continue"] = 100] = "Continue";
         /**
-         * 101: SwitchingProtocols
+         * Equivalent to HTTP status 101.
          *
-         * indicates that the protocol version or protocol is being changed.
+         * Indicates that the protocol version or protocol is being changed.
          */
         HttpStatusCode[HttpStatusCode["SwitchingProtocols"] = 101] = "SwitchingProtocols";
         /**
-         * 200: OK
+         * Equivalent to HTTP status 102.
          *
-         * indicates that the request succeeded and that the requested information is in the response. This
-         * is the most common status code to receive.
+         * Indicates that the server has accepted the complete request but hasn't completed it yet.
+         */
+        HttpStatusCode[HttpStatusCode["Processing"] = 102] = "Processing";
+        /**
+         * Equivalent to HTTP status 103.
+         *
+         * Indicates to the client that the server is likely to send a final response with the header fields included in the informational response.
+         */
+        HttpStatusCode[HttpStatusCode["EarlyHints"] = 103] = "EarlyHints";
+        /**
+         * Equivalent to HTTP status 200.
+         *
+         * Indicates that the request succeeded and that the requested information is in the response. This is the most common status code to receive.
          */
         HttpStatusCode[HttpStatusCode["OK"] = 200] = "OK";
         /**
-         * 201: Created
+         * Equivalent to HTTP status 201.
          *
-         * indicates that the request resulted in a new resource created before the response was sent.
+         * Indicates that the request resulted in a new resource created before the response was sent.
          */
         HttpStatusCode[HttpStatusCode["Created"] = 201] = "Created";
         /**
-         * 202: Accepted
+         * Equivalent to HTTP status 202.
          *
-         * indicates that the request has been accepted for further processing.
+         * Indicates that the request has been accepted for further processing.
          */
         HttpStatusCode[HttpStatusCode["Accepted"] = 202] = "Accepted";
         /**
-         * 203: NonAuthoritativeInformation
+         * Equivalent to HTTP status 203.
          *
-         * indicates that the returned metainformation is from a cached copy instead of
-         * the origin server and therefore may be incorrect.
+         * Indicates that the returned meta information is from a cached copy instead of the origin server and therefore may be incorrect.
          */
         HttpStatusCode[HttpStatusCode["NonAuthoritativeInformation"] = 203] = "NonAuthoritativeInformation";
         /**
-         * 204: NoContent
+         * Equivalent to HTTP status 204.
          *
-         * indicates that the request has been successfully processed and that the response is intentionally
-         * blank.
+         * Indicates that the request has been successfully processed and that the response is intentionally blank.
          */
         HttpStatusCode[HttpStatusCode["NoContent"] = 204] = "NoContent";
         /**
-         * 205: ResetContent
+         * Equivalent to HTTP status 205.
          *
-         * indicates that the client should reset (not reload) the current resource.
+         * Indicates that the client should reset (not reload) the current resource.
          */
         HttpStatusCode[HttpStatusCode["ResetContent"] = 205] = "ResetContent";
         /**
-         * 206: PartialContent
+         * Equivalent to HTTP status 206.
          *
-         * indicates that the response is a partial response as requested by a GET request that includes
-         * a byte range.
+         * Indicates that the response is a partial response as requested by a GET request that includes a byte range.
          */
         HttpStatusCode[HttpStatusCode["PartialContent"] = 206] = "PartialContent";
         /**
-         * 300: MultipleChoices
+         * Equivalent to HTTP status 207.
          *
-         * indicates that the requested information has multiple representations. The default action
-         * is to treat this status as a redirect and follow the contents of the Location
-         * header associated with this response.
+         * Indicates multiple status codes for a single response during a Web Distributed Authoring and Versioning (WebDAV) operation. The response body contains XML that describes the status codes.
          */
-        HttpStatusCode[HttpStatusCode["MultipleChoices"] = 300] = "MultipleChoices";
+        HttpStatusCode[HttpStatusCode["MultiStatus"] = 207] = "MultiStatus";
         /**
-         * 300: Ambiguous
+         * Equivalent to HTTP status 208.
          *
-         * indicates that the requested information has multiple representations. The default action
-         * is to treat this status as a redirect and follow the contents of the Location
-         * header associated with this response.
+         * Indicates that the members of a WebDAV binding have already been enumerated in a preceding part of the multistatus response, and are not being included again.
+         */
+        HttpStatusCode[HttpStatusCode["AlreadyReported"] = 208] = "AlreadyReported";
+        /**
+         * Equivalent to HTTP status 226.
+         *
+         * Indicates that the server has fulfilled a request for the resource, and the response is a representation of the result of one or more instance-manipulations applied to the current instance.
+         */
+        HttpStatusCode[HttpStatusCode["IMUsed"] = 226] = "IMUsed";
+        /**
+         * Equivalent to HTTP status 300.
+         *
+         * Indicates that the requested information has multiple representations. The default action is to treat this status as a redirect and follow the contents of the Location header associated with this response. Ambiguous is a synonym for MultipleChoices.
          */
         HttpStatusCode[HttpStatusCode["Ambiguous"] = 300] = "Ambiguous";
         /**
-         * 301: MovedPermanently
+         * Equivalent to HTTP status 300.
          *
-         * indicates that the requested information has been moved to the URI specified in the Location
-         * header. The default action when this status is received is to follow the Location
-         * header associated with the response.
+         * Indicates that the requested information has multiple representations. The default action is to treat this status as a redirect and follow the contents of the Location header associated with this response. MultipleChoices is a synonym for Ambiguous.
          */
-        HttpStatusCode[HttpStatusCode["MovedPermanently"] = 301] = "MovedPermanently";
+        HttpStatusCode[HttpStatusCode["MultipleChoices"] = 300] = "MultipleChoices";
         /**
-         * 301: Moved
+         * Equivalent to HTTP status 301.
          *
-         * indicates that the requested information has been moved to the URI specified in the Location
-         * header. The default action when this status is received is to follow the Location
-         * header associated with the response. When the original request method was POST,
-         * the redirected request will use the GET method.
+         * Indicates that the requested information has been moved to the URI specified in the Location header. The default action when this status is received is to follow the Location header associated with the response. When the original request method was POST, the redirected request will use the GET method. Moved is a synonym for MovedPermanently.
          */
         HttpStatusCode[HttpStatusCode["Moved"] = 301] = "Moved";
         /**
-         * 302: Found
+         * Equivalent to HTTP status 301.
          *
-         * indicates that the requested information is located at the URI specified in the Location header.
-         * The default action when this status is received is to follow the Location header
-         * associated with the response. When the original request method was POST, the
-         * redirected request will use the GET method.
+         * Indicates that the requested information has been moved to the URI specified in the Location header. The default action when this status is received is to follow the Location header associated with the response. MovedPermanently is a synonym for Moved.
+         */
+        HttpStatusCode[HttpStatusCode["MovedPermanently"] = 301] = "MovedPermanently";
+        /**
+         * Equivalent to HTTP status 302.
+         *
+         * Indicates that the requested information is located at the URI specified in the Location header. The default action when this status is received is to follow the Location header associated with the response. When the original request method was POST, the redirected request will use the GET method. Found is a synonym for Redirect.
          */
         HttpStatusCode[HttpStatusCode["Found"] = 302] = "Found";
         /**
-         * 302: Redirect
+         * Equivalent to HTTP status 302.
          *
-         * indicates that the requested information is located at the URI specified in the Location header.
-         * The default action when this status is received is to follow the Location header
-         * associated with the response. When the original request method was POST, the
-         * redirected request will use the GET method.
+         * Indicates that the requested information is located at the URI specified in the Location header. The default action when this status is received is to follow the Location header associated with the response. When the original request method was POST, the redirected request will use the GET method. Redirect is a synonym for Found.
          */
         HttpStatusCode[HttpStatusCode["Redirect"] = 302] = "Redirect";
         /**
-         * 303: SeeOther
+         * Equivalent to HTTP status 303.
          *
-         * automatically redirects the client to the URI specified in the Location header as the result
-         * of a POST. The request to the resource specified by the Location header will
-         * be made with a GET.
-         */
-        HttpStatusCode[HttpStatusCode["SeeOther"] = 303] = "SeeOther";
-        /**
-         * 303: RedirectMethod
-         *
-         * automatically redirects the client to the URI specified in the Location header as the result
-         * of a POST. The request to the resource specified by the Location header will
-         * be made with a GET.
+         * IEquivalent to HTTP status 303. System.Net.HttpStatusCode.RedirectMethod automatically redirects the client to the URI specified in the Location header as the result of a POST. The request to the resource specified by the Location header will be made with a GET. RedirectMethod is a synonym for SeeOther.
          */
         HttpStatusCode[HttpStatusCode["RedirectMethod"] = 303] = "RedirectMethod";
         /**
-         * 304: NotModified
+         * Equivalent to HTTP status 303.
          *
-         * indicates that the client's cached copy is up to date. The contents of the resource are
-         * not transferred.
+         * IEquivalent to HTTP status 303. System.Net.HttpStatusCode.SeeOther automatically redirects the client to the URI specified in the Location header as the result of a POST. The request to the resource specified by the Location header will be made with a GET. SeeOther is a synonym for RedirectMethod.
+         */
+        HttpStatusCode[HttpStatusCode["SeeOther"] = 303] = "SeeOther";
+        /**
+         * Equivalent to HTTP status 304.
+         *
+         * Indicates that the client's cached copy is up to date. The contents of the resource are not transferred.
          */
         HttpStatusCode[HttpStatusCode["NotModified"] = 304] = "NotModified";
         /**
-         * 305: UseProxy
+         * Equivalent to HTTP status 305.
          *
-         * indicates that the request should use the proxy server at the URI specified in the Location
-         * header.
+         * Indicates that the request should use the proxy server at the URI specified in the Location header.
          */
         HttpStatusCode[HttpStatusCode["UseProxy"] = 305] = "UseProxy";
         /**
-         * 306: Unused
+         * Equivalent to HTTP status 306.
          *
-         * is a proposed extension to the HTTP/1.1 specification that is not fully specified.
+         * IEquivalent to HTTP status 306. System.Net.HttpStatusCode.Unused is a proposed extension to the HTTP/1.1 specification that is not fully specified.
          */
         HttpStatusCode[HttpStatusCode["Unused"] = 306] = "Unused";
         /**
-         * 307: TemporaryRedirect
+         * Equivalent to HTTP status 307.
          *
-         * indicates that the request information is located at the URI specified in the Location
-         * header. The default action when this status is received is to follow the Location
-         * header associated with the response. When the original request method was POST,
-         * the redirected request will also use the POST method.
-         */
-        HttpStatusCode[HttpStatusCode["TemporaryRedirect"] = 307] = "TemporaryRedirect";
-        /**
-         * 307: RedirectKeepVerb
-         *
-         * indicates that the request information is located at the URI specified in the Location
-         * header. The default action when this status is received is to follow the Location
-         * header associated with the response. When the original request method was POST,
-         * the redirected request will also use the POST method.
+         * Indicates that the request information is located at the URI specified in the Location header. The default action when this status is received is to follow the Location header associated with the response. When the original request method was POST, the redirected request will also use the POST method. RedirectKeepVerb is a synonym for TemporaryRedirect.
          */
         HttpStatusCode[HttpStatusCode["RedirectKeepVerb"] = 307] = "RedirectKeepVerb";
         /**
-         * 400: BadRequest
+         * Equivalent to HTTP status 307.
          *
-         * indicates that the request could not be understood by the server: BadRequest
-         * is sent when no other error is applicable, or if the exact error is unknown or
-         * does not have its own error code.
+         * Indicates that the request information is located at the URI specified in the Location header. The default action when this status is received is to follow the Location header associated with the response. When the original request method was POST, the redirected request will also use the POST method. TemporaryRedirect is a synonym for RedirectKeepVerb.
+         */
+        HttpStatusCode[HttpStatusCode["TemporaryRedirect"] = 307] = "TemporaryRedirect";
+        /**
+         * Equivalent to HTTP status 308.
+         *
+         * Indicates that the request information is located at the URI specified in the Location header. The default action when this status is received is to follow the Location header associated with the response. When the original request method was POST, the redirected request will also use the POST method.
+         */
+        HttpStatusCode[HttpStatusCode["PermanentRedirect"] = 308] = "PermanentRedirect";
+        /**
+         * Equivalent to HTTP status 400.
+         *
+         * Indicates that the request could not be understood by the server. System.Net.HttpStatusCode.BadRequest is sent when no other error is applicable, or if the exact error is unknown or does not have its own error code.
          */
         HttpStatusCode[HttpStatusCode["BadRequest"] = 400] = "BadRequest";
         /**
-         * 401: Unauthorized
+         * Equivalent to HTTP status 401.
          *
-         * indicates that the requested resource requires authentication. The WWW-Authenticate header
-         * contains the details of how to perform the authentication.
+         * Indicates that the requested resource requires authentication. The WWW-Authenticate header contains the details of how to perform the authentication.
          */
         HttpStatusCode[HttpStatusCode["Unauthorized"] = 401] = "Unauthorized";
         /**
-         * 402: PaymentRequired
+         * Equivalent to HTTP status 402.
          *
-         * is reserved for future use.
+         * IEquivalent to HTTP status 402. System.Net.HttpStatusCode.PaymentRequired is reserved for future use.
          */
         HttpStatusCode[HttpStatusCode["PaymentRequired"] = 402] = "PaymentRequired";
         /**
-         * 403: Forbidden
+         * Equivalent to HTTP status 403.
          *
-         * indicates that the server refuses to fulfill the request.
+         * Indicates that the server refuses to fulfill the request.
          */
         HttpStatusCode[HttpStatusCode["Forbidden"] = 403] = "Forbidden";
         /**
-         * 404: NotFound
+         * Equivalent to HTTP status 404.
          *
-         * indicates that the requested resource does not exist on the server.
+         * Indicates that the requested resource does not exist on the server.
          */
         HttpStatusCode[HttpStatusCode["NotFound"] = 404] = "NotFound";
         /**
-         * 405: MethodNotAllowed
+         * Equivalent to HTTP status 405.
          *
-         * indicates that the request method (POST or GET) is not allowed on the requested resource.
+         * Indicates that the request method (POST or GET) is not allowed on the requested resource.
          */
         HttpStatusCode[HttpStatusCode["MethodNotAllowed"] = 405] = "MethodNotAllowed";
         /**
-         * 406: NotAcceptable
+         * Equivalent to HTTP status 406.
          *
-         * indicates that the client has indicated with Accept headers that it will not accept any
-         * of the available representations of the resource.
+         * Indicates that the client has indicated with Accept headers that it will not accept any of the available representations of the resource.
          */
         HttpStatusCode[HttpStatusCode["NotAcceptable"] = 406] = "NotAcceptable";
         /**
-         * 407: ProxyAuthenticationRequired
+         * Equivalent to HTTP status 407.
          *
-         * indicates that the requested proxy requires authentication. The Proxy-authenticate
-         * header contains the details of how to perform the authentication.
+         * Indicates that the requested proxy requires authentication. The Proxy-authenticate header contains the details of how to perform the authentication.
          */
         HttpStatusCode[HttpStatusCode["ProxyAuthenticationRequired"] = 407] = "ProxyAuthenticationRequired";
         /**
-         * 408: RequestTimeout
+         * Equivalent to HTTP status 408.
          *
-         * indicates that the client did not send a request within the time the server was expecting
-         * the request.
+         * Indicates that the client did not send a request within the time the server was expecting the request.
          */
         HttpStatusCode[HttpStatusCode["RequestTimeout"] = 408] = "RequestTimeout";
         /**
-         * 409: Conflict
+         * Equivalent to HTTP status 409.
          *
-         * indicates that the request could not be carried out because of a conflict on the server.
+         * Indicates that the request could not be carried out because of a conflict on the server.
          */
         HttpStatusCode[HttpStatusCode["Conflict"] = 409] = "Conflict";
         /**
-         * 410: Gone
+         * Equivalent to HTTP status 410.
          *
-         * indicates that the requested resource is no longer available.
+         * Indicates that the requested resource is no longer available.
          */
         HttpStatusCode[HttpStatusCode["Gone"] = 410] = "Gone";
         /**
-         * 411: LengthRequired
+         * Equivalent to HTTP status 411.
          *
-         * indicates that the required Content-length header is missing.
+         * Indicates that the required Content-length header is missing.
          */
         HttpStatusCode[HttpStatusCode["LengthRequired"] = 411] = "LengthRequired";
         /**
-         * 412: PreconditionFailed
+         * Equivalent to HTTP status 412.
          *
-         * indicates that a condition set for this request failed, and the request cannot be carried
-         * out. Conditions are set with conditional request headers like If-Match, If-None-Match,
-         * or If-Unmodified-Since.
+         * Indicates that a condition set for this request failed, and the request cannot be carried out. Conditions are set with conditional request headers like If-Match, If-None-Match, or If-Unmodified-Since.
          */
         HttpStatusCode[HttpStatusCode["PreconditionFailed"] = 412] = "PreconditionFailed";
         /**
-         * 413: RequestEntityTooLarge
+         * Equivalent to HTTP status 413.
          *
-         * indicates that the request is too large for the server to process.
+         * Indicates that the request is too large for the server to process.
          */
         HttpStatusCode[HttpStatusCode["RequestEntityTooLarge"] = 413] = "RequestEntityTooLarge";
         /**
-         * 414: RequestUriTooLong
+         * Equivalent to HTTP status 414.
          *
-         * indicates that the URI is too long.
+         * Indicates that the URI is too long.
          */
         HttpStatusCode[HttpStatusCode["RequestUriTooLong"] = 414] = "RequestUriTooLong";
         /**
-         * 415: UnsupportedMediaType
+         * Equivalent to HTTP status 415.
          *
-         * indicates that the request is an unsupported type.
+         * Indicates that the request is an unsupported type.
          */
         HttpStatusCode[HttpStatusCode["UnsupportedMediaType"] = 415] = "UnsupportedMediaType";
         /**
-         * 416: RequestedRangeNotSatisfiable
+         * Equivalent to HTTP status 416.
          *
-         * indicates that the range of data requested from the resource cannot be returned,
-         * either because the beginning of the range is before the beginning of the resource,
-         * or the end of the range is after the end of the resource.
+         * Indicates that the range of data requested from the resource cannot be returned, either because the beginning of the range is before the beginning of the resource, or the end of the range is after the end of the resource.
          */
         HttpStatusCode[HttpStatusCode["RequestedRangeNotSatisfiable"] = 416] = "RequestedRangeNotSatisfiable";
         /**
-         * 417: ExpectationFailed
+         * Equivalent to HTTP status 417.
          *
-         * indicates that an expectation given in an Expect header could not be met by the server.
+         * Indicates that an expectation given in an Expect header could not be met by the server.
          */
         HttpStatusCode[HttpStatusCode["ExpectationFailed"] = 417] = "ExpectationFailed";
         /**
-         * 500: InternalServerError
+         * RFC 2324, RFC 7168
+         */
+        HttpStatusCode[HttpStatusCode["ImATeapot"] = 418] = "ImATeapot";
+        /**
+         * Equivalent to HTTP status 421.
          *
-         * indicates that a generic error has occurred on the server.
+         * Indicates that the request was directed at a server that is not able to produce a response.
+         */
+        HttpStatusCode[HttpStatusCode["MisdirectedRequest"] = 421] = "MisdirectedRequest";
+        /**
+         * Equivalent to HTTP status 422.
+         *
+         * Indicates that the request was well-formed but was unable to be followed due to semantic errors.
+         */
+        HttpStatusCode[HttpStatusCode["UnprocessableEntity"] = 422] = "UnprocessableEntity";
+        /**
+         * Equivalent to HTTP status 423.
+         *
+         * Indicates that the source or destination resource is locked.
+         */
+        HttpStatusCode[HttpStatusCode["Locked"] = 423] = "Locked";
+        /**
+         * Equivalent to HTTP status 424.
+         *
+         * Indicates that the method couldn't be performed on the resource because the requested action depended on another action and that action failed.
+         */
+        HttpStatusCode[HttpStatusCode["FailedDependency"] = 424] = "FailedDependency";
+        /**
+         * Equivalent to HTTP status 426.
+         *
+         * Indicates that the client should switch to a different protocol such as TLS/1.0.
+         */
+        HttpStatusCode[HttpStatusCode["UpgradeRequired"] = 426] = "UpgradeRequired";
+        /**
+         * Equivalent to HTTP status 428.
+         *
+         * Indicates that the server requires the request to be conditional.
+         */
+        HttpStatusCode[HttpStatusCode["PreconditionRequired"] = 428] = "PreconditionRequired";
+        /**
+         * Equivalent to HTTP status 429.
+         *
+         * Indicates that the user has sent too many requests in a given amount of time.
+         */
+        HttpStatusCode[HttpStatusCode["TooManyRequests"] = 429] = "TooManyRequests";
+        /**
+         * Equivalent to HTTP status 431.
+         *
+         * Indicates that the server is unwilling to process the request because its header fields (either an individual header field or all the header fields collectively) are too large.
+         */
+        HttpStatusCode[HttpStatusCode["RequestHeaderFieldsTooLarge"] = 431] = "RequestHeaderFieldsTooLarge";
+        /**
+         * Equivalent to HTTP status 451.
+         *
+         * Indicates that the server is denying access to the resource as a consequence of a legal demand.
+         */
+        HttpStatusCode[HttpStatusCode["UnavailableForLegalReasons"] = 451] = "UnavailableForLegalReasons";
+        /**
+         * Equivalent to HTTP status 500.
+         *
+         * Indicates that a generic error has occurred on the server.
          */
         HttpStatusCode[HttpStatusCode["InternalServerError"] = 500] = "InternalServerError";
         /**
-         * 501: NotImplemented
+         * Equivalent to HTTP status 501.
          *
-         * indicates that the server does not support the requested function.
+         * Indicates that the server does not support the requested function.
          */
         HttpStatusCode[HttpStatusCode["NotImplemented"] = 501] = "NotImplemented";
         /**
-         * 502: BadGateway
+         * Equivalent to HTTP status 502.
          *
-         * indicates that an intermediate proxy server received a bad response from another proxy
-         * or the origin server.
+         * Indicates that an intermediate proxy server received a bad response from another proxy or the origin server.
          */
         HttpStatusCode[HttpStatusCode["BadGateway"] = 502] = "BadGateway";
         /**
-         * 503: ServiceUnavailable
+         * Equivalent to HTTP status 503.
          *
-         * indicates that the server is temporarily unavailable, usually due to high load or maintenance.
+         * Indicates that the server is temporarily unavailable, usually due to high load or maintenance.
          */
         HttpStatusCode[HttpStatusCode["ServiceUnavailable"] = 503] = "ServiceUnavailable";
         /**
-         * 504: GatewayTimeout
+         * Equivalent to HTTP status 504.
          *
-         * indicates that an intermediate proxy server timed out while waiting for a response from
-         * another proxy or the origin server.
+         * Indicates that an intermediate proxy server timed out while waiting for a response from another proxy or the origin server.
          */
         HttpStatusCode[HttpStatusCode["GatewayTimeout"] = 504] = "GatewayTimeout";
         /**
-         * 505: HttpVersionNotSupported
+         * Equivalent to HTTP status 505.
          *
-         * indicates that the requested HTTP version is not supported by the server.
+         * Indicates that the requested HTTP version is not supported by the server.
          */
         HttpStatusCode[HttpStatusCode["HttpVersionNotSupported"] = 505] = "HttpVersionNotSupported";
+        /**
+         * Equivalent to HTTP status 506.
+         *
+         * Indicates that the chosen variant resource is configured to engage in transparent content negotiation itself and, therefore, isn't a proper endpoint in the negotiation process.
+         */
+        HttpStatusCode[HttpStatusCode["VariantAlsoNegotiates"] = 506] = "VariantAlsoNegotiates";
+        /**
+         * Equivalent to HTTP status 507.
+         *
+         * Indicates that the server is unable to store the representation needed to complete the request.
+         */
+        HttpStatusCode[HttpStatusCode["InsufficientStorage"] = 507] = "InsufficientStorage";
+        /**
+         * Equivalent to HTTP status 508.
+         *
+         * Indicates that the server terminated an operation because it encountered an infinite loop while processing a WebDAV request with "Depth: infinity". This status code is meant for backward compatibility with clients not aware of the 208 status code System.Net.HttpStatusCode.AlreadyReported appearing in multistatus response bodies.
+         */
+        HttpStatusCode[HttpStatusCode["LoopDetected"] = 508] = "LoopDetected";
+        /**
+         * Equivalent to HTTP status 510.
+         *
+         * Indicates that further extensions to the request are required for the server to fulfill it.
+         */
+        HttpStatusCode[HttpStatusCode["NotExtended"] = 510] = "NotExtended";
+        /**
+         * Equivalent to HTTP status 511.
+         *
+         * Indicates that the client needs to authenticate to gain network access; it's intended for use by intercepting proxies used to control access to the network.
+         */
+        HttpStatusCode[HttpStatusCode["NetworkAuthenticationRequired"] = 511] = "NetworkAuthenticationRequired";
     })(exports.HttpStatusCode || (exports.HttpStatusCode = {}));
 
     /********************************************************************
@@ -13604,11 +15704,11 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/MailConfigBase.ts
      * @create:      2018-08-30 16:08:42.086
-     * @modify:      2020-02-18 15:38:03.942
-     * @version:     2.0.4
-     * @times:       7
-     * @lines:       115
-     * @copyright:   Copyright © 2018 Kaven. All Rights Reserved.
+     * @modify:      2021-12-10 21:44:23.177
+     * @version:     4.0.0
+     * @times:       9
+     * @lines:       92
+     * @copyright:   Copyright © 2018-2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
      * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -13651,27 +15751,6 @@ module.exports = Array.isArray || function (arr) {
             this.User = user;
             this.Password = password;
         }
-        /**
-         * ("Kaven", "kaven@wuwenkai.com") => "Kaven <kaven@wuwenkai.com>"
-         * @param name
-         * @param address
-         * @version 2018-08-18 09:02:18.666
-         * @since 1.1.5
-         */
-        MailConfigBase.GetEmailAddressWithName = function (name, address) {
-            return name + " <" + address + ">";
-        };
-        /**
-         *
-         * @param email
-         * @version 2018-08-18 11:17:57.048
-         * @since 1.1.5
-         * @see https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript#
-         */
-        MailConfigBase.IsEmailAddressValid = function (email, unicode) {
-            if (unicode === void 0) { unicode = false; }
-            return IsEmailAddressValid(email, unicode);
-        };
         return MailConfigBase;
     }());
 
@@ -13681,11 +15760,11 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/MailOption.ts
      * @create:      2018-08-30 16:08:45.227
-     * @modify:      2020-02-18 15:38:03.943
-     * @version:     2.0.4
-     * @times:       6
+     * @modify:      2021-12-10 21:44:23.176
+     * @version:     4.0.0
+     * @times:       7
      * @lines:       92
-     * @copyright:   Copyright © 2018 Kaven. All Rights Reserved.
+     * @copyright:   Copyright © 2018-2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
      * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -13735,48 +15814,144 @@ module.exports = Array.isArray || function (arr) {
      * @author:      Kaven
      * @email:       kaven@wuwenkai.com
      * @website:     http://blog.kaven.xyz
-     * @file:        [Kaven-Basic] /src/libs/MemoryCache.ts
-     * @create:      2018-08-30 16:11:07.791
-     * @modify:      2020-06-02 13:59:43.813
-     * @version:     2.0.6
-     * @times:       6
-     * @lines:       53
-     * @copyright:   Copyright © 2018-2020 Kaven. All Rights Reserved.
+     * @file:        [Kaven-Basic] /src/libs/Strings.HttpHeader.ts
+     * @create:      2022-04-19 13:30:53.811
+     * @modify:      2022-04-22 15:24:24.220
+     * @version:     4.0.1
+     * @times:       13
+     * @lines:       150
+     * @copyright:   Copyright © 2022 Kaven. All Rights Reserved.
      * @description: [description]
-     * @license:
-     * Permission is hereby granted, free of charge, to any person obtaining a copy
-     * of this software and associated documentation files (the "Software"), to deal
-     * in the Software without restriction, including without limitation the rights
-     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-     * copies of the Software, and to permit persons to whom the Software is
-     * furnished to do so, subject to the following conditions:
-     *
-     * The above copyright notice and this permission notice shall be included in all
-     * copies or substantial portions of the Software.
-     *
-     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-     * SOFTWARE.
+     * @license:     [license]
+     * @see:         https://en.wikipedia.org/wiki/List_of_HTTP_header_fields
      ********************************************************************/
-    /**
-     * @version 1.0.0
-     * @since 1.0.5
-     */
-    var MemoryCache = /** @class */ (function () {
-        function MemoryCache(name, value, absoluteExpiration) {
-            this.name = name;
-            this.value = value;
-            this.absoluteExpiration = absoluteExpiration;
-        }
-        MemoryCache.prototype.IsExpired = function () {
-            return this.absoluteExpiration < new Date();
-        };
-        return MemoryCache;
-    }());
+    // Standard request fields
+    var HttpStandardRequestHeader_AIm = "A-IM";
+    var HttpStandardRequestHeader_Accept = "Accept";
+    var HttpStandardRequestHeader_AcceptCharset = "Accept-Charset";
+    var HttpStandardRequestHeader_AcceptDatetime = "Accept-Datetime";
+    var HttpStandardRequestHeader_AcceptEncoding = "Accept-Encoding";
+    var HttpStandardRequestHeader_AcceptLanguage = "Accept-Language";
+    var HttpStandardRequestHeader_AccessControlRequestMethod = "Access-Control-Request-Method";
+    var HttpStandardRequestHeader_AccessControlRequestHeaders = "Access-Control-Request-Headers";
+    var HttpStandardRequestHeader_Authorization = "Authorization";
+    var HttpStandardRequestHeader_CacheControl = "Cache-Control";
+    var HttpStandardRequestHeader_Connection = "Connection";
+    var HttpStandardRequestHeader_ContentEncoding = "Content-Encoding";
+    var HttpStandardRequestHeader_ContentLength = "Content-Length";
+    var HttpStandardRequestHeader_ContentMd5 = "Content-MD5";
+    var HttpStandardRequestHeader_ContentType = "Content-Type";
+    var HttpStandardRequestHeader_Cookie = "Cookie";
+    var HttpStandardRequestHeader_Date = "Date";
+    var HttpStandardRequestHeader_Expect = "Expect";
+    var HttpStandardRequestHeader_Forwarded = "Forwarded";
+    var HttpStandardRequestHeader_From = "From";
+    var HttpStandardRequestHeader_Host = "Host";
+    var HttpStandardRequestHeader_Http2Settings = "HTTP2-Settings";
+    var HttpStandardRequestHeader_IfMatch = "If-Match";
+    var HttpStandardRequestHeader_IfModifiedSince = "If-Modified-Since";
+    var HttpStandardRequestHeader_IfNoneMatch = "If-None-Match";
+    var HttpStandardRequestHeader_IfRange = "If-Range";
+    var HttpStandardRequestHeader_IfUnmodifiedSince = "If-Unmodified-Since";
+    var HttpStandardRequestHeader_MaxForwards = "Max-Forwards";
+    var HttpStandardRequestHeader_Origin = "Origin";
+    var HttpStandardRequestHeader_Pragma = "Pragma";
+    var HttpStandardRequestHeader_Prefer = "Prefer";
+    var HttpStandardRequestHeader_ProxyAuthorization = "Proxy-Authorization";
+    var HttpStandardRequestHeader_Range = "Range";
+    var HttpStandardRequestHeader_Referer = "Referer";
+    var HttpStandardRequestHeader_Te = "TE";
+    var HttpStandardRequestHeader_Trailer = "Trailer";
+    var HttpStandardRequestHeader_TransferEncoding = "Transfer-Encoding";
+    var HttpStandardRequestHeader_UserAgent = "User-Agent";
+    var HttpStandardRequestHeader_Upgrade = "Upgrade";
+    var HttpStandardRequestHeader_Via = "Via";
+    var HttpStandardRequestHeader_Warning = "Warning";
+    // Common non-standard request fields
+    var HttpRequestHeader_UpgradeInsecureRequests = "Upgrade-Insecure-Requests";
+    var HttpRequestHeader_XRequestedWith = "X-Requested-With";
+    var HttpRequestHeader_Dnt = "DNT";
+    var HttpRequestHeader_XForwardedFor = "X-Forwarded-For";
+    var HttpRequestHeader_XForwardedHost = "X-Forwarded-Host";
+    var HttpRequestHeader_XForwardedProto = "X-Forwarded-Proto";
+    var HttpRequestHeader_FrontEndHttps = "Front-End-Https";
+    var HttpRequestHeader_XHttpMethodOverride = "X-Http-Method-Override";
+    var HttpRequestHeader_XAttDeviceId = "X-ATT-DeviceId";
+    var HttpRequestHeader_XWapProfile = "X-Wap-Profile";
+    var HttpRequestHeader_ProxyConnection = "Proxy-Connection";
+    var HttpRequestHeader_XUidh = "X-UIDH";
+    var HttpRequestHeader_XCsrfToken = "X-Csrf-Token";
+    var HttpRequestHeader_XRequestId = "X-Request-ID";
+    var HttpRequestHeader_XCorrelationId = "X-Correlation-ID";
+    var HttpRequestHeader_SaveData = "Save-Data";
+    // Standard response fields
+    var HttpStandardResponseHeader_AcceptCh = "Accept-CH";
+    var HttpStandardResponseHeader_AccessControlAllowOrigin = "Access-Control-Allow-Origin";
+    var HttpStandardResponseHeader_AccessControlAllowCredentials = "Access-Control-Allow-Credentials";
+    var HttpStandardResponseHeader_AccessControlExposeHeaders = "Access-Control-Expose-Headers";
+    var HttpStandardResponseHeader_AccessControlMaxAge = "Access-Control-Max-Age";
+    var HttpStandardResponseHeader_AccessControlAllowMethods = "Access-Control-Allow-Methods";
+    var HttpStandardResponseHeader_AccessControlAllowHeaders = "Access-Control-Allow-Headers";
+    var HttpStandardResponseHeader_AcceptPatch = "Accept-Patch";
+    var HttpStandardResponseHeader_AcceptRanges = "Accept-Ranges";
+    var HttpStandardResponseHeader_Age = "Age";
+    var HttpStandardResponseHeader_Allow = "Allow";
+    var HttpStandardResponseHeader_AltSvc = "Alt-Svc";
+    var HttpStandardResponseHeader_CacheControl = "Cache-Control";
+    var HttpStandardResponseHeader_Connection = "Connection";
+    var HttpStandardResponseHeader_ContentDisposition = "Content-Disposition";
+    var HttpStandardResponseHeader_ContentEncoding = "Content-Encoding";
+    var HttpStandardResponseHeader_ContentLanguage = "Content-Language";
+    var HttpStandardResponseHeader_ContentLength = "Content-Length";
+    var HttpStandardResponseHeader_ContentLocation = "Content-Location";
+    var HttpStandardResponseHeader_ContentMd5 = "Content-MD5";
+    var HttpStandardResponseHeader_ContentRange = "Content-Range";
+    var HttpStandardResponseHeader_ContentType = "Content-Type";
+    var HttpStandardResponseHeader_Date = "Date";
+    var HttpStandardResponseHeader_DeltaBase = "Delta-Base";
+    var HttpStandardResponseHeader_ETag = "ETag";
+    var HttpStandardResponseHeader_Expires = "Expires";
+    var HttpStandardResponseHeader_Im = "IM";
+    var HttpStandardResponseHeader_LastModified = "Last-Modified";
+    var HttpStandardResponseHeader_Link = "Link";
+    var HttpStandardResponseHeader_Location = "Location";
+    var HttpStandardResponseHeader_P3P = "P3P";
+    var HttpStandardResponseHeader_Pragma = "Pragma";
+    var HttpStandardResponseHeader_PreferenceApplied = "Preference-Applied";
+    var HttpStandardResponseHeader_ProxyAuthenticate = "Proxy-Authenticate";
+    var HttpStandardResponseHeader_PublicKeyPins = "Public-Key-Pins";
+    var HttpStandardResponseHeader_RetryAfter = "Retry-After";
+    var HttpStandardResponseHeader_Server = "Server";
+    var HttpStandardResponseHeader_SetCookie = "Set-Cookie";
+    var HttpStandardResponseHeader_StrictTransportSecurity = "Strict-Transport-Security";
+    var HttpStandardResponseHeader_Trailer = "Trailer";
+    var HttpStandardResponseHeader_TransferEncoding = "Transfer-Encoding";
+    var HttpStandardResponseHeader_Tk = "Tk";
+    var HttpStandardResponseHeader_Upgrade = "Upgrade";
+    var HttpStandardResponseHeader_Vary = "Vary";
+    var HttpStandardResponseHeader_Via = "Via";
+    var HttpStandardResponseHeader_Warning = "Warning";
+    var HttpStandardResponseHeader_WwwAuthenticate = "WWW-Authenticate";
+    var HttpStandardResponseHeader_XFrameOptions = "X-Frame-Options";
+    // Common non-standard response fields
+    var HttpResponseHeader_ContentSecurityPolicy = "Content-Security-Policy";
+    var HttpResponseHeader_XContentSecurityPolicy = "X-Content-Security-Policy";
+    var HttpResponseHeader_XWebKitCsp = "X-WebKit-CSP";
+    var HttpResponseHeader_ExpectCt = "Expect-CT";
+    var HttpResponseHeader_Nel = "NEL";
+    var HttpResponseHeader_PermissionsPolicy = "Permissions-Policy";
+    var HttpResponseHeader_Refresh = "Refresh";
+    var HttpResponseHeader_ReportTo = "Report-To";
+    var HttpResponseHeader_Status = "Status";
+    var HttpResponseHeader_TimingAllowOrigin = "Timing-Allow-Origin";
+    var HttpResponseHeader_XContentDuration = "X-Content-Duration";
+    var HttpResponseHeader_XContentTypeOptions = "X-Content-Type-Options";
+    var HttpResponseHeader_XPoweredBy = "X-Powered-By";
+    var HttpResponseHeader_XRedirectBy = "X-Redirect-By";
+    var HttpResponseHeader_XRequestId = "X-Request-ID";
+    var HttpResponseHeader_XCorrelationId = "X-Correlation-ID";
+    var HttpResponseHeader_XUaCompatible = "X-UA-Compatible";
+    var HttpResponseHeader_XXssProtection = "X-XSS-Protection";
 
     /********************************************************************
      * @author:      Kaven
@@ -13784,11 +15959,11 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/KavenLiteEvent.ts
      * @create:      2019-11-15 10:02:57.709
-     * @modify:      2020-06-02 07:07:04.024
-     * @version:     2.0.6
-     * @times:       10
-     * @lines:       71
-     * @copyright:   Copyright © 2019-2020 Kaven. All Rights Reserved.
+     * @modify:      2021-12-16 17:41:41.032
+     * @version:     4.0.0
+     * @times:       11
+     * @lines:       70
+     * @copyright:   Copyright © 2019-2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
      * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -13809,10 +15984,14 @@ module.exports = Array.isArray || function (arr) {
      * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
      * SOFTWARE.
      ********************************************************************/
-    var __spreadArray = (undefined && undefined.__spreadArray) || function (to, from) {
-        for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-            to[j] = from[i];
-        return to;
+    var __spreadArray = (undefined && undefined.__spreadArray) || function (to, from, pack) {
+        if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+            if (ar || !(i in from)) {
+                if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+                ar[i] = from[i];
+            }
+        }
+        return to.concat(ar || Array.prototype.slice.call(from));
     };
     var KavenLiteEvent = /** @class */ (function () {
         function KavenLiteEvent() {
@@ -13829,7 +16008,7 @@ module.exports = Array.isArray || function (arr) {
                 return false;
             }
             var count = 0;
-            for (var _i = 0, _a = __spreadArray([], this.handlers); _i < _a.length; _i++) {
+            for (var _i = 0, _a = __spreadArray([], this.handlers, true); _i < _a.length; _i++) {
                 var h = _a[_i];
                 if (h(data, sender)) {
                     count++;
@@ -13856,11 +16035,11 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/KavenAbstractSocket.ts
      * @create:      2019-11-16 06:51:28.978
-     * @modify:      2020-02-18 15:38:03.933
-     * @version:     2.0.4
-     * @times:       7
+     * @modify:      2021-12-16 17:41:41.022
+     * @version:     4.0.0
+     * @times:       8
      * @lines:       83
-     * @copyright:   Copyright © 2019 Kaven. All Rights Reserved.
+     * @copyright:   Copyright © 2019-2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
      * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -13937,630 +16116,108 @@ module.exports = Array.isArray || function (arr) {
      * @author:      Kaven
      * @email:       kaven@wuwenkai.com
      * @website:     http://blog.kaven.xyz
-     * @file:        [Kaven-Basic] /src/libs/KavenUInt64.ts
-     * @create:      2019-04-11 13:01:36.287
-     * @modify:      2021-01-31 12:46:38.315
-     * @version:     2.0.11
-     * @times:       46
-     * @lines:       180
-     * @copyright:   Copyright © 2019-2021 Kaven. All Rights Reserved.
+     * @file:        [Kaven-Basic] /src/libs/KavenUrl.ts
+     * @create:      2022-04-14 15:56:19.960
+     * @modify:      2022-04-22 21:49:42.298
+     * @version:     4.0.1
+     * @times:       15
+     * @lines:       117
+     * @copyright:   Copyright © 2022 Kaven. All Rights Reserved.
      * @description: [description]
-     * @license:
-     * Permission is hereby granted, free of charge, to any person obtaining a copy
-     * of this software and associated documentation files (the "Software"), to deal
-     * in the Software without restriction, including without limitation the rights
-     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-     * copies of the Software, and to permit persons to whom the Software is
-     * furnished to do so, subject to the following conditions:
-     *
-     * The above copyright notice and this permission notice shall be included in all
-     * copies or substantial portions of the Software.
-     *
-     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-     * SOFTWARE.
+     * @license:     [license]
      ********************************************************************/
-    var KavenUInt64 = /** @class */ (function () {
-        function KavenUInt64(value, radix) {
-            if (radix === void 0) { radix = 16; }
-            this.high = 0;
-            this.low = 0;
-            if (value === undefined) {
-                return;
-            }
-            if (typeof value === "number") {
-                this.low = value;
-            }
-            else {
-                var hl = SplitByN(value, 8);
-                if (hl.length === 2) {
-                    this.high = parseInt(hl[0], radix);
-                    this.low = parseInt(hl[1], radix);
+    // https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_is_a_URL
+    var KavenUrl = /** @class */ (function () {
+        function KavenUrl(url) {
+            this.OriginalUrl = url;
+            if (url.includes("://")) {
+                var u = new URL(url);
+                this.Scheme = u.protocol.TrimEnd(":");
+                this.DomainName = u.hostname;
+                if (u.port.IsNotEmpty()) {
+                    this.Port = Number(u.port);
                 }
                 else {
-                    this.low = parseInt(hl[0], radix);
+                    var protocolPort = [
+                        ["ftp", 21],
+                        ["http", 80],
+                        ["https", 443],
+                        ["ws", 80],
+                        ["wss", 443],
+                    ];
+                    for (var _i = 0, protocolPort_1 = protocolPort; _i < protocolPort_1.length; _i++) {
+                        var item = protocolPort_1[_i];
+                        var protocol = item[0], port = item[1];
+                        if (this.Scheme.toLowerCase() === protocol) {
+                            this.Port = port;
+                            break;
+                        }
+                    }
                 }
+                this.Path = u.pathname;
+                this.Parameters = u.search;
+                this.Anchor = u.hash;
+            }
+            else {
+                var u = new URL("http://" + url);
+                this.DomainName = u.hostname;
+                if (u.port.IsNotEmpty()) {
+                    this.Port = Number(u.port);
+                }
+                this.Path = u.pathname;
+                this.Parameters = u.search;
+                this.Anchor = u.hash;
             }
         }
-        Object.defineProperty(KavenUInt64.prototype, "HEX", {
+        Object.defineProperty(KavenUrl.prototype, "PathAndParameters", {
             get: function () {
-                // this.ToUnit();
-                return Number2Hex(this.high, false) + Number2Hex(this.low, false);
+                var str = "";
+                if (this.Path !== undefined) {
+                    str += this.Path;
+                }
+                if (this.Parameters !== undefined) {
+                    str += this.Parameters;
+                }
+                return str;
             },
             enumerable: false,
             configurable: true
         });
-        KavenUInt64.FromBytes = function () {
-            var bytes = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                bytes[_i] = arguments[_i];
+        KavenUrl.prototype.ToString = function () {
+            var str = "";
+            if (this.Scheme !== undefined) {
+                str = "".concat(this.Scheme, "://");
             }
-            var _a = [0, 0], h = _a[0], l = _a[1];
-            var hl = Split(bytes, 4);
-            if (hl.length === 2) {
-                for (var i = 0; i < hl[0].length; i++) {
-                    l += (hl[0][i] << 8 * i);
-                }
-                for (var i = 0; i < hl[1].length; i++) {
-                    h += (hl[1][i] << 8 * i);
-                }
+            if (this.DomainName !== undefined) {
+                str += this.DomainName;
             }
-            else {
-                for (var i = 0; i < hl[0].length; i++) {
-                    l += (hl[0][i] << 8 * i);
-                }
+            if (this.Port !== undefined) {
+                str += ":".concat(this.Port);
             }
-            return KavenUInt64.FromHighLow(h, l);
+            if (this.Path !== undefined) {
+                str += this.Path;
+            }
+            if (this.Parameters !== undefined) {
+                str += this.Parameters;
+            }
+            if (this.Anchor !== undefined) {
+                str += this.Anchor;
+            }
+            return str;
         };
-        KavenUInt64.FromHighLow = function (high, low) {
-            var result = new KavenUInt64();
-            result.high = high >>> 0;
-            result.low = low >>> 0;
-            return result;
-        };
-        KavenUInt64.Initialize2d = function (x, y) {
-            return new Array(x).fill(new KavenUInt64()).map(function () { return new Array(y).fill(new KavenUInt64()); });
-        };
-        KavenUInt64.prototype.Swap = function () {
-            return KavenUInt64.FromHighLow(this.low.Swap32(), this.high.Swap32());
-        };
-        KavenUInt64.prototype.AND = function (val) {
-            var _a = [0, 0], h = _a[0], l = _a[1];
-            if (typeof val === "number") {
-                l = this.low & val;
-                h = 0;
-            }
-            else {
-                l = this.low & val.low;
-                h = this.high & val.high;
-            }
-            return KavenUInt64.FromHighLow(h, l);
-        };
-        KavenUInt64.prototype.XOR = function (val) {
-            var _a = [0, 0], h = _a[0], l = _a[1];
-            if (typeof val === "number") {
-                l = this.low ^ val;
-            }
-            else {
-                l = this.low ^ val.low;
-                h = this.high ^ val.high;
-            }
-            return KavenUInt64.FromHighLow(h, l);
-        };
-        KavenUInt64.prototype.NOT = function () {
-            return KavenUInt64.FromHighLow(~this.high, ~this.low);
-        };
-        KavenUInt64.prototype.LeftRotate = function (n) {
-            if (n === 0) {
-                return this.Clone();
-            }
-            var _a = [this.low, this.high], h = _a[0], l = _a[1];
-            if (n < 32) {
-                var m = 32 - n;
-                l = this.low << n | this.high >>> m;
-                h = this.high << n | this.low >>> m;
-            }
-            else if (n > 32) {
-                n -= 32;
-                var m = 32 - n;
-                l = this.high << n | this.low >>> m;
-                h = this.low << n | this.high >>> m;
-            }
-            return KavenUInt64.FromHighLow(h, l);
-        };
-        KavenUInt64.prototype.RightRotate = function (n) {
-            if (n === 0) {
-                return this.Clone();
-            }
-            var _a = [this.low, this.low], h = _a[0], l = _a[1];
-            if (n < 32) {
-                var m = 32 - n;
-                l = this.low >>> n | this.high << m;
-                h = this.high >>> n | this.low << m;
-            }
-            else if (n > 32) {
-                n -= 32;
-                var m = 32 - n;
-                l = this.high >>> n | this.low << m;
-                h = this.low >>> n | this.high << m;
-            }
-            return KavenUInt64.FromHighLow(h, l);
-        };
-        KavenUInt64.prototype.Clone = function () {
-            return KavenUInt64.FromHighLow(this.high, this.low);
-        };
-        return KavenUInt64;
+        return KavenUrl;
     }());
 
     /********************************************************************
      * @author:      Kaven
      * @email:       kaven@wuwenkai.com
      * @website:     http://blog.kaven.xyz
-     * @file:        [Kaven-Basic] /src/libs/hashing_algorithms/KavenSHA3.ts
-     * @create:      2019-04-05 22:50:29.192
-     * @modify:      2021-01-31 12:48:25.222
-     * @version:     2.0.11
-     * @times:       137
-     * @lines:       523
-     * @copyright:   Copyright © 2019-2021 Kaven. All Rights Reserved.
-     * @description: [description]
-     * @license:
-     * Permission is hereby granted, free of charge, to any person obtaining a copy
-     * of this software and associated documentation files (the "Software"), to deal
-     * in the Software without restriction, including without limitation the rights
-     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-     * copies of the Software, and to permit persons to whom the Software is
-     * furnished to do so, subject to the following conditions:
-     *
-     * The above copyright notice and this permission notice shall be included in all
-     * copies or substantial portions of the Software.
-     *
-     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-     * SOFTWARE.
-     ********************************************************************/
-    var __awaiter$3 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-        return new (P || (P = Promise))(function (resolve, reject) {
-            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-            step((generator = generator.apply(thisArg, _arguments || [])).next());
-        });
-    };
-    var __generator$3 = (undefined && undefined.__generator) || function (thisArg, body) {
-        var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-        return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-        function verb(n) { return function (v) { return step([n, v]); }; }
-        function step(op) {
-            if (f) throw new TypeError("Generator is already executing.");
-            while (_) try {
-                if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-                if (y = 0, t) op = [op[0] & 2, t.value];
-                switch (op[0]) {
-                    case 0: case 1: t = op; break;
-                    case 4: _.label++; return { value: op[1], done: false };
-                    case 5: _.label++; y = op[1]; op = [0]; continue;
-                    case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                    default:
-                        if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                        if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                        if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                        if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                        if (t[2]) _.ops.pop();
-                        _.trys.pop(); continue;
-                }
-                op = body.call(thisArg, _);
-            } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-            if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-        }
-    };
-    var KavenSHA3 = /** @class */ (function () {
-        function KavenSHA3() {
-        }
-        /**
-         * Keccak-f[b]
-         * @param b b∈{25,50,100,200,400,800,1600} is the width of the permutation.
-         *
-         * The width of the permutation is also the width of the state in the sponge construction.
-         * @see https://keccak.team/keccak_specs_summary.html
-         */
-        KavenSHA3.prototype.KeccakF = function (a, b) {
-            if (b === void 0) { b = 1600; }
-            var n = 24;
-            if (b !== 1600) {
-                // w∈{1,2,4,8,16,32,64}  and b=25w
-                var w = b / 25;
-                // 2l=w
-                var l = w.GetBaseLog(2);
-                // n=12+2l
-                n = 12 + 2 * l;
-            }
-            // for i in 0…n-1
-            for (var i = 0; i < n; i++) {
-                // A = Round[b](A, RC[i])
-                a = this.Round(a, KavenSHA3.RC[i]);
-                // this.PrintState(a);
-            }
-            // return A
-            return a;
-        };
-        /**
-         * Keccak[r,c] sponge function, with parameters capacity c and bitrate r.
-         * @param message
-         * @param r bitrate
-         * @param c capacity
-         * @param xof
-         * @param len message digest output length in bits
-         * @param b
-         */
-        KavenSHA3.prototype.Keccak = function (data, r, c, xof, len, b) {
-            if (xof === void 0) { xof = false; }
-            if (b === void 0) { b = 1600; }
-            return __awaiter$3(this, void 0, void 0, function () {
-                var hexStringLen, paddingBytes, m, q, i, i, S, w, rDividedByW, blockSizeInBytes, blockCount, blocksPerRead, bufferSize, offset, blockIndex, buffer, index, isLastBlock, start, PiData, Pi, x, y, Z, y, x;
-                return __generator$3(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            if (len === undefined) {
-                                len = c / 2; // message digest output length in bits
-                            }
-                            hexStringLen = len / 4;
-                            paddingBytes = [];
-                            m = data.TotalLengthInBytes;
-                            q = r / 8 - (m % (r / 8));
-                            if (xof) {
-                                if (q === 1) {
-                                    // M || 0x9F
-                                    paddingBytes.push(0x9F);
-                                }
-                                else if (q === 2) {
-                                    // M || 0x1F80
-                                    paddingBytes.push(0x1F);
-                                    paddingBytes.push(0x80);
-                                }
-                                else if (q > 2) {
-                                    // M || 0x1F || 0x00 … || 0x80
-                                    paddingBytes.push(0x1F);
-                                    for (i = 0; i < q - 2; i++) {
-                                        paddingBytes.push(0x00);
-                                    }
-                                    paddingBytes.push(0x80);
-                                }
-                            }
-                            else {
-                                if (q === 1) {
-                                    // M || 0x86
-                                    paddingBytes.push(0x86);
-                                }
-                                else if (q === 2) {
-                                    // M || 0x0680
-                                    paddingBytes.push(0x06);
-                                    paddingBytes.push(0x80);
-                                }
-                                else if (q > 2) {
-                                    // M || 0x06 || 0x00 … || 0x80
-                                    paddingBytes.push(0x06);
-                                    for (i = 0; i < q - 2; i++) {
-                                        paddingBytes.push(0x00);
-                                    }
-                                    paddingBytes.push(0x80);
-                                }
-                            }
-                            S = KavenUInt64.Initialize2d(5, 5);
-                            w = b / 25;
-                            rDividedByW = r / w;
-                            blockSizeInBytes = r / 8;
-                            blockCount = (m + paddingBytes.length) / blockSizeInBytes;
-                            blocksPerRead = data.BlocksPerRead || 1024;
-                            bufferSize = blocksPerRead * blockSizeInBytes;
-                            offset = 0;
-                            blockIndex = blocksPerRead;
-                            buffer = [];
-                            index = 0;
-                            _a.label = 1;
-                        case 1:
-                            if (!(index < blockCount)) return [3 /*break*/, 5];
-                            isLastBlock = index === blockCount - 1;
-                            if (!(blockIndex >= blocksPerRead && offset < m)) return [3 /*break*/, 3];
-                            return [4 /*yield*/, data.AcquiredData(offset, bufferSize)];
-                        case 2:
-                            buffer = _a.sent();
-                            offset += buffer.length;
-                            blockIndex = 0;
-                            _a.label = 3;
-                        case 3:
-                            start = blockIndex * blockSizeInBytes;
-                            PiData = buffer.slice(start, start + blockSizeInBytes);
-                            blockIndex++;
-                            if (isLastBlock) {
-                                PiData.push.apply(PiData, paddingBytes);
-                            }
-                            else {
-                                if (PiData.length !== blockSizeInBytes) {
-                                    throw new Error("Invalid length: " + PiData.length + ", index: " + index);
-                                }
-                            }
-                            Pi = Split(PiData, 8, true).map(function (bits) { return KavenUInt64.FromBytes.apply(KavenUInt64, bits); });
-                            if (rDividedByW === 17) {
-                                S[0][0] = S[0][0].XOR(Pi[0]);
-                                S[0][1] = S[0][1].XOR(Pi[5]);
-                                S[0][2] = S[0][2].XOR(Pi[10]);
-                                S[0][3] = S[0][3].XOR(Pi[15]);
-                                S[1][0] = S[1][0].XOR(Pi[1]);
-                                S[1][1] = S[1][1].XOR(Pi[6]);
-                                S[1][2] = S[1][2].XOR(Pi[11]);
-                                S[1][3] = S[1][3].XOR(Pi[16]);
-                                S[2][0] = S[2][0].XOR(Pi[2]);
-                                S[2][1] = S[2][1].XOR(Pi[7]);
-                                S[2][2] = S[2][2].XOR(Pi[12]);
-                                S[3][0] = S[3][0].XOR(Pi[3]);
-                                S[3][1] = S[3][1].XOR(Pi[8]);
-                                S[3][2] = S[3][2].XOR(Pi[13]);
-                                S[4][0] = S[4][0].XOR(Pi[4]);
-                                S[4][1] = S[4][1].XOR(Pi[9]);
-                                S[4][2] = S[4][2].XOR(Pi[14]);
-                            }
-                            else {
-                                // for (x,y) such that x+5*y < r/w
-                                for (x = 0; x < 5; x++) {
-                                    for (y = 0; y < 5; y++) {
-                                        if (x + 5 * y < rDividedByW) {
-                                            // S[x,y] = S[x,y] xor Pi[x+5*y];
-                                            S[x][y] = S[x][y].XOR(Pi[x + 5 * y]);
-                                        }
-                                    }
-                                }
-                            }
-                            // S = Keccak-f[r+c](S);
-                            S = this.KeccakF(S, b);
-                            _a.label = 4;
-                        case 4:
-                            index++;
-                            return [3 /*break*/, 1];
-                        case 5:
-                            Z = Strings.Empty;
-                            while (true) {
-                                // 3.1.3 Converting State Arrays to Strings
-                                /*
-                                    For each integer j such that 0≤ j<5, define the string Plane(j) by
-                    
-                                        Plane(j)= Lane(0, j) || Lane(1, j) || Lane(2, j) || Lane(3, j) || Lane(4, j).
-                                    Then
-                    
-                                        S= Plane(0) || Plane(1) || Plane(2) || Plane(3) || Plane(4).
-                                */
-                                for (y = 0; y < 5; y++) {
-                                    for (x = 0; x < 5; x++) {
-                                        if ((x + 5 * y) < rDividedByW) {
-                                            // Z = Z || S[x,y];
-                                            Z += S[x][y].Swap().HEX;
-                                        }
-                                    }
-                                }
-                                if (Z.length >= hexStringLen) {
-                                    break;
-                                }
-                                S = this.KeccakF(S, b);
-                            }
-                            // #endregion
-                            return [2 /*return*/, Z.slice(0, hexStringLen)];
-                    }
-                });
-            });
-        };
-        KavenSHA3.prototype.Compute224 = function (message) {
-            return this.Keccak(this.ConvertMessage(message), 1152, 448);
-        };
-        KavenSHA3.prototype.Compute256 = function (message) {
-            return this.Keccak(this.ConvertMessage(message), 1088, 512);
-        };
-        KavenSHA3.prototype.Compute384 = function (message) {
-            return this.Keccak(this.ConvertMessage(message), 832, 768);
-        };
-        KavenSHA3.prototype.Compute512 = function (message) {
-            return this.Keccak(this.ConvertMessage(message), 576, 1024);
-        };
-        KavenSHA3.prototype.ComputeSHAKE128 = function (message, len) {
-            return this.Keccak(this.ConvertMessage(message), 1344, 256, true, len);
-        };
-        KavenSHA3.prototype.ComputeSHAKE256 = function (message, len) {
-            return this.Keccak(this.ConvertMessage(message), 1088, 512, true, len);
-        };
-        KavenSHA3.prototype.PrintState = function (state) {
-            var str = state.map(function (x) { return x.map(function (y) { return y.HEX; }).join(", "); }).join(Strings.CR_LF);
-            console.log(Strings.CR_LF + str);
-        };
-        KavenSHA3.prototype.ConvertMessage = function (message) {
-            var _this = this;
-            var data;
-            if (Array.isArray(message)) {
-                data = {
-                    AcquiredData: function (offset, length) { return __awaiter$3(_this, void 0, void 0, function () { return __generator$3(this, function (_a) {
-                        return [2 /*return*/, message.slice(offset, offset + length)];
-                    }); }); },
-                    TotalLengthInBytes: message.length,
-                };
-            }
-            else {
-                data = message;
-            }
-            return data;
-        };
-        KavenSHA3.prototype.Round = function (a, rc) {
-            // const B: KavenUInt64[][] = "0".repeat(25).ToArray().map(p => new KavenUInt64(p)).Split(5);
-            var B = KavenUInt64.Initialize2d(5, 5);
-            var C = new Array(5);
-            var D = new Array(5);
-            /// # θ step, [Keccak §2.3.2]
-            // for x = 0 to 4 do
-            // for (let x = 0; x < 5; x++) {
-            //     // C[x] = A[x,0] xor A[x,1] xor A[x,2] xor A[x,3] xor A[x,4]
-            //     C[x] = a[x][0].XOR(a[x][1]).XOR(a[x][2]).XOR(a[x][3]).XOR(a[x][4]);
-            // }
-            C[0] = a[0][0].XOR(a[0][1]).XOR(a[0][2]).XOR(a[0][3]).XOR(a[0][4]);
-            C[1] = a[1][0].XOR(a[1][1]).XOR(a[1][2]).XOR(a[1][3]).XOR(a[1][4]);
-            C[2] = a[2][0].XOR(a[2][1]).XOR(a[2][2]).XOR(a[2][3]).XOR(a[2][4]);
-            C[3] = a[3][0].XOR(a[3][1]).XOR(a[3][2]).XOR(a[3][3]).XOR(a[3][4]);
-            C[4] = a[4][0].XOR(a[4][1]).XOR(a[4][2]).XOR(a[4][3]).XOR(a[4][4]);
-            // for x = 0 to 4 do
-            // for (let x = 0; x < 5; x++) {
-            //     // D[x] = C[x-1] xor rot(C[x+1],1)
-            //     D[x] = C[(x - 1).Mod(5)].XOR(C[(x + 1).Mod(5)].LeftRotate(1));
-            // }
-            D[0] = C[4].XOR(C[1].LeftRotate(1));
-            D[1] = C[0].XOR(C[2].LeftRotate(1));
-            D[2] = C[1].XOR(C[3].LeftRotate(1));
-            D[3] = C[2].XOR(C[4].LeftRotate(1));
-            D[4] = C[3].XOR(C[0].LeftRotate(1));
-            // for (x,y) in (0…4,0…4)
-            // for (let x = 0; x < 5; x++) {
-            //     for (let y = 0; y < 5; y++) {
-            //         // A[x,y] = A[x,y] xor D[x]
-            //         a[x][y] = a[x][y].XOR(D[x]);
-            //     }
-            // }
-            a[0][0] = a[0][0].XOR(D[0]);
-            a[0][1] = a[0][1].XOR(D[0]);
-            a[0][2] = a[0][2].XOR(D[0]);
-            a[0][3] = a[0][3].XOR(D[0]);
-            a[0][4] = a[0][4].XOR(D[0]);
-            a[1][0] = a[1][0].XOR(D[1]);
-            a[1][1] = a[1][1].XOR(D[1]);
-            a[1][2] = a[1][2].XOR(D[1]);
-            a[1][3] = a[1][3].XOR(D[1]);
-            a[1][4] = a[1][4].XOR(D[1]);
-            a[2][0] = a[2][0].XOR(D[2]);
-            a[2][1] = a[2][1].XOR(D[2]);
-            a[2][2] = a[2][2].XOR(D[2]);
-            a[2][3] = a[2][3].XOR(D[2]);
-            a[2][4] = a[2][4].XOR(D[2]);
-            a[3][0] = a[3][0].XOR(D[3]);
-            a[3][1] = a[3][1].XOR(D[3]);
-            a[3][2] = a[3][2].XOR(D[3]);
-            a[3][3] = a[3][3].XOR(D[3]);
-            a[3][4] = a[3][4].XOR(D[3]);
-            a[4][0] = a[4][0].XOR(D[4]);
-            a[4][1] = a[4][1].XOR(D[4]);
-            a[4][2] = a[4][2].XOR(D[4]);
-            a[4][3] = a[4][3].XOR(D[4]);
-            a[4][4] = a[4][4].XOR(D[4]);
-            /// # ρ and π steps, [Keccak §2.3.4]
-            // for (x,y) in (0…4,0…4)
-            // for (let x = 0; x < 5; x++) {
-            //     for (let y = 0; y < 5; y++) {
-            //         // B[y,2*x+3*y] = rot(A[x,y], r[x,y])
-            //         B[y][(2 * x + 3 * y).Mod(5)] = a[x][y].LeftRotate(KavenSHA3.r[x][y]);
-            //     }
-            // }
-            B[0][0] = a[0][0].LeftRotate(KavenSHA3.r[0][0]);
-            B[1][3] = a[0][1].LeftRotate(KavenSHA3.r[0][1]);
-            B[2][1] = a[0][2].LeftRotate(KavenSHA3.r[0][2]);
-            B[3][4] = a[0][3].LeftRotate(KavenSHA3.r[0][3]);
-            B[4][2] = a[0][4].LeftRotate(KavenSHA3.r[0][4]);
-            B[0][2] = a[1][0].LeftRotate(KavenSHA3.r[1][0]);
-            B[1][0] = a[1][1].LeftRotate(KavenSHA3.r[1][1]);
-            B[2][3] = a[1][2].LeftRotate(KavenSHA3.r[1][2]);
-            B[3][1] = a[1][3].LeftRotate(KavenSHA3.r[1][3]);
-            B[4][4] = a[1][4].LeftRotate(KavenSHA3.r[1][4]);
-            B[0][4] = a[2][0].LeftRotate(KavenSHA3.r[2][0]);
-            B[1][2] = a[2][1].LeftRotate(KavenSHA3.r[2][1]);
-            B[2][0] = a[2][2].LeftRotate(KavenSHA3.r[2][2]);
-            B[3][3] = a[2][3].LeftRotate(KavenSHA3.r[2][3]);
-            B[4][1] = a[2][4].LeftRotate(KavenSHA3.r[2][4]);
-            B[0][1] = a[3][0].LeftRotate(KavenSHA3.r[3][0]);
-            B[1][4] = a[3][1].LeftRotate(KavenSHA3.r[3][1]);
-            B[2][2] = a[3][2].LeftRotate(KavenSHA3.r[3][2]);
-            B[3][0] = a[3][3].LeftRotate(KavenSHA3.r[3][3]);
-            B[4][3] = a[3][4].LeftRotate(KavenSHA3.r[3][4]);
-            B[0][3] = a[4][0].LeftRotate(KavenSHA3.r[4][0]);
-            B[1][1] = a[4][1].LeftRotate(KavenSHA3.r[4][1]);
-            B[2][4] = a[4][2].LeftRotate(KavenSHA3.r[4][2]);
-            B[3][2] = a[4][3].LeftRotate(KavenSHA3.r[4][3]);
-            B[4][0] = a[4][4].LeftRotate(KavenSHA3.r[4][4]);
-            /// # χ step
-            // for (x,y) in (0…4,0…4)
-            // for (let x = 0; x < 5; x++) {
-            //     for (let y = 0; y < 5; y++) {
-            //         // A[x,y] = B[x,y] xor ((not B[x+1,y]) and B[x+2,y])
-            //         a[x][y] = B[x][y].XOR((B[(x + 1).Mod(5)][y].NOT()).AND(B[(x + 2).Mod(5)][y]));
-            //         console.log(x, y, (x + 1).Mod(5), (x + 2).Mod(5));
-            //     }
-            // }
-            a[0][0] = B[0][0].XOR((B[1][0].NOT()).AND(B[2][0]));
-            a[0][1] = B[0][1].XOR((B[1][1].NOT()).AND(B[2][1]));
-            a[0][2] = B[0][2].XOR((B[1][2].NOT()).AND(B[2][2]));
-            a[0][3] = B[0][3].XOR((B[1][3].NOT()).AND(B[2][3]));
-            a[0][4] = B[0][4].XOR((B[1][4].NOT()).AND(B[2][4]));
-            a[1][0] = B[1][0].XOR((B[2][0].NOT()).AND(B[3][0]));
-            a[1][1] = B[1][1].XOR((B[2][1].NOT()).AND(B[3][1]));
-            a[1][2] = B[1][2].XOR((B[2][2].NOT()).AND(B[3][2]));
-            a[1][3] = B[1][3].XOR((B[2][3].NOT()).AND(B[3][3]));
-            a[1][4] = B[1][4].XOR((B[2][4].NOT()).AND(B[3][4]));
-            a[2][0] = B[2][0].XOR((B[3][0].NOT()).AND(B[4][0]));
-            a[2][1] = B[2][1].XOR((B[3][1].NOT()).AND(B[4][1]));
-            a[2][2] = B[2][2].XOR((B[3][2].NOT()).AND(B[4][2]));
-            a[2][3] = B[2][3].XOR((B[3][3].NOT()).AND(B[4][3]));
-            a[2][4] = B[2][4].XOR((B[3][4].NOT()).AND(B[4][4]));
-            a[3][0] = B[3][0].XOR((B[4][0].NOT()).AND(B[0][0]));
-            a[3][1] = B[3][1].XOR((B[4][1].NOT()).AND(B[0][1]));
-            a[3][2] = B[3][2].XOR((B[4][2].NOT()).AND(B[0][2]));
-            a[3][3] = B[3][3].XOR((B[4][3].NOT()).AND(B[0][3]));
-            a[3][4] = B[3][4].XOR((B[4][4].NOT()).AND(B[0][4]));
-            a[4][0] = B[4][0].XOR((B[0][0].NOT()).AND(B[1][0]));
-            a[4][1] = B[4][1].XOR((B[0][1].NOT()).AND(B[1][1]));
-            a[4][2] = B[4][2].XOR((B[0][2].NOT()).AND(B[1][2]));
-            a[4][3] = B[4][3].XOR((B[0][3].NOT()).AND(B[1][3]));
-            a[4][4] = B[4][4].XOR((B[0][4].NOT()).AND(B[1][4]));
-            ///  # ι step
-            // A[0,0] = A[0,0] xor RC
-            a[0][0] = a[0][0].XOR(rc);
-            return a;
-        };
-        /**
-         * Round constants
-         */
-        KavenSHA3.RC = [
-            "0000000000000001", "0000000000008082", "800000000000808a",
-            "8000000080008000", "000000000000808b", "0000000080000001",
-            "8000000080008081", "8000000000008009", "000000000000008a",
-            "0000000000000088", "0000000080008009", "000000008000000a",
-            "000000008000808b", "800000000000008b", "8000000000008089",
-            "8000000000008003", "8000000000008002", "8000000000000080",
-            "000000000000800a", "800000008000000a", "8000000080008081",
-            "8000000000008080", "0000000080000001", "8000000080008008",
-        ].map(function (p) { return new KavenUInt64(p, 16); });
-        /**
-         * Rotation offsets
-         */
-        KavenSHA3.r = [
-            [0, 36, 3, 41, 18],
-            [1, 44, 10, 45, 2],
-            [62, 6, 43, 15, 61],
-            [28, 55, 25, 21, 56],
-            [27, 20, 39, 8, 14],
-        ];
-        return KavenSHA3;
-    }());
-
-    /********************************************************************
-     * @author:      Kaven
-     * @email:       kaven@wuwenkai.com
-     * @website:     http://blog.kaven.xyz
-     * @file:        [Kaven-Basic] /src/libs/KavenCache.ts
-     * @create:      2018-08-30 16:08:33.658
-     * @modify:      2021-08-07 06:12:42.977
-     * @version:     2.0.14
-     * @times:       137
-     * @lines:       427
+     * @file:        [Kaven-Basic] /src/libs/cache/NameValueCache.ts
+     * @create:      2018-08-30 16:11:07.791
+     * @modify:      2021-12-16 17:41:41.021
+     * @version:     4.0.0
+     * @times:       10
+     * @lines:       53
      * @copyright:   Copyright © 2018-2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
@@ -14582,60 +16239,62 @@ module.exports = Array.isArray || function (arr) {
      * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
      * SOFTWARE.
      ********************************************************************/
-    var __awaiter$2 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-        return new (P || (P = Promise))(function (resolve, reject) {
-            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-            step((generator = generator.apply(thisArg, _arguments || [])).next());
-        });
-    };
-    var __generator$2 = (undefined && undefined.__generator) || function (thisArg, body) {
-        var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-        return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-        function verb(n) { return function (v) { return step([n, v]); }; }
-        function step(op) {
-            if (f) throw new TypeError("Generator is already executing.");
-            while (_) try {
-                if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-                if (y = 0, t) op = [op[0] & 2, t.value];
-                switch (op[0]) {
-                    case 0: case 1: t = op; break;
-                    case 4: _.label++; return { value: op[1], done: false };
-                    case 5: _.label++; y = op[1]; op = [0]; continue;
-                    case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                    default:
-                        if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                        if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                        if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                        if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                        if (t[2]) _.ops.pop();
-                        _.trys.pop(); continue;
-                }
-                op = body.call(thisArg, _);
-            } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-            if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    /**
+     * @since 1.0.5
+     * @version 2021-12-14
+     */
+    var NameValueCache = /** @class */ (function () {
+        function NameValueCache(name, value, absoluteExpiration) {
+            this.name = name;
+            this.value = value;
+            this.absoluteExpiration = absoluteExpiration;
         }
-    };
-    var KavenCache = /** @class */ (function () {
-        function KavenCache() {
+        NameValueCache.prototype.IsExpired = function () {
+            return this.absoluteExpiration < new Date();
+        };
+        return NameValueCache;
+    }());
+
+    /********************************************************************
+     * @author:      Kaven
+     * @email:       kaven@wuwenkai.com
+     * @website:     http://blog.kaven.xyz
+     * @file:        [Kaven-Basic] /src/libs/cache/MemoryCache.ts
+     * @create:      2018-08-30 16:08:33.658
+     * @modify:      2021-12-16 17:41:41.019
+     * @version:     4.0.0
+     * @times:       155
+     * @lines:       194
+     * @copyright:   Copyright © 2018-2021 Kaven. All Rights Reserved.
+     * @description: [description]
+     * @license:
+     * Permission is hereby granted, free of charge, to any person obtaining a copy
+     * of this software and associated documentation files (the "Software"), to deal
+     * in the Software without restriction, including without limitation the rights
+     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+     * copies of the Software, and to permit persons to whom the Software is
+     * furnished to do so, subject to the following conditions:
+     *
+     * The above copyright notice and this permission notice shall be included in all
+     * copies or substantial portions of the Software.
+     *
+     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+     * SOFTWARE.
+     ********************************************************************/
+    /**
+     * @since 4.0.0
+     * @version 2021-12-14
+     */
+    var MemoryCache = /** @class */ (function () {
+        function MemoryCache() {
+            this.cacheMap = new Map();
+            this.valueMap = new Map();
         }
-        Object.defineProperty(KavenCache, "SHA3", {
-            get: function () {
-                var name = Strings.Names.SHA3Instance;
-                var sha3 = this.GetValue(name, undefined);
-                if (sha3 === undefined) {
-                    sha3 = new KavenSHA3();
-                    this.SetValue(name, sha3);
-                }
-                return sha3;
-            },
-            enumerable: false,
-            configurable: true
-        });
-        // #endregion
-        // #region Memory Values
         /**
          *
          * @param name
@@ -14643,8 +16302,8 @@ module.exports = Array.isArray || function (arr) {
          * @version 1.0.0
          * @since 1.0.5
          */
-        KavenCache.SetValue = function (name, value) {
-            this.memoryCollection[name] = value;
+        MemoryCache.prototype.SetValue = function (name, value) {
+            this.valueMap[name] = value;
         };
         /**
          *
@@ -14653,8 +16312,8 @@ module.exports = Array.isArray || function (arr) {
          * @version 1.0.0
          * @since 1.0.5
          */
-        KavenCache.GetValue = function (name, defaultValueIfNotExist) {
-            var val = this.memoryCollection[name];
+        MemoryCache.prototype.GetValue = function (name, defaultValueIfNotExist) {
+            var val = this.valueMap[name];
             if (val === undefined) {
                 return defaultValueIfNotExist;
             }
@@ -14666,178 +16325,27 @@ module.exports = Array.isArray || function (arr) {
          * @version 1.0.0
          * @since 1.0.5
          */
-        KavenCache.RemoveValue = function (name) {
-            this.memoryCollection[name] = undefined;
+        MemoryCache.prototype.RemoveValue = function (name) {
+            this.valueMap[name] = undefined;
         };
         // #endregion
         /**
-         * just for backward-compatible with earlier versions, recommend use {@link GenerateYearMonthIdAsync} instead
-         * @param randomLength
-         * @param validFunc
-         * @param ignoreIDs
-         * @param candidatesGUID
-         * @version 1.0.0
-         * @since 1.0.1
-         * @example
-         */
-        KavenCache.GenerateYearMonthId = function (randomLength, validFunc, ignoreIDs, candidatesGUID) {
-            if (randomLength === void 0) { randomLength = 4; }
-            var id = Strings.Empty;
-            var ym = FormatDate(undefined, exports.DateTimeFormat.YearMonth, 0);
-            // #region Implementation 1
-            if (typeof validFunc === "function") {
-                while (true) {
-                    var randomNumberStr_1 = GenerateNumberString(randomLength);
-                    id = ym + randomNumberStr_1;
-                    if (validFunc(id)) {
-                        return id;
-                    }
-                }
-            }
-            // #endregion
-            // #region Implementation 2
-            if (ignoreIDs && ignoreIDs.IsNotEmpty()) {
-                var temp = "1";
-                for (var i = 0; i < randomLength; i++) {
-                    temp += "0";
-                }
-                var max = parseInt(temp, 10) - 1;
-                var cacheName = "GenerateYearMonthId_" + randomLength + "_candidates";
-                var candidates = this.GetCache(cacheName);
-                if (candidates === undefined) {
-                    candidates = Array.apply(undefined, new Array(max)).map(function (_, index) {
-                        return index.toString().padStart(randomLength, "0");
-                    }); // .map(Function.call, Number);
-                    this.SetCacheWithMinute(cacheName, candidates, 1);
-                }
-                // #region Old
-                // const candidates: string[] = [];
-                // for (let i = 0; i <= max; i++) {
-                //     const tempID = i.toString().padStart(randomLength, "0");
-                //     if (ignoreIDs.includes(tempID)) {
-                //         continue;
-                //     }
-                //     candidates.push(tempID);
-                // }
-                // #endregion
-                if (candidates && candidatesGUID) {
-                    var callCandidates = this.GetCache(candidatesGUID);
-                    if (callCandidates === undefined) {
-                        callCandidates = candidates.filter(function (p) { return !ignoreIDs.includes(p); });
-                        this.SetCacheWithMinute(candidatesGUID, callCandidates, 5);
-                    }
-                    var idIndex = GetRandomInt(0, callCandidates.length - 1);
-                    id = ym + callCandidates[idIndex];
-                    callCandidates.Remove(idIndex);
-                }
-                return id;
-            }
-            // #endregion
-            var randomNumberStr = GenerateNumberString(randomLength);
-            id = ym + randomNumberStr;
-            return id;
-        };
-        /**
          *
-         * @param randomLength
-         * @param validFunc
-         * @param ignoreIDs
-         * @param candidatesGUID
-         * @version 1.0.0
          * @since 1.0.5
+         * @version 2021-12-14
          */
-        KavenCache.GenerateYearMonthIdAsync = function (randomLength, validFunc, ignoreIDs, candidatesGUID) {
-            if (randomLength === void 0) { randomLength = 4; }
-            return __awaiter$2(this, void 0, void 0, function () {
-                var id, ym, randomNumberStr_2, temp, i, max, cacheName, candidates, callCandidates, idIndex, randomNumberStr;
-                return __generator$2(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            id = Strings.Empty;
-                            ym = FormatDate(undefined, exports.DateTimeFormat.YearMonth, 0);
-                            if (!(typeof validFunc === "function")) return [3 /*break*/, 3];
-                            _a.label = 1;
-                        case 1:
-                            randomNumberStr_2 = GenerateNumberString(randomLength);
-                            id = ym + randomNumberStr_2;
-                            return [4 /*yield*/, validFunc(id)];
-                        case 2:
-                            if (_a.sent()) {
-                                return [2 /*return*/, id];
-                            }
-                            return [3 /*break*/, 1];
-                        case 3:
-                            // #endregion
-                            // #region Implementation 2
-                            if (ignoreIDs && ignoreIDs.IsNotEmpty()) {
-                                temp = "1";
-                                for (i = 0; i < randomLength; i++) {
-                                    temp += "0";
-                                }
-                                max = parseInt(temp, 10) - 1;
-                                cacheName = "GenerateYearMonthId_" + randomLength + "_candidates";
-                                candidates = this.GetCache(cacheName);
-                                if (candidates === undefined) {
-                                    candidates = Array.apply(undefined, new Array(max)).map(function (_, index) {
-                                        return index.toString().padStart(randomLength, "0");
-                                    }); // .map(Function.call, Number);
-                                    this.SetCacheWithMinute(cacheName, candidates, 1);
-                                }
-                                // #region Old
-                                // const candidates: string[] = [];
-                                // for (let i = 0; i <= max; i++) {
-                                //     const tempID = i.toString().padStart(randomLength, "0");
-                                //     if (ignoreIDs.includes(tempID)) {
-                                //         continue;
-                                //     }
-                                //     candidates.push(tempID);
-                                // }
-                                // #endregion
-                                if (candidatesGUID && candidates) {
-                                    callCandidates = this.GetCache(candidatesGUID);
-                                    if (callCandidates === undefined) {
-                                        callCandidates = candidates.filter(function (p) { return !ignoreIDs.includes(p); });
-                                        this.SetCacheWithMinute(candidatesGUID, callCandidates, 5);
-                                    }
-                                    idIndex = GetRandomInt(0, callCandidates.length - 1);
-                                    id = ym + callCandidates[idIndex];
-                                    callCandidates.Remove(idIndex);
-                                }
-                                return [2 /*return*/, id];
-                            }
-                            randomNumberStr = GenerateNumberString(randomLength);
-                            id = ym + randomNumberStr;
-                            return [2 /*return*/, id];
-                    }
-                });
-            });
-        };
-        /**
-         *
-         * @param name
-         * @param removeExpired
-         * @since 1.0.5
-         * @version 2018-11-02
-         */
-        KavenCache.RemoveCache = function (name, removeExpired) {
+        MemoryCache.prototype.RemoveCache = function () {
             var _this = this;
-            if (removeExpired === void 0) { removeExpired = true; }
-            if (removeExpired) {
-                var arr = [];
-                for (var i = 0; i < this.memoryCacheCollection.length; i++) {
-                    var item = this.memoryCacheCollection[i];
-                    if (item.name === name || item.IsExpired()) {
-                        arr.push(i);
-                    }
-                }
-                arr.forEach(function (p) { return _this.memoryCacheCollection.Remove(p); });
+            var names = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                names[_i] = arguments[_i];
             }
-            else {
-                var index = this.memoryCacheCollection.findIndex(function (p) { return p.name === name; });
-                if (index !== -1) {
-                    this.memoryCacheCollection.Remove(index);
+            this.cacheMap.forEach(function (v, k) {
+                if (v.IsExpired()) {
+                    names.push(k);
                 }
-            }
+            });
+            names.forEach(function (name) { return _this.cacheMap.delete(name); });
         };
         // #region MemoryCache
         /**
@@ -14845,30 +16353,29 @@ module.exports = Array.isArray || function (arr) {
          * @param name
          * @param value
          * @param absoluteExpiration
-         * @version 1.0.0
          * @since 1.0.5
+         * @version 2021-12-14
          */
-        KavenCache.SetCacheWithDate = function (name, value, absoluteExpiration) {
-            var item = this.memoryCacheCollection.find(function (p) { return p.name === name; });
+        MemoryCache.prototype.SetCacheWithDate = function (name, value, absoluteExpiration) {
+            var item = this.cacheMap.get(name);
             if (item === undefined) {
-                item = new MemoryCache(name, value, absoluteExpiration);
+                item = new NameValueCache(name, value, absoluteExpiration);
+                this.cacheMap.set(name, item);
             }
             else {
                 item.value = value;
                 item.absoluteExpiration = absoluteExpiration;
             }
-            // console.info(`Set Cache: ${name}`);
-            this.memoryCacheCollection.push(item);
         };
         /**
          *
          * @param name
          * @param value
          * @param millisecond
-         * @version 1.0.0
          * @since 1.0.5
+         * @version 2021-12-14
          */
-        KavenCache.SetCacheWithMilliseconds = function (name, value, millisecond) {
+        MemoryCache.prototype.SetCacheWithMilliseconds = function (name, value, millisecond) {
             this.SetCacheWithDate(name, value, new DateTime()
                 .Add(millisecond)
                 .ToDate());
@@ -14878,10 +16385,10 @@ module.exports = Array.isArray || function (arr) {
          * @param name
          * @param value
          * @param minute
-         * @version 1.0.0
          * @since 1.0.5
+         * @version 2021-12-14
          */
-        KavenCache.SetCacheWithMinute = function (name, value, minute) {
+        MemoryCache.prototype.SetCacheWithMinute = function (name, value, minute) {
             var milliseconds = minute * MsPerMinute;
             this.SetCacheWithMilliseconds(name, value, milliseconds);
         };
@@ -14890,10 +16397,10 @@ module.exports = Array.isArray || function (arr) {
          * @param name
          * @param value
          * @param hour
-         * @version 1.0.0
          * @since 1.0.5
+         * @version 2021-12-14
          */
-        KavenCache.SetCacheWithHour = function (name, value, hour) {
+        MemoryCache.prototype.SetCacheWithHour = function (name, value, hour) {
             var milliseconds = hour * MsPerHour;
             this.SetCacheWithMilliseconds(name, value, milliseconds);
         };
@@ -14901,24 +16408,54 @@ module.exports = Array.isArray || function (arr) {
          *
          * @param name
          * @since 1.0.5
-         * @version 2018-11-02
+         * @version 2021-12-07
          */
-        KavenCache.GetCache = function (name) {
-            var index = this.memoryCacheCollection.findIndex(function (p) { return p.name === name; });
-            if (index === -1) {
+        MemoryCache.prototype.GetCache = function (name) {
+            var value = this.cacheMap.get(name);
+            if (value === undefined) {
                 return undefined;
             }
-            var item = this.memoryCacheCollection[index];
-            if (item.IsExpired()) {
-                this.memoryCacheCollection.Remove(index);
+            if (value.IsExpired()) {
+                this.cacheMap.delete(name);
                 return undefined;
             }
-            return item.value;
+            return value.value;
         };
-        KavenCache.memoryCacheCollection = [];
-        KavenCache.memoryCollection = {};
-        return KavenCache;
+        return MemoryCache;
     }());
+
+    /********************************************************************
+     * @author:      Kaven
+     * @email:       kaven@wuwenkai.com
+     * @website:     http://blog.kaven.xyz
+     * @file:        [Kaven-Basic] /src/libs/cache/KavenCache.ts
+     * @create:      2021-12-14 15:26:49.494
+     * @modify:      2021-12-14 15:30:37.691
+     * @version:     4.0.0
+     * @times:       2
+     * @lines:       36
+     * @copyright:   Copyright © 2021 Kaven. All Rights Reserved.
+     * @description: [description]
+     * @license:
+     * Permission is hereby granted, free of charge, to any person obtaining a copy
+     * of this software and associated documentation files (the "Software"), to deal
+     * in the Software without restriction, including without limitation the rights
+     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+     * copies of the Software, and to permit persons to whom the Software is
+     * furnished to do so, subject to the following conditions:
+     *
+     * The above copyright notice and this permission notice shall be included in all
+     * copies or substantial portions of the Software.
+     *
+     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+     * SOFTWARE.
+     ********************************************************************/
+    var KavenCache = new MemoryCache();
 
     /********************************************************************
      * @author:      Kaven
@@ -14926,11 +16463,11 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/browser/KavenBrowserCrypto.ts
      * @create:      2020-07-12 21:17:44.134
-     * @modify:      2020-07-13 16:50:09.506
-     * @version:     2.0.9
-     * @times:       10
+     * @modify:      2021-12-24 12:29:37.992
+     * @version:     4.0.0
+     * @times:       12
      * @lines:       125
-     * @copyright:   Copyright © 2020 Kaven. All Rights Reserved.
+     * @copyright:   Copyright © 2020-2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
      * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -14997,8 +16534,8 @@ module.exports = Array.isArray || function (arr) {
         return Math.ceil((keySizeInBits - 1) / 8) - digestSizeInBytes - 2;
     }
     function ExportCryptoPublicKey(key, header, footer) {
-        if (header === void 0) { header = Strings.BEGIN_PUBLIC_KEY + Strings.LF; }
-        if (footer === void 0) { footer = Strings.LF + Strings.END_PUBLIC_KEY; }
+        if (header === void 0) { header = Strings_BEGIN_PUBLIC_KEY + Strings_LF; }
+        if (footer === void 0) { footer = Strings_LF + Strings_END_PUBLIC_KEY; }
         return __awaiter$1(this, void 0, void 0, function () {
             var exported, exportedAsString, exportedAsBase64, pemExported;
             return __generator$1(this, function (_a) {
@@ -15008,15 +16545,15 @@ module.exports = Array.isArray || function (arr) {
                         exported = _a.sent();
                         exportedAsString = ArrayBuffer2String(exported);
                         exportedAsBase64 = btoa(exportedAsString);
-                        pemExported = "" + header + exportedAsBase64 + footer;
+                        pemExported = "".concat(header).concat(exportedAsBase64).concat(footer);
                         return [2 /*return*/, pemExported];
                 }
             });
         });
     }
     function ExportCryptoPrivateKey(key, header, footer) {
-        if (header === void 0) { header = Strings.BEGIN_PRIVATE_KEY + Strings.LF; }
-        if (footer === void 0) { footer = Strings.LF + Strings.END_PRIVATE_KEY; }
+        if (header === void 0) { header = Strings_BEGIN_PRIVATE_KEY + Strings_LF; }
+        if (footer === void 0) { footer = Strings_LF + Strings_END_PRIVATE_KEY; }
         return __awaiter$1(this, void 0, void 0, function () {
             var exported, exportedAsString, exportedAsBase64, pemExported;
             return __generator$1(this, function (_a) {
@@ -15026,7 +16563,7 @@ module.exports = Array.isArray || function (arr) {
                         exported = _a.sent();
                         exportedAsString = ArrayBuffer2String(exported);
                         exportedAsBase64 = btoa(exportedAsString);
-                        pemExported = "" + header + exportedAsBase64 + footer;
+                        pemExported = "".concat(header).concat(exportedAsBase64).concat(footer);
                         return [2 /*return*/, pemExported];
                 }
             });
@@ -15039,8 +16576,8 @@ module.exports = Array.isArray || function (arr) {
             return __generator$1(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        pemHeader = Strings.BEGIN_PUBLIC_KEY;
-                        pemFooter = Strings.END_PUBLIC_KEY;
+                        pemHeader = Strings_BEGIN_PUBLIC_KEY;
+                        pemFooter = Strings_END_PUBLIC_KEY;
                         pemContents = pem.substring(pemHeader.length, pem.length - pemFooter.length);
                         binaryDerString = atob(pemContents);
                         binaryDer = String2ArrayBuffer(binaryDerString);
@@ -15062,8 +16599,8 @@ module.exports = Array.isArray || function (arr) {
             return __generator$1(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        pemHeader = Strings.BEGIN_PRIVATE_KEY;
-                        pemFooter = Strings.END_PRIVATE_KEY;
+                        pemHeader = Strings_BEGIN_PRIVATE_KEY;
+                        pemFooter = Strings_END_PRIVATE_KEY;
                         pemContents = pem.substring(pemHeader.length, pem.length - pemFooter.length);
                         binaryDerString = atob(pemContents);
                         binaryDer = String2ArrayBuffer(binaryDerString);
@@ -15085,11 +16622,11 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/browser/KavenBrowserRSA.ts
      * @create:      2020-07-12 22:36:25.199
-     * @modify:      2020-07-13 20:29:39.298
-     * @version:     2.0.9
-     * @times:       10
-     * @lines:       212
-     * @copyright:   Copyright © 2020 Kaven. All Rights Reserved.
+     * @modify:      2021-12-11 13:34:54.126
+     * @version:     4.0.0
+     * @times:       14
+     * @lines:       213
+     * @copyright:   Copyright © 2020-2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
      * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -15338,7 +16875,7 @@ module.exports = Array.isArray || function (arr) {
                         case 0: return [4 /*yield*/, crypto.subtle.generateKey({
                                 name: "RSA-OAEP",
                                 modulusLength: bits,
-                                publicExponent: Number2Uint8Array(exponent),
+                                publicExponent: NumberToUint8Array(exponent),
                                 hash: "SHA-256",
                             }, true, ["encrypt", "decrypt"])];
                         case 1:
@@ -15363,11 +16900,11 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/data_structures/KavenStack.ts
      * @create:      2019-03-21 16:20:59.274
-     * @modify:      2020-02-18 15:38:03.940
-     * @version:     2.0.4
-     * @times:       9
-     * @lines:       113
-     * @copyright:   Copyright © 2019 Kaven. All Rights Reserved.
+     * @modify:      2021-12-16 17:41:41.018
+     * @version:     4.0.0
+     * @times:       12
+     * @lines:       121
+     * @copyright:   Copyright © 2019-2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
      * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -15391,12 +16928,20 @@ module.exports = Array.isArray || function (arr) {
     /**
      * Represents a variable size last-in-first-out (LIFO) collection of instances of the same specified type.
      * @since 1.1.19
-     * @version 2019-03-21
+     * @version 2021-12-14
      */
     var KavenStack = /** @class */ (function () {
-        function KavenStack() {
+        function KavenStack(maxSize) {
+            this.maxSize = maxSize;
             this.array = [];
         }
+        Object.defineProperty(KavenStack.prototype, "MaxSize", {
+            get: function () {
+                return this.maxSize;
+            },
+            enumerable: false,
+            configurable: true
+        });
         Object.defineProperty(KavenStack.prototype, "Count", {
             /**
              * Gets the number of elements contained in the KavenStack.
@@ -15428,7 +16973,7 @@ module.exports = Array.isArray || function (arr) {
          * @returns The object at the top of the KavenStack.
          */
         KavenStack.prototype.Peek = function () {
-            return this.array.Last();
+            return Last(this.array);
         };
         /**
          * Removes and returns the object at the top of the KavenStack.
@@ -15443,8 +16988,8 @@ module.exports = Array.isArray || function (arr) {
          */
         KavenStack.prototype.Push = function (item) {
             this.array.push(item);
-            if (this.MaxLength) {
-                while (this.Count > this.MaxLength) {
+            if (this.MaxSize) {
+                while (this.Count > this.MaxSize) {
                     this.array.shift();
                 }
             }
@@ -15555,11 +17100,11 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/data_structures/KavenLinkedList.ts
      * @create:      2019-03-21 20:41:28.173
-     * @modify:      2020-02-18 15:38:03.933
-     * @version:     2.0.4
-     * @times:       23
-     * @lines:       285
-     * @copyright:   Copyright © 2019 Kaven. All Rights Reserved.
+     * @modify:      2021-12-16 17:41:41.030
+     * @version:     4.0.0
+     * @times:       26
+     * @lines:       286
+     * @copyright:   Copyright © 2019-2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
      * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -15742,7 +17287,7 @@ module.exports = Array.isArray || function (arr) {
             if (this.head === undefined) {
                 return undefined;
             }
-            var random = GetRandomInt(0, this.Count - 1);
+            var random = GenerateRandomInt(0, this.Count - 1);
             var node = this.head;
             while (random-- > 0 && node.Next) {
                 node = node.Next;
@@ -15797,11 +17342,11 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/data_structures/KavenCollection.ts
      * @create:      2020-01-20 10:41:34.963
-     * @modify:      2020-06-02 14:27:40.076
-     * @version:     2.0.6
-     * @times:       9
-     * @lines:       107
-     * @copyright:   Copyright © 2020 Kaven. All Rights Reserved.
+     * @modify:      2021-12-16 17:41:41.017
+     * @version:     4.0.0
+     * @times:       11
+     * @lines:       110
+     * @copyright:   Copyright © 2020-2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
      * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -15829,6 +17374,8 @@ module.exports = Array.isArray || function (arr) {
             this.count = 0;
             if (str) {
                 this.items = JSON.parse(str);
+                // 2021-12-08
+                this.count = this.Keys().length;
             }
         }
         KavenCollection.prototype.ContainsKey = function (key) {
@@ -16247,10 +17794,10 @@ module.exports = Array.isArray || function (arr) {
      * @website:     http://blog.kaven.xyz
      * @file:        [Kaven-Basic] /src/libs/markdown/MarkdownSection.ts
      * @create:      2021-09-01 13:13:13.858
-     * @modify:      2021-09-02 11:13:43.440
-     * @version:     3.0.1
-     * @times:       12
-     * @lines:       204
+     * @modify:      2021-12-24 12:28:55.856
+     * @version:     4.0.0
+     * @times:       20
+     * @lines:       197
      * @copyright:   Copyright © 2021 Kaven. All Rights Reserved.
      * @description: [description]
      * @license:
@@ -16274,15 +17821,16 @@ module.exports = Array.isArray || function (arr) {
      ********************************************************************/
     var MarkdownSection = /** @class */ (function () {
         function MarkdownSection(heading) {
+            if (heading === void 0) { heading = Strings_Empty; }
             this.Lines = [];
             this.HasChildFlag = false;
             this.PreLines = [];
             this.Sections = [];
-            this.Heading = heading !== null && heading !== void 0 ? heading : Strings.Empty;
+            this.Heading = heading;
         }
         Object.defineProperty(MarkdownSection.prototype, "IsTop", {
             get: function () {
-                return this.Heading === Strings.Empty;
+                return this.Heading === Strings_Empty;
             },
             enumerable: false,
             configurable: true
@@ -16302,9 +17850,6 @@ module.exports = Array.isArray || function (arr) {
             stack.Push(this);
             do {
                 var c = stack.Pop();
-                if (c === undefined) {
-                    throw new Error("error 1: section is undefined");
-                }
                 for (var _i = 0, _a = c.Sections; _i < _a.length; _i++) {
                     var s = _a[_i];
                     stack.Push(s);
@@ -16342,9 +17887,6 @@ module.exports = Array.isArray || function (arr) {
             stack.Push(ms);
             do {
                 var current = stack.Pop();
-                if (current === undefined) {
-                    throw new Error("current is undefined");
-                }
                 var headerLevel = 0;
                 var section = void 0;
                 var isFencedCodeBlocks = false;
@@ -16375,8 +17917,9 @@ module.exports = Array.isArray || function (arr) {
                             section = new MarkdownSection(line);
                         }
                         else if (level === headerLevel) {
+                            /* istanbul ignore next */
                             if (section === undefined) {
-                                throw new Error("error 1: section is undefined");
+                                throw new Error("section is undefined");
                             }
                             if (section.HasChildFlag) {
                                 stack.Push(section);
@@ -16385,6 +17928,7 @@ module.exports = Array.isArray || function (arr) {
                             section = new MarkdownSection(line);
                         }
                         else {
+                            /* istanbul ignore next */
                             if (section === undefined) {
                                 current.PreLines.push(line);
                             }
@@ -16414,7 +17958,7 @@ module.exports = Array.isArray || function (arr) {
             return ms;
         };
         MarkdownSection.Parse = function (lines) {
-            var ms = new MarkdownSection("");
+            var ms = new MarkdownSection();
             ms.Lines = lines;
             return this.ParseSections(ms);
         };
@@ -16422,14 +17966,83 @@ module.exports = Array.isArray || function (arr) {
     }());
 
     exports.ADSR = ADSR;
-    exports.APIRequestBase = APIRequestBase;
     exports.AddDate = AddDate;
+    exports.AddQueryParameterToURL = AddQueryParameterToURL;
     exports.All = All;
+    exports.AnsiColor256 = AnsiColor256;
+    exports.AnsiColorBackground256 = AnsiColorBackground256;
+    exports.AnsiColors_Background_Black = AnsiColors_Background_Black;
+    exports.AnsiColors_Background_Blue = AnsiColors_Background_Blue;
+    exports.AnsiColors_Background_BrightBlack = AnsiColors_Background_BrightBlack;
+    exports.AnsiColors_Background_BrightBlue = AnsiColors_Background_BrightBlue;
+    exports.AnsiColors_Background_BrightCyan = AnsiColors_Background_BrightCyan;
+    exports.AnsiColors_Background_BrightGreen = AnsiColors_Background_BrightGreen;
+    exports.AnsiColors_Background_BrightMagenta = AnsiColors_Background_BrightMagenta;
+    exports.AnsiColors_Background_BrightRed = AnsiColors_Background_BrightRed;
+    exports.AnsiColors_Background_BrightWhite = AnsiColors_Background_BrightWhite;
+    exports.AnsiColors_Background_BrightYellow = AnsiColors_Background_BrightYellow;
+    exports.AnsiColors_Background_Cyan = AnsiColors_Background_Cyan;
+    exports.AnsiColors_Background_Green = AnsiColors_Background_Green;
+    exports.AnsiColors_Background_Magenta = AnsiColors_Background_Magenta;
+    exports.AnsiColors_Background_Red = AnsiColors_Background_Red;
+    exports.AnsiColors_Background_White = AnsiColors_Background_White;
+    exports.AnsiColors_Background_Yellow = AnsiColors_Background_Yellow;
+    exports.AnsiColors_Black = AnsiColors_Black;
+    exports.AnsiColors_Blue = AnsiColors_Blue;
+    exports.AnsiColors_BrightBlack = AnsiColors_BrightBlack;
+    exports.AnsiColors_BrightBlue = AnsiColors_BrightBlue;
+    exports.AnsiColors_BrightCyan = AnsiColors_BrightCyan;
+    exports.AnsiColors_BrightGreen = AnsiColors_BrightGreen;
+    exports.AnsiColors_BrightMagenta = AnsiColors_BrightMagenta;
+    exports.AnsiColors_BrightRed = AnsiColors_BrightRed;
+    exports.AnsiColors_BrightWhite = AnsiColors_BrightWhite;
+    exports.AnsiColors_BrightYellow = AnsiColors_BrightYellow;
+    exports.AnsiColors_Cyan = AnsiColors_Cyan;
+    exports.AnsiColors_Green = AnsiColors_Green;
+    exports.AnsiColors_Magenta = AnsiColors_Magenta;
+    exports.AnsiColors_Red = AnsiColors_Red;
+    exports.AnsiColors_Reset = AnsiColors_Reset;
+    exports.AnsiColors_White = AnsiColors_White;
+    exports.AnsiColors_Yellow = AnsiColors_Yellow;
+    exports.AnsiTextBackgroundBlack = AnsiTextBackgroundBlack;
+    exports.AnsiTextBackgroundBlue = AnsiTextBackgroundBlue;
+    exports.AnsiTextBackgroundBrightBlack = AnsiTextBackgroundBrightBlack;
+    exports.AnsiTextBackgroundBrightBlue = AnsiTextBackgroundBrightBlue;
+    exports.AnsiTextBackgroundBrightCyan = AnsiTextBackgroundBrightCyan;
+    exports.AnsiTextBackgroundBrightGreen = AnsiTextBackgroundBrightGreen;
+    exports.AnsiTextBackgroundBrightMagenta = AnsiTextBackgroundBrightMagenta;
+    exports.AnsiTextBackgroundBrightRed = AnsiTextBackgroundBrightRed;
+    exports.AnsiTextBackgroundBrightWhite = AnsiTextBackgroundBrightWhite;
+    exports.AnsiTextBackgroundBrightYellow = AnsiTextBackgroundBrightYellow;
+    exports.AnsiTextBackgroundCyan = AnsiTextBackgroundCyan;
+    exports.AnsiTextBackgroundGreen = AnsiTextBackgroundGreen;
+    exports.AnsiTextBackgroundMagenta = AnsiTextBackgroundMagenta;
+    exports.AnsiTextBackgroundRed = AnsiTextBackgroundRed;
+    exports.AnsiTextBackgroundWhite = AnsiTextBackgroundWhite;
+    exports.AnsiTextBackgroundYellow = AnsiTextBackgroundYellow;
+    exports.AnsiTextBlack = AnsiTextBlack;
+    exports.AnsiTextBlue = AnsiTextBlue;
+    exports.AnsiTextBrightBlack = AnsiTextBrightBlack;
+    exports.AnsiTextBrightBlue = AnsiTextBrightBlue;
+    exports.AnsiTextBrightCyan = AnsiTextBrightCyan;
+    exports.AnsiTextBrightGreen = AnsiTextBrightGreen;
+    exports.AnsiTextBrightMagenta = AnsiTextBrightMagenta;
+    exports.AnsiTextBrightRed = AnsiTextBrightRed;
+    exports.AnsiTextBrightWhite = AnsiTextBrightWhite;
+    exports.AnsiTextBrightYellow = AnsiTextBrightYellow;
+    exports.AnsiTextColor = AnsiTextColor;
+    exports.AnsiTextCyan = AnsiTextCyan;
+    exports.AnsiTextGreen = AnsiTextGreen;
+    exports.AnsiTextMagenta = AnsiTextMagenta;
+    exports.AnsiTextRed = AnsiTextRed;
+    exports.AnsiTextWhite = AnsiTextWhite;
+    exports.AnsiTextYellow = AnsiTextYellow;
     exports.Any = Any;
+    exports.ApiRequest = ApiRequest;
     exports.ArrayBuffer2String = ArrayBuffer2String;
-    exports.AssignDeep = AssignDeep;
-    exports.AssignSymbols = AssignSymbols;
     exports.BitString = BitString;
+    exports.CRC32 = CRC32;
+    exports.CRC64 = CRC64;
     exports.CalculateMaxSaltLength = CalculateMaxSaltLength;
     exports.CapitalizeSentences = CapitalizeSentences;
     exports.CapitalizeWords = CapitalizeWords;
@@ -16443,10 +18056,8 @@ module.exports = Array.isArray || function (arr) {
     exports.Countdown = Countdown;
     exports.CreateArray = CreateArray;
     exports.DateTime = DateTime;
-    exports.DayOfWeekTdd = DayOfWeekTdd;
-    exports.DayOfWeekTddd = DayOfWeekTddd;
-    exports.DayOfWeekTdddd = DayOfWeekTdddd;
     exports.DecodeByRFC3986 = DecodeByRFC3986;
+    exports.DefaultErrorHandler = DefaultErrorHandler;
     exports.DiffDate = DiffDate;
     exports.Distinct = Distinct;
     exports.DoUntilSuccess = DoUntilSuccess;
@@ -16456,45 +18067,191 @@ module.exports = Array.isArray || function (arr) {
     exports.FilePath = FilePath;
     exports.FileSize = FileSize;
     exports.First = First;
+    exports.FormatCurrentDate = FormatCurrentDate;
     exports.FormatDate = FormatDate;
     exports.FormatString = FormatString;
+    exports.GenerateFileNameByCurrentDate = GenerateFileNameByCurrentDate;
     exports.GenerateGuid = GenerateGuid;
     exports.GenerateNumberString = GenerateNumberString;
     exports.GeneratePassword = GeneratePassword;
+    exports.GenerateRandomArbitrary = GenerateRandomArbitrary;
+    exports.GenerateRandomBoolean = GenerateRandomBoolean;
+    exports.GenerateRandomInt = GenerateRandomInt;
     exports.GenerateRandomString = GenerateRandomString;
+    exports.GenerateYearMonthId = GenerateYearMonthId;
     exports.GetBaseDir = GetBaseDir;
     exports.GetBaseLog = GetBaseLog;
     exports.GetCRC32 = GetCRC32;
     exports.GetCRC64 = GetCRC64;
+    exports.GetDayOfWeekTdd = GetDayOfWeekTdd;
+    exports.GetDayOfWeekTddd = GetDayOfWeekTddd;
+    exports.GetDayOfWeekTdddd = GetDayOfWeekTdddd;
+    exports.GetEmailAddressWithName = GetEmailAddressWithName;
     exports.GetFileExtension = GetFileExtension;
     exports.GetFileName = GetFileName;
-    exports.GetFileNameByDateTime = GetFileNameByDateTime;
     exports.GetFileNameFromURL = GetFileNameFromURL;
     exports.GetFileNameWithoutExtension = GetFileNameWithoutExtension;
     exports.GetIndent = GetIndent;
+    exports.GetInvalidFileNameChars = GetInvalidFileNameChars;
+    exports.GetInvalidFileNameCharsUnix = GetInvalidFileNameCharsUnix;
+    exports.GetInvalidFileNameCharsWindows = GetInvalidFileNameCharsWindows;
+    exports.GetInvalidPathChars = GetInvalidPathChars;
+    exports.GetInvalidPathCharsUnix = GetInvalidPathCharsUnix;
+    exports.GetInvalidPathCharsWindows = GetInvalidPathCharsWindows;
     exports.GetLeadingNumber = GetLeadingNumber;
     exports.GetMD5 = GetMD5;
     exports.GetMIMEByContentType = GetMIMEByContentType;
     exports.GetMIMEByExtension = GetMIMEByExtension;
     exports.GetNextVersion = GetNextVersion;
     exports.GetQueryStringFromURL = GetQueryStringFromURL;
-    exports.GetRandomArbitrary = GetRandomArbitrary;
-    exports.GetRandomInt = GetRandomInt;
     exports.GetSHA1 = GetSHA1;
     exports.GetSHA224 = GetSHA224;
     exports.GetSHA256 = GetSHA256;
     exports.GetSHA384 = GetSHA384;
+    exports.GetSHA3P224 = GetSHA3P224;
+    exports.GetSHA3P256 = GetSHA3P256;
+    exports.GetSHA3P384 = GetSHA3P384;
+    exports.GetSHA3P512 = GetSHA3P512;
     exports.GetSHA512 = GetSHA512;
     exports.GetSHA512T = GetSHA512T;
-    exports.GetStackInfo = GetStackInfo;
+    exports.GetSHA512T224 = GetSHA512T224;
+    exports.GetSHA512T256 = GetSHA512T256;
+    exports.GetSHAKE128 = GetSHAKE128;
+    exports.GetSHAKE256 = GetSHAKE256;
     exports.GetStringBetween = GetStringBetween;
     exports.GetStringPositionBetween = GetStringPositionBetween;
     exports.GetSubstring = GetSubstring;
     exports.GetWeekOfYear = GetWeekOfYear;
+    exports.HttpRequestHeader_Dnt = HttpRequestHeader_Dnt;
+    exports.HttpRequestHeader_FrontEndHttps = HttpRequestHeader_FrontEndHttps;
+    exports.HttpRequestHeader_ProxyConnection = HttpRequestHeader_ProxyConnection;
+    exports.HttpRequestHeader_SaveData = HttpRequestHeader_SaveData;
+    exports.HttpRequestHeader_UpgradeInsecureRequests = HttpRequestHeader_UpgradeInsecureRequests;
+    exports.HttpRequestHeader_XAttDeviceId = HttpRequestHeader_XAttDeviceId;
+    exports.HttpRequestHeader_XCorrelationId = HttpRequestHeader_XCorrelationId;
+    exports.HttpRequestHeader_XCsrfToken = HttpRequestHeader_XCsrfToken;
+    exports.HttpRequestHeader_XForwardedFor = HttpRequestHeader_XForwardedFor;
+    exports.HttpRequestHeader_XForwardedHost = HttpRequestHeader_XForwardedHost;
+    exports.HttpRequestHeader_XForwardedProto = HttpRequestHeader_XForwardedProto;
+    exports.HttpRequestHeader_XHttpMethodOverride = HttpRequestHeader_XHttpMethodOverride;
+    exports.HttpRequestHeader_XRequestId = HttpRequestHeader_XRequestId;
+    exports.HttpRequestHeader_XRequestedWith = HttpRequestHeader_XRequestedWith;
+    exports.HttpRequestHeader_XUidh = HttpRequestHeader_XUidh;
+    exports.HttpRequestHeader_XWapProfile = HttpRequestHeader_XWapProfile;
+    exports.HttpResponseHeader_ContentSecurityPolicy = HttpResponseHeader_ContentSecurityPolicy;
+    exports.HttpResponseHeader_ExpectCt = HttpResponseHeader_ExpectCt;
+    exports.HttpResponseHeader_Nel = HttpResponseHeader_Nel;
+    exports.HttpResponseHeader_PermissionsPolicy = HttpResponseHeader_PermissionsPolicy;
+    exports.HttpResponseHeader_Refresh = HttpResponseHeader_Refresh;
+    exports.HttpResponseHeader_ReportTo = HttpResponseHeader_ReportTo;
+    exports.HttpResponseHeader_Status = HttpResponseHeader_Status;
+    exports.HttpResponseHeader_TimingAllowOrigin = HttpResponseHeader_TimingAllowOrigin;
+    exports.HttpResponseHeader_XContentDuration = HttpResponseHeader_XContentDuration;
+    exports.HttpResponseHeader_XContentSecurityPolicy = HttpResponseHeader_XContentSecurityPolicy;
+    exports.HttpResponseHeader_XContentTypeOptions = HttpResponseHeader_XContentTypeOptions;
+    exports.HttpResponseHeader_XCorrelationId = HttpResponseHeader_XCorrelationId;
+    exports.HttpResponseHeader_XPoweredBy = HttpResponseHeader_XPoweredBy;
+    exports.HttpResponseHeader_XRedirectBy = HttpResponseHeader_XRedirectBy;
+    exports.HttpResponseHeader_XRequestId = HttpResponseHeader_XRequestId;
+    exports.HttpResponseHeader_XUaCompatible = HttpResponseHeader_XUaCompatible;
+    exports.HttpResponseHeader_XWebKitCsp = HttpResponseHeader_XWebKitCsp;
+    exports.HttpResponseHeader_XXssProtection = HttpResponseHeader_XXssProtection;
+    exports.HttpStandardRequestHeader_AIm = HttpStandardRequestHeader_AIm;
+    exports.HttpStandardRequestHeader_Accept = HttpStandardRequestHeader_Accept;
+    exports.HttpStandardRequestHeader_AcceptCharset = HttpStandardRequestHeader_AcceptCharset;
+    exports.HttpStandardRequestHeader_AcceptDatetime = HttpStandardRequestHeader_AcceptDatetime;
+    exports.HttpStandardRequestHeader_AcceptEncoding = HttpStandardRequestHeader_AcceptEncoding;
+    exports.HttpStandardRequestHeader_AcceptLanguage = HttpStandardRequestHeader_AcceptLanguage;
+    exports.HttpStandardRequestHeader_AccessControlRequestHeaders = HttpStandardRequestHeader_AccessControlRequestHeaders;
+    exports.HttpStandardRequestHeader_AccessControlRequestMethod = HttpStandardRequestHeader_AccessControlRequestMethod;
+    exports.HttpStandardRequestHeader_Authorization = HttpStandardRequestHeader_Authorization;
+    exports.HttpStandardRequestHeader_CacheControl = HttpStandardRequestHeader_CacheControl;
+    exports.HttpStandardRequestHeader_Connection = HttpStandardRequestHeader_Connection;
+    exports.HttpStandardRequestHeader_ContentEncoding = HttpStandardRequestHeader_ContentEncoding;
+    exports.HttpStandardRequestHeader_ContentLength = HttpStandardRequestHeader_ContentLength;
+    exports.HttpStandardRequestHeader_ContentMd5 = HttpStandardRequestHeader_ContentMd5;
+    exports.HttpStandardRequestHeader_ContentType = HttpStandardRequestHeader_ContentType;
+    exports.HttpStandardRequestHeader_Cookie = HttpStandardRequestHeader_Cookie;
+    exports.HttpStandardRequestHeader_Date = HttpStandardRequestHeader_Date;
+    exports.HttpStandardRequestHeader_Expect = HttpStandardRequestHeader_Expect;
+    exports.HttpStandardRequestHeader_Forwarded = HttpStandardRequestHeader_Forwarded;
+    exports.HttpStandardRequestHeader_From = HttpStandardRequestHeader_From;
+    exports.HttpStandardRequestHeader_Host = HttpStandardRequestHeader_Host;
+    exports.HttpStandardRequestHeader_Http2Settings = HttpStandardRequestHeader_Http2Settings;
+    exports.HttpStandardRequestHeader_IfMatch = HttpStandardRequestHeader_IfMatch;
+    exports.HttpStandardRequestHeader_IfModifiedSince = HttpStandardRequestHeader_IfModifiedSince;
+    exports.HttpStandardRequestHeader_IfNoneMatch = HttpStandardRequestHeader_IfNoneMatch;
+    exports.HttpStandardRequestHeader_IfRange = HttpStandardRequestHeader_IfRange;
+    exports.HttpStandardRequestHeader_IfUnmodifiedSince = HttpStandardRequestHeader_IfUnmodifiedSince;
+    exports.HttpStandardRequestHeader_MaxForwards = HttpStandardRequestHeader_MaxForwards;
+    exports.HttpStandardRequestHeader_Origin = HttpStandardRequestHeader_Origin;
+    exports.HttpStandardRequestHeader_Pragma = HttpStandardRequestHeader_Pragma;
+    exports.HttpStandardRequestHeader_Prefer = HttpStandardRequestHeader_Prefer;
+    exports.HttpStandardRequestHeader_ProxyAuthorization = HttpStandardRequestHeader_ProxyAuthorization;
+    exports.HttpStandardRequestHeader_Range = HttpStandardRequestHeader_Range;
+    exports.HttpStandardRequestHeader_Referer = HttpStandardRequestHeader_Referer;
+    exports.HttpStandardRequestHeader_Te = HttpStandardRequestHeader_Te;
+    exports.HttpStandardRequestHeader_Trailer = HttpStandardRequestHeader_Trailer;
+    exports.HttpStandardRequestHeader_TransferEncoding = HttpStandardRequestHeader_TransferEncoding;
+    exports.HttpStandardRequestHeader_Upgrade = HttpStandardRequestHeader_Upgrade;
+    exports.HttpStandardRequestHeader_UserAgent = HttpStandardRequestHeader_UserAgent;
+    exports.HttpStandardRequestHeader_Via = HttpStandardRequestHeader_Via;
+    exports.HttpStandardRequestHeader_Warning = HttpStandardRequestHeader_Warning;
+    exports.HttpStandardResponseHeader_AcceptCh = HttpStandardResponseHeader_AcceptCh;
+    exports.HttpStandardResponseHeader_AcceptPatch = HttpStandardResponseHeader_AcceptPatch;
+    exports.HttpStandardResponseHeader_AcceptRanges = HttpStandardResponseHeader_AcceptRanges;
+    exports.HttpStandardResponseHeader_AccessControlAllowCredentials = HttpStandardResponseHeader_AccessControlAllowCredentials;
+    exports.HttpStandardResponseHeader_AccessControlAllowHeaders = HttpStandardResponseHeader_AccessControlAllowHeaders;
+    exports.HttpStandardResponseHeader_AccessControlAllowMethods = HttpStandardResponseHeader_AccessControlAllowMethods;
+    exports.HttpStandardResponseHeader_AccessControlAllowOrigin = HttpStandardResponseHeader_AccessControlAllowOrigin;
+    exports.HttpStandardResponseHeader_AccessControlExposeHeaders = HttpStandardResponseHeader_AccessControlExposeHeaders;
+    exports.HttpStandardResponseHeader_AccessControlMaxAge = HttpStandardResponseHeader_AccessControlMaxAge;
+    exports.HttpStandardResponseHeader_Age = HttpStandardResponseHeader_Age;
+    exports.HttpStandardResponseHeader_Allow = HttpStandardResponseHeader_Allow;
+    exports.HttpStandardResponseHeader_AltSvc = HttpStandardResponseHeader_AltSvc;
+    exports.HttpStandardResponseHeader_CacheControl = HttpStandardResponseHeader_CacheControl;
+    exports.HttpStandardResponseHeader_Connection = HttpStandardResponseHeader_Connection;
+    exports.HttpStandardResponseHeader_ContentDisposition = HttpStandardResponseHeader_ContentDisposition;
+    exports.HttpStandardResponseHeader_ContentEncoding = HttpStandardResponseHeader_ContentEncoding;
+    exports.HttpStandardResponseHeader_ContentLanguage = HttpStandardResponseHeader_ContentLanguage;
+    exports.HttpStandardResponseHeader_ContentLength = HttpStandardResponseHeader_ContentLength;
+    exports.HttpStandardResponseHeader_ContentLocation = HttpStandardResponseHeader_ContentLocation;
+    exports.HttpStandardResponseHeader_ContentMd5 = HttpStandardResponseHeader_ContentMd5;
+    exports.HttpStandardResponseHeader_ContentRange = HttpStandardResponseHeader_ContentRange;
+    exports.HttpStandardResponseHeader_ContentType = HttpStandardResponseHeader_ContentType;
+    exports.HttpStandardResponseHeader_Date = HttpStandardResponseHeader_Date;
+    exports.HttpStandardResponseHeader_DeltaBase = HttpStandardResponseHeader_DeltaBase;
+    exports.HttpStandardResponseHeader_ETag = HttpStandardResponseHeader_ETag;
+    exports.HttpStandardResponseHeader_Expires = HttpStandardResponseHeader_Expires;
+    exports.HttpStandardResponseHeader_Im = HttpStandardResponseHeader_Im;
+    exports.HttpStandardResponseHeader_LastModified = HttpStandardResponseHeader_LastModified;
+    exports.HttpStandardResponseHeader_Link = HttpStandardResponseHeader_Link;
+    exports.HttpStandardResponseHeader_Location = HttpStandardResponseHeader_Location;
+    exports.HttpStandardResponseHeader_P3P = HttpStandardResponseHeader_P3P;
+    exports.HttpStandardResponseHeader_Pragma = HttpStandardResponseHeader_Pragma;
+    exports.HttpStandardResponseHeader_PreferenceApplied = HttpStandardResponseHeader_PreferenceApplied;
+    exports.HttpStandardResponseHeader_ProxyAuthenticate = HttpStandardResponseHeader_ProxyAuthenticate;
+    exports.HttpStandardResponseHeader_PublicKeyPins = HttpStandardResponseHeader_PublicKeyPins;
+    exports.HttpStandardResponseHeader_RetryAfter = HttpStandardResponseHeader_RetryAfter;
+    exports.HttpStandardResponseHeader_Server = HttpStandardResponseHeader_Server;
+    exports.HttpStandardResponseHeader_SetCookie = HttpStandardResponseHeader_SetCookie;
+    exports.HttpStandardResponseHeader_StrictTransportSecurity = HttpStandardResponseHeader_StrictTransportSecurity;
+    exports.HttpStandardResponseHeader_Tk = HttpStandardResponseHeader_Tk;
+    exports.HttpStandardResponseHeader_Trailer = HttpStandardResponseHeader_Trailer;
+    exports.HttpStandardResponseHeader_TransferEncoding = HttpStandardResponseHeader_TransferEncoding;
+    exports.HttpStandardResponseHeader_Upgrade = HttpStandardResponseHeader_Upgrade;
+    exports.HttpStandardResponseHeader_Vary = HttpStandardResponseHeader_Vary;
+    exports.HttpStandardResponseHeader_Via = HttpStandardResponseHeader_Via;
+    exports.HttpStandardResponseHeader_Warning = HttpStandardResponseHeader_Warning;
+    exports.HttpStandardResponseHeader_WwwAuthenticate = HttpStandardResponseHeader_WwwAuthenticate;
+    exports.HttpStandardResponseHeader_XFrameOptions = HttpStandardResponseHeader_XFrameOptions;
     exports.ImportCryptoPrivateKey = ImportCryptoPrivateKey;
     exports.ImportCryptoPublicKey = ImportCryptoPublicKey;
+    exports.IncreaseVersion = IncreaseVersion;
+    exports.InitializeDataAcquisition = InitializeDataAcquisition;
     exports.InitializeKavenExtension = InitializeKavenExtension;
     exports.IsEmailAddressValid = IsEmailAddressValid;
+    exports.IsEmpty = IsEmpty;
     exports.IsEqual = IsEqual;
     exports.IsHttpsUrl = IsHttpsUrl;
     exports.IsNotEmpty = IsNotEmpty;
@@ -16508,12 +18265,16 @@ module.exports = Array.isArray || function (arr) {
     exports.KavenLinkedList = KavenLinkedList;
     exports.KavenLinkedListNode = KavenLinkedListNode;
     exports.KavenLiteEvent = KavenLiteEvent;
+    exports.KavenLog = KavenLog;
     exports.KavenMD5 = KavenMD5;
     exports.KavenSHA = KavenSHA;
     exports.KavenSHA3 = KavenSHA3;
     exports.KavenStack = KavenStack;
+    exports.KavenUInt64 = KavenUInt64;
+    exports.KavenUrl = KavenUrl;
     exports.Last = Last;
     exports.LeftRotate = LeftRotate;
+    exports.MD5 = MD5;
     exports.MIME = MIME;
     exports.MailConfigBase = MailConfigBase;
     exports.MailOption = MailOption;
@@ -16525,21 +18286,22 @@ module.exports = Array.isArray || function (arr) {
     exports.MsPerMinute = MsPerMinute;
     exports.MsPerSecond = MsPerSecond;
     exports.MsPerWeek = MsPerWeek;
+    exports.NameValueCache = NameValueCache;
     exports.NormalizePathSep = NormalizePathSep;
-    exports.Number2Hex = Number2Hex;
-    exports.Number2Uint8Array = Number2Uint8Array;
+    exports.NumberToHex = NumberToHex;
+    exports.NumberToUint8Array = NumberToUint8Array;
     exports.OnlyContains = OnlyContains;
     exports.Oscillator = Oscillator;
     exports.ParseFileSize = ParseFileSize;
     exports.ParseQueryParameters = ParseQueryParameters;
-    exports.RandomBoolean = RandomBoolean;
     exports.RejectAfter = RejectAfter;
     exports.Remove = Remove;
-    exports.RemoveEmpty = RemoveEmpty;
+    exports.RemoveAllSubStrings = RemoveAllSubStrings;
     exports.RemoveHashFromURL = RemoveHashFromURL;
-    exports.RemoveInvalidCharactersForPath = RemoveInvalidCharactersForPath;
-    exports.RemoveQueriesFromURL = RemoveQueriesFromURL;
+    exports.RemoveInvalidCharactersFromFileName = RemoveInvalidCharactersFromFileName;
+    exports.RemoveInvalidCharactersFromPath = RemoveInvalidCharactersFromPath;
     exports.RemoveQueryFromURL = RemoveQueryFromURL;
+    exports.RemoveQueryParametersFromURL = RemoveQueryParametersFromURL;
     exports.ReplaceAll = ReplaceAll;
     exports.ReplaceAllStringBetween = ReplaceAllStringBetween;
     exports.ReplaceAt = ReplaceAt;
@@ -16548,9 +18310,10 @@ module.exports = Array.isArray || function (arr) {
     exports.Reverse = Reverse;
     exports.RightRotate = RightRotate;
     exports.RunTest = RunTest;
+    exports.SHA = SHA;
+    exports.SHA3 = SHA3;
     exports.SequenceEqual = SequenceEqual;
     exports.Sleep = Sleep;
-    exports.SortByKey = SortByKey;
     exports.Split = Split;
     exports.SplitByN = SplitByN;
     exports.SplitCamelCaseString = SplitCamelCaseString;
@@ -16559,11 +18322,41 @@ module.exports = Array.isArray || function (arr) {
     exports.String2StringArray = String2StringArray;
     exports.StringArray2String = StringArray2String;
     exports.StringPosition = StringPosition;
-    exports.Strings = Strings;
+    exports.StringToArray = StringToArray;
+    exports.StringToUTF8ByteArray = StringToUTF8ByteArray;
+    exports.Strings_BEGIN_PRIVATE_KEY = Strings_BEGIN_PRIVATE_KEY;
+    exports.Strings_BEGIN_PUBLIC_KEY = Strings_BEGIN_PUBLIC_KEY;
+    exports.Strings_BREAK_LINE_REGEXP = Strings_BREAK_LINE_REGEXP;
+    exports.Strings_BackSlash = Strings_BackSlash;
+    exports.Strings_CR = Strings_CR;
+    exports.Strings_CR_LF = Strings_CR_LF;
+    exports.Strings_Development = Strings_Development;
+    exports.Strings_Dot = Strings_Dot;
+    exports.Strings_DoubleQuotes = Strings_DoubleQuotes;
+    exports.Strings_END_PRIVATE_KEY = Strings_END_PRIVATE_KEY;
+    exports.Strings_END_PUBLIC_KEY = Strings_END_PUBLIC_KEY;
+    exports.Strings_Empty = Strings_Empty;
+    exports.Strings_Failure = Strings_Failure;
+    exports.Strings_HTML_BR = Strings_HTML_BR;
+    exports.Strings_HTML_NBSP = Strings_HTML_NBSP;
+    exports.Strings_LF = Strings_LF;
+    exports.Strings_LowercaseLetters = Strings_LowercaseLetters;
+    exports.Strings_Numbers = Strings_Numbers;
+    exports.Strings_PasswordSpecialCharacters = Strings_PasswordSpecialCharacters;
+    exports.Strings_Production = Strings_Production;
+    exports.Strings_RunningMode = Strings_RunningMode;
+    exports.Strings_Slash = Strings_Slash;
+    exports.Strings_Success = Strings_Success;
+    exports.Strings_Tab = Strings_Tab;
+    exports.Strings_Unknown = Strings_Unknown;
+    exports.Strings_UppercaseLetters = Strings_UppercaseLetters;
+    exports.Strings_WhiteSpace = Strings_WhiteSpace;
+    exports.Strings_false = Strings_false;
+    exports.Strings_true = Strings_true;
     exports.SubtractDate = SubtractDate;
+    exports.SurroundBy = SurroundBy;
     exports.Swap32 = Swap32;
     exports.TimeoutAfter = TimeoutAfter;
-    exports.ToArray = ToArray;
     exports.ToDays = ToDays;
     exports.ToHEX = ToHEX;
     exports.ToHours = ToHours;
@@ -16572,26 +18365,26 @@ module.exports = Array.isArray || function (arr) {
     exports.ToMonths = ToMonths;
     exports.ToSeconds = ToSeconds;
     exports.ToUInt32 = ToUInt32;
-    exports.ToUTF8ByteArray = ToUTF8ByteArray;
     exports.ToWeeks = ToWeeks;
     exports.ToYears = ToYears;
     exports.TrimAll = TrimAll;
     exports.TrimEnd = TrimEnd;
     exports.TrimPath = TrimPath;
     exports.TrimStart = TrimStart;
+    exports.TryParseVersion = TryParseVersion;
+    exports.UTF8ByteArrayToString = UTF8ByteArrayToString;
     exports.UTF8Encode = UTF8Encode;
-    exports.UpdateQueryString = UpdateQueryString;
-    exports.padStart = padStart;
+    exports.WriteToConsole = WriteToConsole;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
 //# sourceMappingURL=index.umd.js.map
 
 
 /***/ }),
 
-/***/ 4277:
+/***/ 9608:
 /***/ ((module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -16604,7 +18397,7 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 var Stream = _interopDefault(__nccwpck_require__(2781));
 var http = _interopDefault(__nccwpck_require__(3685));
 var Url = _interopDefault(__nccwpck_require__(7310));
-var whatwgUrl = _interopDefault(__nccwpck_require__(5390));
+var whatwgUrl = _interopDefault(__nccwpck_require__(1241));
 var https = _interopDefault(__nccwpck_require__(5687));
 var zlib = _interopDefault(__nccwpck_require__(9796));
 
@@ -16757,7 +18550,7 @@ FetchError.prototype.name = 'FetchError';
 
 let convert;
 try {
-	convert = (__nccwpck_require__(1031).convert);
+	convert = (__nccwpck_require__(2628).convert);
 } catch (e) {}
 
 const INTERNALS = Symbol('Body internals');
@@ -18002,9 +19795,17 @@ AbortError.prototype = Object.create(Error.prototype);
 AbortError.prototype.constructor = AbortError;
 AbortError.prototype.name = 'AbortError';
 
+const URL$1 = Url.URL || whatwgUrl.URL;
+
 // fix an issue where "PassThrough", "resolve" aren't a named export for node <10
 const PassThrough$1 = Stream.PassThrough;
-const resolve_url = Url.resolve;
+
+const isDomainOrSubdomain = function isDomainOrSubdomain(destination, original) {
+	const orig = new URL$1(original).hostname;
+	const dest = new URL$1(destination).hostname;
+
+	return orig === dest || orig[orig.length - dest.length - 1] === '.' && orig.endsWith(dest);
+};
 
 /**
  * Fetch function
@@ -18092,7 +19893,19 @@ function fetch(url, opts) {
 				const location = headers.get('Location');
 
 				// HTTP fetch step 5.3
-				const locationURL = location === null ? null : resolve_url(request.url, location);
+				let locationURL = null;
+				try {
+					locationURL = location === null ? null : new URL$1(location, request.url).toString();
+				} catch (err) {
+					// error here can only be invalid URL in Location: header
+					// do not throw when options.redirect == manual
+					// let the user extract the errorneous redirect URL
+					if (request.redirect !== 'manual') {
+						reject(new FetchError(`uri requested responds with an invalid redirect URL: ${location}`, 'invalid-redirect'));
+						finalize();
+						return;
+					}
+				}
 
 				// HTTP fetch step 5.5
 				switch (request.redirect) {
@@ -18139,6 +19952,12 @@ function fetch(url, opts) {
 							timeout: request.timeout,
 							size: request.size
 						};
+
+						if (!isDomainOrSubdomain(request.url, locationURL)) {
+							for (const name of ['authorization', 'www-authenticate', 'cookie', 'cookie2']) {
+								requestOpts.headers.delete(name);
+							}
+						}
 
 						// HTTP-redirect fetch step 9
 						if (res.statusCode !== 303 && request.body && getTotalBytes(request) === null) {
@@ -18270,10 +20089,10 @@ exports.FetchError = FetchError;
 
 /***/ }),
 
-/***/ 407:
+/***/ 6210:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-var wrappy = __nccwpck_require__(3963)
+var wrappy = __nccwpck_require__(262)
 module.exports = wrappy(once)
 module.exports.strict = wrappy(onceStrict)
 
@@ -18319,7 +20138,7 @@ function onceStrict (fn) {
 
 /***/ }),
 
-/***/ 8648:
+/***/ 2988:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 // Copyright Joyent, Inc. and other Node contributors.
@@ -18360,12 +20179,12 @@ var objectKeys = Object.keys || function (obj) {
 
 
 /*<replacement>*/
-var util = __nccwpck_require__(1897);
-util.inherits = __nccwpck_require__(9678);
+var util = __nccwpck_require__(9041);
+util.inherits = __nccwpck_require__(8520);
 /*</replacement>*/
 
-var Readable = __nccwpck_require__(2464);
-var Writable = __nccwpck_require__(8663);
+var Readable = __nccwpck_require__(9042);
+var Writable = __nccwpck_require__(1949);
 
 util.inherits(Duplex, Readable);
 
@@ -18415,7 +20234,7 @@ function forEach (xs, f) {
 
 /***/ }),
 
-/***/ 3849:
+/***/ 7800:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 // Copyright Joyent, Inc. and other Node contributors.
@@ -18445,11 +20264,11 @@ function forEach (xs, f) {
 
 module.exports = PassThrough;
 
-var Transform = __nccwpck_require__(9498);
+var Transform = __nccwpck_require__(6053);
 
 /*<replacement>*/
-var util = __nccwpck_require__(1897);
-util.inherits = __nccwpck_require__(9678);
+var util = __nccwpck_require__(9041);
+util.inherits = __nccwpck_require__(8520);
 /*</replacement>*/
 
 util.inherits(PassThrough, Transform);
@@ -18468,7 +20287,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
 
 /***/ }),
 
-/***/ 2464:
+/***/ 9042:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 // Copyright Joyent, Inc. and other Node contributors.
@@ -18495,7 +20314,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
 module.exports = Readable;
 
 /*<replacement>*/
-var isArray = __nccwpck_require__(5436);
+var isArray = __nccwpck_require__(5608);
 /*</replacement>*/
 
 
@@ -18516,8 +20335,8 @@ if (!EE.listenerCount) EE.listenerCount = function(emitter, type) {
 var Stream = __nccwpck_require__(2781);
 
 /*<replacement>*/
-var util = __nccwpck_require__(1897);
-util.inherits = __nccwpck_require__(9678);
+var util = __nccwpck_require__(9041);
+util.inherits = __nccwpck_require__(8520);
 /*</replacement>*/
 
 var StringDecoder;
@@ -18536,7 +20355,7 @@ if (debug && debug.debuglog) {
 util.inherits(Readable, Stream);
 
 function ReadableState(options, stream) {
-  var Duplex = __nccwpck_require__(8648);
+  var Duplex = __nccwpck_require__(2988);
 
   options = options || {};
 
@@ -18597,14 +20416,14 @@ function ReadableState(options, stream) {
   this.encoding = null;
   if (options.encoding) {
     if (!StringDecoder)
-      StringDecoder = (__nccwpck_require__(8627)/* .StringDecoder */ .s);
+      StringDecoder = (__nccwpck_require__(8546)/* .StringDecoder */ .s);
     this.decoder = new StringDecoder(options.encoding);
     this.encoding = options.encoding;
   }
 }
 
 function Readable(options) {
-  var Duplex = __nccwpck_require__(8648);
+  var Duplex = __nccwpck_require__(2988);
 
   if (!(this instanceof Readable))
     return new Readable(options);
@@ -18707,7 +20526,7 @@ function needMoreData(state) {
 // backwards compatibility.
 Readable.prototype.setEncoding = function(enc) {
   if (!StringDecoder)
-    StringDecoder = (__nccwpck_require__(8627)/* .StringDecoder */ .s);
+    StringDecoder = (__nccwpck_require__(8546)/* .StringDecoder */ .s);
   this._readableState.decoder = new StringDecoder(enc);
   this._readableState.encoding = enc;
   return this;
@@ -19426,7 +21245,7 @@ function indexOf (xs, x) {
 
 /***/ }),
 
-/***/ 9498:
+/***/ 6053:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 // Copyright Joyent, Inc. and other Node contributors.
@@ -19495,11 +21314,11 @@ function indexOf (xs, x) {
 
 module.exports = Transform;
 
-var Duplex = __nccwpck_require__(8648);
+var Duplex = __nccwpck_require__(2988);
 
 /*<replacement>*/
-var util = __nccwpck_require__(1897);
-util.inherits = __nccwpck_require__(9678);
+var util = __nccwpck_require__(9041);
+util.inherits = __nccwpck_require__(8520);
 /*</replacement>*/
 
 util.inherits(Transform, Duplex);
@@ -19642,7 +21461,7 @@ function done(stream, er) {
 
 /***/ }),
 
-/***/ 8663:
+/***/ 1949:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 // Copyright Joyent, Inc. and other Node contributors.
@@ -19680,8 +21499,8 @@ Writable.WritableState = WritableState;
 
 
 /*<replacement>*/
-var util = __nccwpck_require__(1897);
-util.inherits = __nccwpck_require__(9678);
+var util = __nccwpck_require__(9041);
+util.inherits = __nccwpck_require__(8520);
 /*</replacement>*/
 
 var Stream = __nccwpck_require__(2781);
@@ -19695,7 +21514,7 @@ function WriteReq(chunk, encoding, cb) {
 }
 
 function WritableState(options, stream) {
-  var Duplex = __nccwpck_require__(8648);
+  var Duplex = __nccwpck_require__(2988);
 
   options = options || {};
 
@@ -19783,7 +21602,7 @@ function WritableState(options, stream) {
 }
 
 function Writable(options) {
-  var Duplex = __nccwpck_require__(8648);
+  var Duplex = __nccwpck_require__(2988);
 
   // Writable ctor is applied to Duplexes, though they're not
   // instanceof Writable, they're instanceof Readable.
@@ -20126,16 +21945,16 @@ function endWritable(stream, state, cb) {
 
 /***/ }),
 
-/***/ 1853:
+/***/ 2882:
 /***/ ((module, exports, __nccwpck_require__) => {
 
-exports = module.exports = __nccwpck_require__(2464);
+exports = module.exports = __nccwpck_require__(9042);
 exports.Stream = __nccwpck_require__(2781);
 exports.Readable = exports;
-exports.Writable = __nccwpck_require__(8663);
-exports.Duplex = __nccwpck_require__(8648);
-exports.Transform = __nccwpck_require__(9498);
-exports.PassThrough = __nccwpck_require__(3849);
+exports.Writable = __nccwpck_require__(1949);
+exports.Duplex = __nccwpck_require__(2988);
+exports.Transform = __nccwpck_require__(6053);
+exports.PassThrough = __nccwpck_require__(7800);
 if (!process.browser && process.env.READABLE_STREAM === 'disable') {
   module.exports = __nccwpck_require__(2781);
 }
@@ -20143,7 +21962,7 @@ if (!process.browser && process.env.READABLE_STREAM === 'disable') {
 
 /***/ }),
 
-/***/ 8627:
+/***/ 8546:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 // Copyright Joyent, Inc. and other Node contributors.
@@ -20371,7 +22190,7 @@ function base64DetectIncompleteChar(buffer) {
 
 /***/ }),
 
-/***/ 9783:
+/***/ 4012:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
@@ -20572,15 +22391,15 @@ module.exports.PROCESSING_OPTIONS = PROCESSING_OPTIONS;
 
 /***/ }),
 
-/***/ 8822:
+/***/ 8125:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-module.exports = __nccwpck_require__(3033);
+module.exports = __nccwpck_require__(5680);
 
 
 /***/ }),
 
-/***/ 3033:
+/***/ 5680:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -20852,7 +22671,7 @@ exports.debug = debug; // for test
 
 /***/ }),
 
-/***/ 4354:
+/***/ 7571:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -20878,7 +22697,7 @@ exports.getUserAgent = getUserAgent;
 
 /***/ }),
 
-/***/ 2118:
+/***/ 4478:
 /***/ ((module) => {
 
 "use strict";
@@ -21075,12 +22894,12 @@ conversions["RegExp"] = function (V, opts) {
 
 /***/ }),
 
-/***/ 6644:
+/***/ 7443:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
-const usm = __nccwpck_require__(2274);
+const usm = __nccwpck_require__(6282);
 
 exports.implementation = class URLImpl {
   constructor(constructorArgs) {
@@ -21283,15 +23102,15 @@ exports.implementation = class URLImpl {
 
 /***/ }),
 
-/***/ 6910:
+/***/ 3622:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
 
 
-const conversions = __nccwpck_require__(2118);
-const utils = __nccwpck_require__(675);
-const Impl = __nccwpck_require__(6644);
+const conversions = __nccwpck_require__(4478);
+const utils = __nccwpck_require__(9622);
+const Impl = __nccwpck_require__(7443);
 
 const impl = utils.implSymbol;
 
@@ -21487,32 +23306,32 @@ module.exports = {
 
 /***/ }),
 
-/***/ 5390:
+/***/ 1241:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 
-exports.URL = __nccwpck_require__(6910)["interface"];
-exports.serializeURL = __nccwpck_require__(2274).serializeURL;
-exports.serializeURLOrigin = __nccwpck_require__(2274).serializeURLOrigin;
-exports.basicURLParse = __nccwpck_require__(2274).basicURLParse;
-exports.setTheUsername = __nccwpck_require__(2274).setTheUsername;
-exports.setThePassword = __nccwpck_require__(2274).setThePassword;
-exports.serializeHost = __nccwpck_require__(2274).serializeHost;
-exports.serializeInteger = __nccwpck_require__(2274).serializeInteger;
-exports.parseURL = __nccwpck_require__(2274).parseURL;
+exports.URL = __nccwpck_require__(3622)["interface"];
+exports.serializeURL = __nccwpck_require__(6282).serializeURL;
+exports.serializeURLOrigin = __nccwpck_require__(6282).serializeURLOrigin;
+exports.basicURLParse = __nccwpck_require__(6282).basicURLParse;
+exports.setTheUsername = __nccwpck_require__(6282).setTheUsername;
+exports.setThePassword = __nccwpck_require__(6282).setThePassword;
+exports.serializeHost = __nccwpck_require__(6282).serializeHost;
+exports.serializeInteger = __nccwpck_require__(6282).serializeInteger;
+exports.parseURL = __nccwpck_require__(6282).parseURL;
 
 
 /***/ }),
 
-/***/ 2274:
+/***/ 6282:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
 
 const punycode = __nccwpck_require__(5477);
-const tr46 = __nccwpck_require__(9783);
+const tr46 = __nccwpck_require__(4012);
 
 const specialSchemes = {
   ftp: 21,
@@ -22811,7 +24630,7 @@ module.exports.parseURL = function (input, options) {
 
 /***/ }),
 
-/***/ 675:
+/***/ 9622:
 /***/ ((module) => {
 
 "use strict";
@@ -22839,7 +24658,7 @@ module.exports.implForWrapper = function (wrapper) {
 
 /***/ }),
 
-/***/ 3963:
+/***/ 262:
 /***/ ((module) => {
 
 // Returns a wrapper function that returns a wrapped callback
@@ -22879,7 +24698,7 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 5483:
+/***/ 5493:
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -25194,7 +27013,7 @@ XRegExp = XRegExp || (function (undef) {
 
 /***/ }),
 
-/***/ 1031:
+/***/ 2628:
 /***/ ((module) => {
 
 module.exports = eval("require")("encoding");
@@ -25385,10 +27204,10 @@ var __webpack_exports__ = {};
  * @website:     http://blog.kaven.xyz
  * @file:        [github-action-ftp-upload-file] /index.js
  * @create:      2022-03-08 10:35:33.077
- * @modify:      2022-03-11 11:11:17.487
+ * @modify:      2022-05-27 16:58:03.579
  * @version:     1.0.1
- * @times:       13
- * @lines:       289
+ * @times:       14
+ * @lines:       303
  * @copyright:   Copyright © 2022 Kaven. All Rights Reserved.
  * @description: [description]
  * @license:     [license]
@@ -25398,13 +27217,13 @@ const { existsSync, renameSync, statSync } = __nccwpck_require__(7147);
 const { join, dirname, basename } = __nccwpck_require__(1017);
 const { performance } = __nccwpck_require__(4074);
 
-const core = __nccwpck_require__(6744);
-const github = __nccwpck_require__(6515);
+const core = __nccwpck_require__(9602);
+const github = __nccwpck_require__(1340);
 
-const { FileSize, TrimStart } = __nccwpck_require__(9664);
+const { FileSize, TrimStart } = __nccwpck_require__(3419);
 
-const FTPClient = __nccwpck_require__(555);
-const basicFtp = __nccwpck_require__(3270);
+const FTPClient = __nccwpck_require__(108);
+const basicFtp = __nccwpck_require__(2877);
 
 
 function logJson(data) {
@@ -25578,6 +27397,8 @@ async function main() {
 
         const ftpLib = core.getInput("ftpLib");
 
+        let retry = Number(core.getInput("retry"));
+
         const fileSet = new Set();
 
         if (debug) {
@@ -25631,32 +27452,44 @@ async function main() {
         host = TrimStart(host, "ftp://");
         host = TrimStart(host, "ftps://");
 
-        if (ftpLib === "ftp") {
-            /**
-             * @type {FTPClient.Options}
-             */
-            const ftpConnectConfig = JSON.parse(core.getInput("ftpConnectConfig"));
+        do {
+            try {
+                if (ftpLib === "ftp") {
+                    /**
+                     * @type {FTPClient.Options}
+                     */
+                    const ftpConnectConfig = JSON.parse(core.getInput("ftpConnectConfig"));
 
-            ftpConnectConfig.host = host;
-            ftpConnectConfig.port = port;
-            ftpConnectConfig.user = user;
-            ftpConnectConfig.password = password;
-            ftpConnectConfig.secure = secure;
+                    ftpConnectConfig.host = host;
+                    ftpConnectConfig.port = port;
+                    ftpConnectConfig.user = user;
+                    ftpConnectConfig.password = password;
+                    ftpConnectConfig.secure = secure;
 
-            await ftpUpload([...fileSet], ftpConnectConfig, cwd);
-        } else {
-            /**
-             * @type {basicFtp.AccessOptions | {timeout?: Number, verbose?:Boolean}}
-             */
-            const basicFtpOptions = JSON.parse(core.getInput("basicFtpOptions"));
-            basicFtpOptions.host = host;
-            basicFtpOptions.port = port;
-            basicFtpOptions.user = user;
-            basicFtpOptions.password = password;
-            basicFtpOptions.secure = secure;
+                    await ftpUpload([...fileSet], ftpConnectConfig, cwd);
+                } else {
+                    /**
+                     * @type {basicFtp.AccessOptions | {timeout?: Number, verbose?:Boolean}}
+                     */
+                    const basicFtpOptions = JSON.parse(core.getInput("basicFtpOptions"));
+                    basicFtpOptions.host = host;
+                    basicFtpOptions.port = port;
+                    basicFtpOptions.user = user;
+                    basicFtpOptions.password = password;
+                    basicFtpOptions.secure = secure;
 
-            await basicFtpUpload([...fileSet], basicFtpOptions, cwd);
-        }
+                    await basicFtpUpload([...fileSet], basicFtpOptions, cwd);
+                }
+
+                break;
+            } catch (ex) {
+                console.error(ex);
+                
+                if (retry < 1) {
+                    core.setFailed(ex.message);
+                }
+            }
+        } while (retry-- > 0);
 
         // Get the JSON webhook payload for the event that triggered the workflow
         // const payload = JSON.stringify(github.context.payload, undefined, 2);

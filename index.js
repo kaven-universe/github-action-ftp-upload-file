@@ -4,10 +4,10 @@
  * @website:     http://blog.kaven.xyz
  * @file:        [github-action-ftp-upload-file] /index.js
  * @create:      2022-03-08 10:35:33.077
- * @modify:      2022-03-11 11:11:17.487
+ * @modify:      2022-05-27 16:58:03.579
  * @version:     1.0.1
- * @times:       13
- * @lines:       289
+ * @times:       14
+ * @lines:       303
  * @copyright:   Copyright © 2022 Kaven. All Rights Reserved.
  * @description: [description]
  * @license:     [license]
@@ -197,6 +197,8 @@ async function main() {
 
         const ftpLib = core.getInput("ftpLib");
 
+        let retry = Number(core.getInput("retry"));
+
         const fileSet = new Set();
 
         if (debug) {
@@ -250,32 +252,44 @@ async function main() {
         host = TrimStart(host, "ftp://");
         host = TrimStart(host, "ftps://");
 
-        if (ftpLib === "ftp") {
-            /**
-             * @type {FTPClient.Options}
-             */
-            const ftpConnectConfig = JSON.parse(core.getInput("ftpConnectConfig"));
+        do {
+            try {
+                if (ftpLib === "ftp") {
+                    /**
+                     * @type {FTPClient.Options}
+                     */
+                    const ftpConnectConfig = JSON.parse(core.getInput("ftpConnectConfig"));
 
-            ftpConnectConfig.host = host;
-            ftpConnectConfig.port = port;
-            ftpConnectConfig.user = user;
-            ftpConnectConfig.password = password;
-            ftpConnectConfig.secure = secure;
+                    ftpConnectConfig.host = host;
+                    ftpConnectConfig.port = port;
+                    ftpConnectConfig.user = user;
+                    ftpConnectConfig.password = password;
+                    ftpConnectConfig.secure = secure;
 
-            await ftpUpload([...fileSet], ftpConnectConfig, cwd);
-        } else {
-            /**
-             * @type {basicFtp.AccessOptions | {timeout?: Number, verbose?:Boolean}}
-             */
-            const basicFtpOptions = JSON.parse(core.getInput("basicFtpOptions"));
-            basicFtpOptions.host = host;
-            basicFtpOptions.port = port;
-            basicFtpOptions.user = user;
-            basicFtpOptions.password = password;
-            basicFtpOptions.secure = secure;
+                    await ftpUpload([...fileSet], ftpConnectConfig, cwd);
+                } else {
+                    /**
+                     * @type {basicFtp.AccessOptions | {timeout?: Number, verbose?:Boolean}}
+                     */
+                    const basicFtpOptions = JSON.parse(core.getInput("basicFtpOptions"));
+                    basicFtpOptions.host = host;
+                    basicFtpOptions.port = port;
+                    basicFtpOptions.user = user;
+                    basicFtpOptions.password = password;
+                    basicFtpOptions.secure = secure;
 
-            await basicFtpUpload([...fileSet], basicFtpOptions, cwd);
-        }
+                    await basicFtpUpload([...fileSet], basicFtpOptions, cwd);
+                }
+
+                break;
+            } catch (ex) {
+                console.error(ex);
+                
+                if (retry < 1) {
+                    core.setFailed(ex.message);
+                }
+            }
+        } while (retry-- > 0);
 
         // Get the JSON webhook payload for the event that triggered the workflow
         // const payload = JSON.stringify(github.context.payload, undefined, 2);

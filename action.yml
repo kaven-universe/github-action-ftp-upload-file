@@ -42,6 +42,9 @@ inputs:
 
   debug:
     default: false
+
+  retry:
+    default: 0
  
 runs:
   using: "node12"

@@ -7,12 +7,12 @@ This action uploads the file to the ftp(s) server.
 ```yml
 - name: Upload
   id: upload
-  uses: Kaven-Universe/github-action-ftp-upload-file@v1.0.3
+  uses: kaven-universe/github-action-ftp-upload-file@v1
   with:
-    host: localhost
+    host: ftp-server.com
     port: 21
     user: anonymous
-    password: ******
+    password: "******"
     secure: false
     file: "name.txt"
     rename-file-to: "newName.txt"
